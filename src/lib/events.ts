@@ -47,9 +47,9 @@ function shape(r: Row): EventMeta {
 
 export async function getEventMeta(limit = 100): Promise<EventMeta[]> {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_KEY;
   if (!url || !key) {
-    throw new Error('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set');
+    throw new Error('SUPABASE_URL or SUPABASE_KEY is not set');
   }
 
   const endpoint =
