@@ -8,7 +8,8 @@
     "howItWorks": "How it works",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "events": "Event meta tags"
+    "events": "Events",
+    "attractions": "Attractions"
   },
   "Hero": {
     "badge": "SEO content workspace",
@@ -93,6 +94,10 @@
     "moderation": "Moderation",
     "showMore": "Show more",
     "friendlyUrl": "Friendly URL",
-    "adminMeta": "Current meta tags (admin)"
+    "adminMeta": "Current meta tags (admin)",
+    "eventsTitle": "Events",
+    "attractionsTitle": "Attractions",
+    "eventsSubtitle": "Events catalog. Click cards to filter (multi-select), or search by ID.",
+    "attractionsSubtitle": "Attractions catalog. Click cards to filter (multi-select), or search by ID."
   }
 }

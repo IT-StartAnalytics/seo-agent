@@ -17,9 +17,14 @@ export default async function Header() {
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           {authed && (
-            <Link href="/events" className="text-foreground/70 hover:text-foreground">
-              {t('events')}
-            </Link>
+            <>
+              <Link href="/events" className="text-foreground/70 hover:text-foreground">
+                {t('events')}
+              </Link>
+              <Link href="/attractions" className="text-foreground/70 hover:text-foreground">
+                {t('attractions')}
+              </Link>
+            </>
           )}
           <LocaleSwitcher />
           {authed && (

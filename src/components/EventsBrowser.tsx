@@ -53,7 +53,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
 
   // Ordered card list (only show non-empty)
   const cards = useMemo(() => {
-    const order = ['all', 'new', 'on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation', 'attractions'];
+    const order = ['all', 'new', 'on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation'];
     const label = (k: string) =>
       k === 'all' ? t('total') : k === 'new' ? t('newTab') : k === 'attractions' ? t('attractions') : groupLabel(k);
     return order
@@ -170,11 +170,6 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
                 {e.is_new && (
                   <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-[11px] font-medium">
                     {t('newTab')}
-                  </span>
-                )}
-                {e.is_attraction && (
-                  <span className="rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-300 px-2 py-0.5 text-[11px]">
-                    {t('attraction')}
                   </span>
                 )}
                 <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-[11px] capitalize">
