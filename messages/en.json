@@ -32,5 +32,11 @@
   },
   "Footer": {
     "rights": "All rights reserved."
+  },
+  "Content": {
+    "title": "Content from Neon",
+    "empty": "No published pages yet. Run the schema and seed in your Neon SQL Editor.",
+    "count": "Published pages",
+    "dbError": "Could not read from the database yet."
   }
 }
