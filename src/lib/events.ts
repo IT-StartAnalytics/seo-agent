@@ -186,3 +186,45 @@ export async function getEventById(id: string): Promise<EventDetail> {
     generated: rn ? shapeGenerated(rn) : null
   };
 }
+
+// ---- Full catalog dashboard ----------------------------------------------
+
+export type CatalogEvent = {
+  event_id: string;
+  name: string | null;
+  city: string | null;
+  country: string | null;
+  status: string | null;
+  is_attraction: boolean;
+  is_new: boolean;
+};
+
+export async function getCatalog(): Promise<CatalogEvent[]> {
+  const cols = 'event_id,event_name_en,city,country,status,all_categories';
+  // Supabase caps responses at ~1000 rows; page through the catalog.
+  const offsets = [0, 1000, 2000];
+  const [pages, streamRows] = await Promise.all([
+    Promise.all(
+      offsets.map((off) =>
+        sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`)
+      )
+    ),
+    sb('new_events_stream?select=event_id&limit=1000')
+  ]);
+
+  const newSet = new Set(streamRows.map((r) => String(r.event_id)));
+  const rows = pages.flat();
+
+  return rows.map((r) => {
+    const cats = (s(r, 'all_categories') ?? '').toLowerCase();
+    return {
+      event_id: String(r.event_id),
+      name: cs(r, 'event_name_en'),
+      city: cs(r, 'city'),
+      country: cs(r, 'country'),
+      status: s(r, 'status'),
+      is_attraction: cats.includes('attraction'),
+      is_new: newSet.has(String(r.event_id))
+    };
+  });
+}

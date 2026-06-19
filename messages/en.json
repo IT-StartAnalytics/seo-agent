@@ -51,7 +51,7 @@
   },
   "Events": {
     "title": "Event meta tags",
-    "subtitle": "New events from the SEO automation. Search any event by ID, filter events vs attractions, and see generated meta tags.",
+    "subtitle": "Full event catalog. Click a card to filter, or search any event by ID.",
     "dbError": "Could not read data from the database.",
     "empty": "Nothing matches the current filter.",
     "count": "Shown",
@@ -87,6 +87,10 @@
     "ended": "Ended",
     "statusUnknown": "Unknown",
     "typeLabel": "Type",
-    "statusLabel": "Status"
+    "statusLabel": "Status",
+    "comingSoon": "Coming soon",
+    "soldOut": "Sold out",
+    "moderation": "Moderation",
+    "showMore": "Show more"
   }
 }

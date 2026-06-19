@@ -1,7 +1,7 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import EventsBrowser from '@/components/EventsBrowser';
-import {getNewEvents, type NewEvent} from '@/lib/events';
+import {getCatalog, type CatalogEvent} from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,10 +14,10 @@ export default async function EventsPage({
   setRequestLocale(locale);
   const t = await getTranslations('Events');
 
-  let events: NewEvent[] = [];
+  let events: CatalogEvent[] = [];
   let error = false;
   try {
-    events = await getNewEvents();
+    events = await getCatalog();
   } catch {
     error = true;
   }
