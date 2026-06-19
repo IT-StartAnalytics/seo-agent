@@ -16,6 +16,11 @@ export default async function Header() {
           SEO<span className="text-indigo-500">Agent</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm">
+          {authed && (
+            <Link href="/events" className="text-foreground/70 hover:text-foreground">
+              {t('events')}
+            </Link>
+          )}
           <LocaleSwitcher />
           {authed && (
             <form action="/api/auth/logout" method="post">
