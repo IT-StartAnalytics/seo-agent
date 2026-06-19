@@ -1,9 +1,14 @@
-import {useTranslations} from 'next-intl';
+import {getTranslations} from 'next-intl/server';
+import {cookies} from 'next/headers';
 import {Link} from '@/i18n/navigation';
+import {AUTH_COOKIE, verifySessionToken} from '@/lib/auth';
 import LocaleSwitcher from './LocaleSwitcher';
 
-export default function Header() {
-  const t = useTranslations('Nav');
+export default async function Header() {
+  const t = await getTranslations('Nav');
+  const store = await cookies();
+  const authed = await verifySessionToken(store.get(AUTH_COOKIE)?.value);
+
   return (
     <header className="sticky top-0 z-10 backdrop-blur border-b border-black/5 dark:border-white/10">
       <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
@@ -18,9 +23,16 @@ export default function Header() {
             {t('howItWorks')}
           </a>
           <LocaleSwitcher />
-          <button className="rounded-full bg-foreground text-background px-4 py-1.5 text-sm font-medium">
-            {t('signIn')}
-          </button>
+          {authed && (
+            <form action="/api/auth/logout" method="post">
+              <button
+                type="submit"
+                className="rounded-full bg-foreground text-background px-4 py-1.5 text-sm font-medium"
+              >
+                {t('signOut')}
+              </button>
+            </form>
+          )}
         </nav>
       </div>
     </header>

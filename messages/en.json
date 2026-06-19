@@ -6,7 +6,8 @@
   "Nav": {
     "features": "Features",
     "howItWorks": "How it works",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "signOut": "Sign out"
   },
   "Hero": {
     "badge": "SEO content workspace",
@@ -38,5 +39,13 @@
     "empty": "No published pages yet. Run the schema and seed in your Neon SQL Editor.",
     "count": "Published pages",
     "dbError": "Could not read from the database yet."
+  },
+  "Login": {
+    "title": "Sign in",
+    "subtitle": "Enter the password to access SEO Agent.",
+    "passwordLabel": "Password",
+    "submit": "Sign in",
+    "loading": "Signing in…",
+    "error": "Wrong password. Try again."
   }
 }
