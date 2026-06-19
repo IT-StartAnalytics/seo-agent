@@ -87,14 +87,22 @@ const NAMED: Record<string, string> = {
   ldquo: '\u201C', rdquo: '\u201D', lsquo: '\u2018', rsquo: '\u2019',
   laquo: '\u00AB', raquo: '\u00BB', ndash: '\u2013', mdash: '\u2014',
   hellip: '\u2026', copy: '\u00A9', reg: '\u00AE', trade: '\u2122',
-  deg: '\u00B0', euro: '\u20AC', pound: '\u00A3', middot: '\u00B7', times: '\u00D7'
+  deg: '\u00B0', euro: '\u20AC', pound: '\u00A3', middot: '\u00B7', times: '\u00D7',
+  bull: '\u2022', sbquo: '\u201A', bdquo: '\u201E', dagger: '\u2020', Dagger: '\u2021',
+  prime: '\u2032', Prime: '\u2033', frasl: '\u2044', minus: '\u2212', emsp: ' ', ensp: ' ', thinsp: ' ', shy: ''
 };
 
 function decodeEntities(input: string): string {
-  return input
-    .replace(/&#x([0-9a-fA-F]+);/g, (_m, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_m, d) => String.fromCodePoint(parseInt(d, 10)))
-    .replace(/&([a-zA-Z]+);/g, (_m, n) => NAMED[n] ?? `&${n};`);
+  let prev = input;
+  for (let i = 0; i < 5; i++) {
+    const out = prev
+      .replace(/&#x([0-9a-fA-F]+);/g, (_m, h) => String.fromCodePoint(parseInt(h, 16)))
+      .replace(/&#(\d+);/g, (_m, d) => String.fromCodePoint(parseInt(d, 10)))
+      .replace(/&([a-zA-Z][a-zA-Z0-9]*);/g, (_m, n) => NAMED[n] ?? `&${n};`);
+    if (out === prev) return out;
+    prev = out;
+  }
+  return prev;
 }
 
 // Strip HTML tags and decode entities for clean display.
