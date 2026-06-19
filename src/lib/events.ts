@@ -108,10 +108,21 @@ export async function getNewEvents(): Promise<NewEvent[]> {
 
 export async function getEventById(id: string): Promise<EventDetail> {
   const clean = id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const lookupCols =
+    'event_id,url,event_name_en,event_long_name_ar,venue,venue_ar,city,country,' +
+    'event_start_datetime,event_end_datetime,description_en,overview_description_en,' +
+    'all_categories,status,content_hash,is_title_protected,title_protection_reason,' +
+    'promo_mob_img,promo_img';
+  const runsCols =
+    'event_id,status,published,finished_at,event_types,performers,generated_langs,' +
+    'h1_en,meta_title_en,meta_desc_en,h1_ru,meta_title_ru,meta_desc_ru,' +
+    'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
+  const streamCols = 'event_id,is_attraction,seo_done,status';
+
   const [lookup, runs, stream] = await Promise.all([
-    sb(`seo_event_lookup?event_id=eq.${clean}&limit=1`),
-    sb(`seo_agent_runs?event_id=eq.${clean}&order=finished_at.desc&limit=1`),
-    sb(`new_events_stream?event_id=eq.${clean}&limit=1`)
+    sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${clean}&limit=1`),
+    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${clean}&order=finished_at.desc&limit=1`),
+    sb(`new_events_stream?select=${streamCols}&event_id=eq.${clean}&limit=1`)
   ]);
 
   const lk = lookup[0];
