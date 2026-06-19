@@ -112,7 +112,11 @@ function clean(value: string | null): string | null {
     .replace(/<\s*br\s*\/?>/gi, ' ')
     .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, ' ')
     .replace(/<[^>]+>/g, '');
-  const out = decodeEntities(noTags).replace(/\s+/g, ' ').trim();
+  let out = decodeEntities(noTags).replace(/\s+/g, ' ').trim();
+  // Source data truncates long fields mid-entity (e.g. "...Man,&rdqu").
+  // Drop a dangling incomplete entity and mark the cut with an ellipsis.
+  const trimmed = out.replace(/&#?[a-zA-Z0-9]*$/, '').replace(/[\s,;:.\-]+$/, '');
+  if (trimmed !== out && trimmed.length) out = trimmed + '…';
   return out.length ? out : null;
 }
 
