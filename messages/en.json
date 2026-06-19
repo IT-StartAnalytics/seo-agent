@@ -1,0 +1,36 @@
+{
+  "Meta": {
+    "title": "SEO Agent — Site Content & Meta Tag Management",
+    "description": "SEO Agent helps you manage your website content and meta tags from one place — fast, bilingual, and built for search."
+  },
+  "Nav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "signIn": "Sign in"
+  },
+  "Hero": {
+    "badge": "SEO content workspace",
+    "title": "Manage your site content and meta tags in one place",
+    "subtitle": "SEO Agent connects to your data and gives you a single workspace to edit content, optimize meta tags, and keep every page search-ready — in English and Russian.",
+    "ctaPrimary": "Get started",
+    "ctaSecondary": "See features"
+  },
+  "Features": {
+    "heading": "Everything you need to stay search-ready",
+    "content": {
+      "title": "Content management",
+      "body": "Edit and organize page content from a clean, centralized dashboard."
+    },
+    "meta": {
+      "title": "Meta tags",
+      "body": "Craft titles, descriptions, and Open Graph tags optimized for every page."
+    },
+    "bilingual": {
+      "title": "Bilingual by default",
+      "body": "Run your site in English and Russian without duplicating work."
+    }
+  },
+  "Footer": {
+    "rights": "All rights reserved."
+  }
+}
