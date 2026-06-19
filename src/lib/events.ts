@@ -110,14 +110,6 @@ function clean(value: string | null): string | null {
 // cleaned string getter
 const cs = (r: Row, k: string) => clean(s(r, k));
 
-// Build the friendly URL from a full event URL by dropping the numeric id segment:
-//   https://dubai.platinumlist.net/event-tickets/100815/aquaventure-atlantis
-//   -> https://dubai.platinumlist.net/event-tickets/aquaventure-atlantis
-function friendlyFromUrl(u: string | null): string | null {
-  if (!u) return null;
-  return u.replace(/(\/event-tickets\/)\d+\//i, '$1');
-}
-
 function originFromUrl(u: string | null): string | null {
   if (!u) return null;
   try {
@@ -199,7 +191,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const origin = originFromUrl(urlVal) ?? (sub ? `https://${sub}.platinumlist.net` : null);
   const friendly =
     (rawFriendly && origin ? `${origin}/event-tickets/${rawFriendly}` : null) ??
-    friendlyFromUrl(urlVal);
+    urlVal; // no admin friendly slug -> use the full URL (with id)
 
   const admin = rp
     ? {
