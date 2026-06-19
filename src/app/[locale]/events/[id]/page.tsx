@@ -131,9 +131,9 @@ export default async function EventDetailPage({
               <section className="mt-7">
                 <h2 className="text-sm font-semibold text-foreground/70">{t('adminMeta')}</h2>
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  {(['en', 'ar'] as const).map((l) => (
+                  {LANGS.map((l) => (
                     <div key={l} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
-                      <div className="text-xs font-semibold text-foreground/60">{l.toUpperCase()}</div>
+                      <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[l]}</div>
                       <MetaField label="H1" value={data.admin!.h1[l]} rtl={l === 'ar'} />
                       <MetaField label="Meta Title" value={data.admin!.meta_title[l]} rtl={l === 'ar'} limit={60} />
                       <MetaField label="Meta Description" value={data.admin!.meta_description[l]} rtl={l === 'ar'} limit={250} />
