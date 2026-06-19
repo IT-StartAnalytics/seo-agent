@@ -54,10 +54,13 @@ export default async function EventDetailPage({
 
   let data: EventDetail | null = null;
   let error = false;
+  let errMsg = '';
   try {
     data = await getEventById(id);
-  } catch {
+  } catch (e) {
+    console.error('event detail error', e);
     error = true;
+    errMsg = e instanceof Error ? e.message : String(e);
   }
 
   return (
@@ -69,7 +72,7 @@ export default async function EventDetailPage({
         </Link>
 
         {error ? (
-          <p className="mt-8 text-foreground/70">{t('dbError')}</p>
+          <p className="mt-8 text-foreground/70">{t('dbError')}<br /><span className="text-xs text-red-500 break-all">{errMsg}</span></p>
         ) : !data || !data.found ? (
           <p className="mt-8 text-foreground/70">{t('notFound')}: {id}</p>
         ) : (

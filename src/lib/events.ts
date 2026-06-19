@@ -65,7 +65,10 @@ async function sb(path: string): Promise<Row[]> {
     headers: {apikey: key, Authorization: `Bearer ${key}`},
     cache: 'no-store'
   });
-  if (!res.ok) throw new Error(`Supabase read failed: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Supabase ${res.status} on ${path} :: ${body.slice(0, 300)}`);
+  }
   return (await res.json()) as Row[];
 }
 
