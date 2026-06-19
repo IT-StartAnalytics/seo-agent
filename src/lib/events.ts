@@ -110,6 +110,19 @@ function clean(value: string | null): string | null {
 // cleaned string getter
 const cs = (r: Row, k: string) => clean(s(r, k));
 
+// Build the friendly URL from a full event URL by dropping the numeric id segment:
+//   https://dubai.platinumlist.net/event-tickets/100815/aquaventure-atlantis
+//   -> https://dubai.platinumlist.net/event-tickets/aquaventure-atlantis
+function friendlyFromUrl(u: string | null): string | null {
+  if (!u) return null;
+  return u.replace(/(\/event-tickets\/)\d+\//i, '$1');
+}
+
+function citySubdomain(city: string | null): string | null {
+  if (!city) return null;
+  return city.trim().toLowerCase().replace(/\s+/g, '-');
+}
+
 function shapeGenerated(r: Row): GeneratedMeta {
   return {
     status: s(r, 'status'),
@@ -171,9 +184,12 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const rs = (k: string) => (rp && rp[k] != null ? String(rp[k]) : null);
 
   const urlVal = (lk ? s(lk, 'url') : null) ?? rs('url');
+  const cityVal = (lk ? s(lk, 'city') : null) ?? rs('city');
+  const rawFriendly = rs('friendly_url'); // usually a slug
+  const sub = citySubdomain(cityVal);
   const friendly =
-    rs('friendly_url') ??
-    (urlVal ? urlVal.split('?')[0].replace(/\/$/, '').split('/').pop() || null : null);
+    friendlyFromUrl(urlVal) ??
+    (rawFriendly && sub ? `https://${sub}.platinumlist.net/event-tickets/${rawFriendly}` : null);
 
   const admin = rp
     ? {
@@ -227,10 +243,11 @@ export type CatalogEvent = {
   status: string | null;
   is_attraction: boolean;
   is_new: boolean;
+  url: string | null;
 };
 
 export async function getCatalog(): Promise<CatalogEvent[]> {
-  const cols = 'event_id,event_name_en,city,country,status,all_categories';
+  const cols = 'event_id,event_name_en,city,country,status,all_categories,url';
   // Supabase caps responses at ~1000 rows; page through the catalog.
   const offsets = [0, 1000, 2000];
   const [pages, streamRows] = await Promise.all([
@@ -254,7 +271,8 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       country: cs(r, 'country'),
       status: s(r, 'status'),
       is_attraction: cats.includes('attraction'),
-      is_new: newSet.has(String(r.event_id))
+      is_new: newSet.has(String(r.event_id)),
+      url: s(r, 'url')
     };
   });
 }
