@@ -25,7 +25,7 @@ export default async function EventsPage({
   return (
     <>
       <Header />
-      <main className="flex-1 mx-auto max-w-6xl px-6 py-12 w-full">
+      <main className="flex-1 mx-auto max-w-7xl px-6 py-12 w-full">
         <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="mt-1 text-sm text-foreground/60">{t('subtitle')}</p>
         {error ? (

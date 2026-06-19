@@ -90,24 +90,24 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
 
   return (
     <div className="mt-8">
-      {/* Clickable stat cards = filter */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {/* Clickable stat cards = filter (compact, wrap to one/few rows) */}
+      <div className="flex flex-wrap gap-2">
         {cards.map((c) => {
           const on = active === c.key;
           return (
             <button
               key={c.key}
               onClick={() => setFilter(c.key)}
-              className={`text-left rounded-2xl border p-4 transition-colors ${
+              className={`flex items-baseline gap-1.5 rounded-xl border px-3 py-1.5 transition-colors ${
                 on
                   ? 'border-indigo-500 bg-indigo-500/10'
-                  : 'border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/25'
+                  : 'border-black/10 dark:border-white/12 hover:border-black/25 dark:hover:border-white/30'
               }`}
             >
-              <div className="text-2xl font-semibold tabular-nums">{c.value}</div>
-              <div className={`mt-1 text-xs ${on ? 'text-indigo-600 dark:text-indigo-300' : 'text-foreground/55'}`}>
+              <span className="text-base font-semibold tabular-nums leading-none">{c.value}</span>
+              <span className={`text-[11px] whitespace-nowrap ${on ? 'text-indigo-600 dark:text-indigo-300' : 'text-foreground/55'}`}>
                 {c.label}
-              </div>
+              </span>
             </button>
           );
         })}
