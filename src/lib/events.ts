@@ -34,6 +34,7 @@ export type GeneratedMeta = {
 export type EventDetail = {
   event_id: string;
   found: boolean;
+  is_attraction: boolean;
   source: {
     url: string | null;
     name_en: string | null;
@@ -206,6 +207,8 @@ export async function getEventById(id: string): Promise<EventDetail> {
         meta_description: {en: clean(rs('meta_description_en')), ar: clean(rs('meta_description_ar'))}
       }
     : null;
+  const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
+  const isAttraction = st ? Boolean(st.is_attraction) : catsLk.includes('attraction');
   const hasAdmin =
     admin &&
     (admin.h1.en || admin.h1.ar || admin.meta_title.en || admin.meta_title.ar || admin.meta_description.en || admin.meta_description.ar);
@@ -213,6 +216,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
   return {
     event_id: eid,
     found: Boolean(lk || rn || st),
+    is_attraction: isAttraction,
     source: lk
       ? {
           url: s(lk, 'url'),
