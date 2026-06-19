@@ -121,7 +121,7 @@ export default async function EventDetailPage({
                   <Row label={t('categories')} value={data.source.categories} />
                   <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
                   <Row label="URL" value={data.source.url} href={data.source.url} />
-                  <Row label={t('friendlyUrl')} value={data.source.friendly_url} href={data.source.friendly_url} />
+                  <Row label={t('friendlyUrl')} value={data.source.friendly_url ?? '\u2014'} href={data.source.friendly_url} />
                   <Row label={t('description')} value={data.source.description} />
                 </div>
               </section>
