@@ -118,6 +118,15 @@ function friendlyFromUrl(u: string | null): string | null {
   return u.replace(/(\/event-tickets\/)\d+\//i, '$1');
 }
 
+function originFromUrl(u: string | null): string | null {
+  if (!u) return null;
+  try {
+    return new URL(u).origin;
+  } catch {
+    return null;
+  }
+}
+
 function citySubdomain(city: string | null): string | null {
   if (!city) return null;
   return city.trim().toLowerCase().replace(/\s+/g, '-');
@@ -185,11 +194,12 @@ export async function getEventById(id: string): Promise<EventDetail> {
 
   const urlVal = (lk ? s(lk, 'url') : null) ?? rs('url');
   const cityVal = (lk ? s(lk, 'city') : null) ?? rs('city');
-  const rawFriendly = rs('friendly_url'); // usually a slug
+  const rawFriendly = rs('friendly_url'); // admin ЧПУ slug (preferred when present)
   const sub = citySubdomain(cityVal);
+  const origin = originFromUrl(urlVal) ?? (sub ? `https://${sub}.platinumlist.net` : null);
   const friendly =
-    friendlyFromUrl(urlVal) ??
-    (rawFriendly && sub ? `https://${sub}.platinumlist.net/event-tickets/${rawFriendly}` : null);
+    (rawFriendly && origin ? `${origin}/event-tickets/${rawFriendly}` : null) ??
+    friendlyFromUrl(urlVal);
 
   const admin = rp
     ? {
