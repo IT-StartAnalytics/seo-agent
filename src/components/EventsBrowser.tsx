@@ -22,7 +22,7 @@ const PAGE = 100;
 export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
   const t = useTranslations('Events');
   const router = useRouter();
-  const [active, setActive] = useState<string>('all'); // all | new | attractions | <group>
+  const [selected, setSelected] = useState<Set<string>>(new Set()); // empty = all
   const [query, setQuery] = useState('');
   const [visible, setVisible] = useState(PAGE);
 
@@ -61,11 +61,15 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       .map((k) => ({key: k, label: label(k), value: counts[k] ?? 0}));
   }, [counts, t]);
 
+  const matchesKey = (e: CatalogEvent, key: string) => {
+    if (key === 'new') return e.is_new;
+    if (key === 'attractions') return e.is_attraction;
+    return statusGroup(e.status) === key;
+  };
   const matchesActive = (e: CatalogEvent) => {
-    if (active === 'all') return true;
-    if (active === 'new') return e.is_new;
-    if (active === 'attractions') return e.is_attraction;
-    return statusGroup(e.status) === active;
+    if (selected.size === 0) return true; // "all"
+    for (const key of selected) if (matchesKey(e, key)) return true;
+    return false;
   };
 
   const filtered = useMemo(() => {
@@ -75,7 +79,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       if (q && !(e.event_id.includes(q) || (e.name ?? '').toLowerCase().includes(q))) return false;
       return true;
     });
-  }, [events, active, query]);
+  }, [events, selected, query]);
 
   const shown = filtered.slice(0, visible);
 
@@ -83,9 +87,18 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     const id = query.trim().replace(/[^a-zA-Z0-9_-]/g, '');
     if (id) router.push(`/events/${id}`);
   }
-  function setFilter(k: string) {
-    setActive(k);
+  function toggleFilter(k: string) {
     setVisible(PAGE);
+    if (k === 'all') {
+      setSelected(new Set());
+      return;
+    }
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
   }
 
   return (
@@ -93,11 +106,11 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       {/* Clickable stat cards = filter (compact, wrap to one/few rows) */}
       <div className="flex flex-wrap gap-2">
         {cards.map((c) => {
-          const on = active === c.key;
+          const on = c.key === 'all' ? selected.size === 0 : selected.has(c.key);
           return (
             <button
               key={c.key}
-              onClick={() => setFilter(c.key)}
+              onClick={() => toggleFilter(c.key)}
               className={`flex items-baseline gap-1.5 rounded-xl border px-3 py-1.5 transition-colors ${
                 on
                   ? 'border-indigo-500 bg-indigo-500/10'
