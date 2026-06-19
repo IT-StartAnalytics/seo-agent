@@ -91,6 +91,8 @@
     "comingSoon": "Скоро",
     "soldOut": "Распроданы",
     "moderation": "На модерации",
-    "showMore": "Показать ещё"
+    "showMore": "Показать ещё",
+    "friendlyUrl": "Friendly URL",
+    "adminMeta": "Текущие мета-теги (из админки)"
   }
 }

@@ -121,7 +121,25 @@ export default async function EventDetailPage({
                   <Row label={t('categories')} value={data.source.categories} />
                   <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
                   <Row label="URL" value={data.source.url} href={data.source.url} />
+                  <Row label={t('friendlyUrl')} value={data.source.friendly_url} />
                   <Row label={t('description')} value={data.source.description} />
+                </div>
+              </section>
+            )}
+
+            {/* Existing meta tags from the admin panel (raw_payload) */}
+            {data.admin && (
+              <section className="mt-7">
+                <h2 className="text-sm font-semibold text-foreground/70">{t('adminMeta')}</h2>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  {(['en', 'ar'] as const).map((l) => (
+                    <div key={l} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
+                      <div className="text-xs font-semibold text-foreground/60">{l.toUpperCase()}</div>
+                      <MetaField label="H1" value={data.admin!.h1[l]} rtl={l === 'ar'} />
+                      <MetaField label="Meta Title" value={data.admin!.meta_title[l]} rtl={l === 'ar'} limit={60} />
+                      <MetaField label="Meta Description" value={data.admin!.meta_description[l]} rtl={l === 'ar'} limit={250} />
+                    </div>
+                  ))}
                 </div>
               </section>
             )}

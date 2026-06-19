@@ -50,6 +50,12 @@ export type EventDetail = {
     is_title_protected: boolean | null;
     title_protection_reason: string | null;
     promo_img: string | null;
+    friendly_url: string | null;
+  } | null;
+  admin: {
+    h1: Record<'en' | 'ar', string | null>;
+    meta_title: Record<'en' | 'ar', string | null>;
+    meta_description: Record<'en' | 'ar', string | null>;
   } | null;
   stream: {is_attraction: boolean; seo_done: boolean; status: string | null} | null;
   generated: GeneratedMeta | null;
@@ -136,7 +142,7 @@ export async function getNewEvents(): Promise<NewEvent[]> {
 }
 
 export async function getEventById(id: string): Promise<EventDetail> {
-  const clean = id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
   const lookupCols =
     'event_id,url,event_name_en,event_long_name_ar,venue,venue_ar,city,country,' +
     'event_start_datetime,event_end_datetime,description_en,overview_description_en,' +
@@ -146,20 +152,42 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'event_id,status,published,finished_at,event_types,performers,generated_langs,' +
     'h1_en,meta_title_en,meta_desc_en,h1_ru,meta_title_ru,meta_desc_ru,' +
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
-  const streamCols = 'event_id,is_attraction,seo_done,status';
+  const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
 
   const [lookup, runs, stream] = await Promise.all([
-    sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${clean}&limit=1`),
-    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${clean}&order=finished_at.desc&limit=1`),
-    sb(`new_events_stream?select=${streamCols}&event_id=eq.${clean}&limit=1`)
+    sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
+    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&order=finished_at.desc&limit=1`),
+    sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`)
   ]);
 
   const lk = lookup[0];
   const rn = runs[0];
   const st = stream[0];
 
+  const rp =
+    st && typeof st.raw_payload === 'object' && st.raw_payload
+      ? (st.raw_payload as Record<string, unknown>)
+      : null;
+  const rs = (k: string) => (rp && rp[k] != null ? String(rp[k]) : null);
+
+  const urlVal = (lk ? s(lk, 'url') : null) ?? rs('url');
+  const friendly =
+    rs('friendly_url') ??
+    (urlVal ? urlVal.split('?')[0].replace(/\/$/, '').split('/').pop() || null : null);
+
+  const admin = rp
+    ? {
+        h1: {en: clean(rs('event_name_en') ?? rs('event_long_name_en')), ar: clean(rs('event_name_ar') ?? rs('event_long_name_ar'))},
+        meta_title: {en: clean(rs('meta_title_en')), ar: clean(rs('meta_title_ar'))},
+        meta_description: {en: clean(rs('meta_description_en')), ar: clean(rs('meta_description_ar'))}
+      }
+    : null;
+  const hasAdmin =
+    admin &&
+    (admin.h1.en || admin.h1.ar || admin.meta_title.en || admin.meta_title.ar || admin.meta_description.en || admin.meta_description.ar);
+
   return {
-    event_id: clean,
+    event_id: eid,
     found: Boolean(lk || rn || st),
     source: lk
       ? {
@@ -177,13 +205,15 @@ export async function getEventById(id: string): Promise<EventDetail> {
           status: s(lk, 'status'),
           is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
           title_protection_reason: cs(lk, 'title_protection_reason'),
-          promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img')
+          promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img'),
+          friendly_url: friendly
         }
       : null,
     stream: st
       ? {is_attraction: Boolean(st.is_attraction), seo_done: Boolean(st.seo_done), status: s(st, 'status')}
       : null,
-    generated: rn ? shapeGenerated(rn) : null
+    generated: rn ? shapeGenerated(rn) : null,
+    admin: hasAdmin ? admin : null
   };
 }
 

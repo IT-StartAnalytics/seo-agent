@@ -91,6 +91,8 @@
     "comingSoon": "Coming soon",
     "soldOut": "Sold out",
     "moderation": "Moderation",
-    "showMore": "Show more"
+    "showMore": "Show more",
+    "friendlyUrl": "Friendly URL",
+    "adminMeta": "Current meta tags (admin)"
   }
 }
