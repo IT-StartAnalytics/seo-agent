@@ -80,6 +80,13 @@
     "regenerate": "Сгенерировать",
     "regenerating": "Отправляю…",
     "regenerateOk": "В очереди ✓",
-    "regenerateError": "Ошибка"
+    "regenerateError": "Ошибка",
+    "total": "Всего",
+    "newTab": "Новые",
+    "onSale": "В продаже",
+    "ended": "Закончились",
+    "statusUnknown": "Без статуса",
+    "typeLabel": "Тип",
+    "statusLabel": "Статус"
   }
 }

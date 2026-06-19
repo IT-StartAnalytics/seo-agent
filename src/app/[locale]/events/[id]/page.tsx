@@ -64,7 +64,7 @@ export default async function EventDetailPage({
   return (
     <>
       <Header />
-      <main className="flex-1 mx-auto max-w-3xl px-6 py-10 w-full">
+      <main className="flex-1 mx-auto max-w-4xl px-6 py-10 w-full">
         <Link href="/events" className="text-sm text-indigo-500 hover:underline">
           ← {t('back')}
         </Link>

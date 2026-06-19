@@ -80,6 +80,13 @@
     "regenerate": "Regenerate",
     "regenerating": "Sending…",
     "regenerateOk": "Queued ✓",
-    "regenerateError": "Failed"
+    "regenerateError": "Failed",
+    "total": "Total",
+    "newTab": "New",
+    "onSale": "On sale",
+    "ended": "Ended",
+    "statusUnknown": "Unknown",
+    "typeLabel": "Type",
+    "statusLabel": "Status"
   }
 }
