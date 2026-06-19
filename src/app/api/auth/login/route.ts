@@ -4,13 +4,14 @@ import {createSessionToken, AUTH_COOKIE} from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const password = body?.password;
+  const password = typeof body?.password === 'string' ? body.password : '';
   const expected = process.env.SITE_PASSWORD;
 
   if (!expected) {
     return NextResponse.json({error: 'server_not_configured'}, {status: 500});
   }
-  if (typeof password !== 'string' || password !== expected) {
+  // Tolerate trailing/leading whitespace that often sneaks into env values
+  if (password.trim() !== expected.trim()) {
     return NextResponse.json({error: 'invalid'}, {status: 401});
   }
 
