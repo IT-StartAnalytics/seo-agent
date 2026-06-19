@@ -75,6 +75,35 @@ async function sb(path: string): Promise<Row[]> {
 const s = (r: Row, k: string) => (r[k] == null ? null : String(r[k]));
 const arr = (r: Row, k: string) => (Array.isArray(r[k]) ? (r[k] as string[]) : null);
 
+const NAMED: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  ldquo: '\u201C', rdquo: '\u201D', lsquo: '\u2018', rsquo: '\u2019',
+  laquo: '\u00AB', raquo: '\u00BB', ndash: '\u2013', mdash: '\u2014',
+  hellip: '\u2026', copy: '\u00A9', reg: '\u00AE', trade: '\u2122',
+  deg: '\u00B0', euro: '\u20AC', pound: '\u00A3', middot: '\u00B7', times: '\u00D7'
+};
+
+function decodeEntities(input: string): string {
+  return input
+    .replace(/&#x([0-9a-fA-F]+);/g, (_m, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_m, d) => String.fromCodePoint(parseInt(d, 10)))
+    .replace(/&([a-zA-Z]+);/g, (_m, n) => NAMED[n] ?? `&${n};`);
+}
+
+// Strip HTML tags and decode entities for clean display.
+function clean(value: string | null): string | null {
+  if (value == null) return null;
+  const noTags = value
+    .replace(/<\s*br\s*\/?>/gi, ' ')
+    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, ' ')
+    .replace(/<[^>]+>/g, '');
+  const out = decodeEntities(noTags).replace(/\s+/g, ' ').trim();
+  return out.length ? out : null;
+}
+
+// cleaned string getter
+const cs = (r: Row, k: string) => clean(s(r, k));
+
 function shapeGenerated(r: Row): GeneratedMeta {
   return {
     status: s(r, 'status'),
@@ -83,9 +112,9 @@ function shapeGenerated(r: Row): GeneratedMeta {
     event_types: arr(r, 'event_types'),
     performers: arr(r, 'performers'),
     generated_langs: arr(r, 'generated_langs'),
-    h1: {en: s(r, 'h1_en'), ru: s(r, 'h1_ru'), ar: s(r, 'h1_ar'), fr: s(r, 'h1_fr')},
-    meta_title: {en: s(r, 'meta_title_en'), ru: s(r, 'meta_title_ru'), ar: s(r, 'meta_title_ar'), fr: s(r, 'meta_title_fr')},
-    meta_description: {en: s(r, 'meta_desc_en'), ru: s(r, 'meta_desc_ru'), ar: s(r, 'meta_desc_ar'), fr: s(r, 'meta_desc_fr')}
+    h1: {en: cs(r, 'h1_en'), ru: cs(r, 'h1_ru'), ar: cs(r, 'h1_ar'), fr: cs(r, 'h1_fr')},
+    meta_title: {en: cs(r, 'meta_title_en'), ru: cs(r, 'meta_title_ru'), ar: cs(r, 'meta_title_ar'), fr: cs(r, 'meta_title_fr')},
+    meta_description: {en: cs(r, 'meta_desc_en'), ru: cs(r, 'meta_desc_ru'), ar: cs(r, 'meta_desc_ar'), fr: cs(r, 'meta_desc_fr')}
   };
 }
 
@@ -94,12 +123,12 @@ export async function getNewEvents(): Promise<NewEvent[]> {
   const rows = await sb(`new_events_stream?select=${cols}&order=added_at.desc&limit=500`);
   return rows.map((r) => ({
     event_id: String(r.event_id),
-    name: s(r, 'event_name_en'),
+    name: cs(r, 'event_name_en'),
     is_attraction: Boolean(r.is_attraction),
     is_exclusive: Boolean(r.is_exclusive),
     city: s(r, 'city'),
     country: s(r, 'country'),
-    venue: s(r, 'venue'),
+    venue: cs(r, 'venue'),
     status: s(r, 'status'),
     seo_done: Boolean(r.seo_done),
     added_at: s(r, 'added_at')
@@ -135,19 +164,19 @@ export async function getEventById(id: string): Promise<EventDetail> {
     source: lk
       ? {
           url: s(lk, 'url'),
-          name_en: s(lk, 'event_name_en'),
-          name_ar: s(lk, 'event_long_name_ar'),
-          venue: s(lk, 'venue'),
-          venue_ar: s(lk, 'venue_ar'),
+          name_en: cs(lk, 'event_name_en'),
+          name_ar: cs(lk, 'event_long_name_ar'),
+          venue: cs(lk, 'venue'),
+          venue_ar: cs(lk, 'venue_ar'),
           city: s(lk, 'city'),
           country: s(lk, 'country'),
           start: s(lk, 'event_start_datetime'),
           end: s(lk, 'event_end_datetime'),
-          description: s(lk, 'overview_description_en') || s(lk, 'description_en'),
-          categories: s(lk, 'all_categories'),
+          description: cs(lk, 'overview_description_en') || cs(lk, 'description_en'),
+          categories: cs(lk, 'all_categories'),
           status: s(lk, 'status'),
           is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
-          title_protection_reason: s(lk, 'title_protection_reason'),
+          title_protection_reason: cs(lk, 'title_protection_reason'),
           promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img')
         }
       : null,
