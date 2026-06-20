@@ -1,4 +1,3 @@
-import {Fragment} from 'react';
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import RegenerateButton from '@/components/RegenerateButton';
@@ -52,8 +51,8 @@ function Row({label, value, href}: {label: string; value: string | null; href?: 
   );
 }
 
-// Table row for an admin meta field — always shown (blank when empty), with counter.
-function MetaRow({
+// Stacked admin meta field: small label + counter over the value (blank when empty).
+function MetaCell({
   label,
   value,
   rtl,
@@ -67,14 +66,14 @@ function MetaRow({
   const len = value ? [...value].length : 0;
   const over = limit ? len > limit : false;
   return (
-    <div className="flex gap-3 py-1.5 text-sm border-b border-black/5 dark:border-white/10 last:border-0">
-      <span className="w-40 shrink-0 text-foreground/50">
-        {label}
-        {limit ? <span className={`ml-1 ${over ? 'text-red-500' : 'text-foreground/35'}`}>{len}/{limit}</span> : null}
-      </span>
-      <span dir={rtl ? 'rtl' : undefined} className="flex-1 text-foreground/85 break-words">
+    <div>
+      <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-foreground/40">
+        <span>{label}</span>
+        {limit ? <span className={over ? 'text-red-500' : 'text-foreground/35'}>{len}/{limit}</span> : null}
+      </div>
+      <p dir={rtl ? 'rtl' : undefined} className="text-sm text-foreground/85 break-words min-h-[1.1rem]">
         {value ?? ''}
-      </span>
+      </p>
     </div>
   );
 }
@@ -153,16 +152,21 @@ export default async function EventDetailPage({
 
                   {data.admin && (
                     <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/10">
-                      <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
+                      <div className="mb-1 text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
                       {data.admin.map((a) => (
-                        <Fragment key={a.lang}>
-                          <div className="pt-2.5 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-foreground/45">
+                        <div
+                          key={a.lang}
+                          className="flex gap-3 py-3 border-b border-black/5 dark:border-white/10 last:border-0"
+                        >
+                          <span className="w-32 shrink-0 pt-0.5 text-foreground/50 font-medium">
                             {a.lang.toUpperCase()}
+                          </span>
+                          <div className="flex-1 space-y-2.5">
+                            <MetaCell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
+                            <MetaCell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
+                            <MetaCell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
                           </div>
-                          <MetaRow label="H1" value={a.h1} rtl={a.lang === 'ar'} />
-                          <MetaRow label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
-                          <MetaRow label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
-                        </Fragment>
+                        </div>
                       ))}
                     </div>
                   )}
