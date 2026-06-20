@@ -112,6 +112,11 @@
     "open": "Open",
     "hide": "Hide",
     "genDate": "Generated",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "colEvent": "Event",
+    "colStatus": "Status",
+    "colMeta": "H1 / Meta Title",
+    "colLangs": "Langs",
+    "colWhen": "When"
   }
 }

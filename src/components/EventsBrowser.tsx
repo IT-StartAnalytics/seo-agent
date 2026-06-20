@@ -2,8 +2,8 @@
 
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {Link, useRouter} from '@/i18n/navigation';
-import type {CatalogEvent} from '@/lib/events';
+import {useRouter} from '@/i18n/navigation';
+import type {CatalogEvent, EventGenerated} from '@/lib/events';
 import EventRow from './EventRow';
 
 function statusGroup(status: string | null): string {
@@ -175,6 +175,35 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
 
   const shown = filtered.slice(0, visible);
 
+  const [summaries, setSummaries] = useState<Record<string, EventGenerated | null>>({});
+  const shownKey = shown.map((e) => e.event_id).join(',');
+  useEffect(() => {
+    const need = shown
+      .filter((e) => e.is_generated && summaries[e.event_id] === undefined)
+      .map((e) => e.event_id);
+    if (need.length === 0) return;
+    let cancelled = false;
+    fetch('/api/event-meta', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ids: need})
+    })
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((map: Record<string, EventGenerated>) => {
+        if (cancelled) return;
+        setSummaries((prev) => {
+          const next = {...prev};
+          for (const id of need) next[id] = map[id] ?? null;
+          return next;
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownKey]);
+
   function openById() {
     const id = query.trim().replace(/[^a-zA-Z0-9_-]/g, '');
     if (id) router.push(`/events/${id}`);
@@ -239,13 +268,32 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
         {t('count')}: {filtered.length}
       </p>
 
-      {/* List */}
-      <div className="mt-2 divide-y divide-black/5 dark:divide-white/10 rounded-2xl border border-black/5 dark:border-white/10 overflow-hidden">
-        {shown.length === 0 ? (
-          <p className="p-5 text-sm text-foreground/60">{t('empty')}</p>
-        ) : (
-          shown.map((e) => <EventRow key={e.event_id} e={e} />)
-        )}
+      {/* List (table) */}
+      <div className="mt-2 overflow-x-auto rounded-2xl border border-black/5 dark:border-white/10">
+        <table className="w-full min-w-[920px] text-sm">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wide text-foreground/45 border-b border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03]">
+              <th className="px-4 py-2.5 font-medium">{t('colEvent')}</th>
+              <th className="px-3 py-2.5 font-medium">{t('colStatus')}</th>
+              <th className="px-3 py-2.5 font-medium">{t('colMeta')}</th>
+              <th className="px-3 py-2.5 font-medium">{t('colLangs')}</th>
+              <th className="px-3 py-2.5 font-medium">API</th>
+              <th className="px-3 py-2.5 font-medium">{t('colWhen')}</th>
+              <th className="px-3 py-2.5" />
+            </tr>
+          </thead>
+          <tbody>
+            {shown.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-5 text-foreground/60">
+                  {t('empty')}
+                </td>
+              </tr>
+            ) : (
+              shown.map((e) => <EventRow key={e.event_id} e={e} gen={summaries[e.event_id] ?? null} />)
+            )}
+          </tbody>
+        </table>
       </div>
 
       {visible < filtered.length && (

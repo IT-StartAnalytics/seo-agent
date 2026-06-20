@@ -112,6 +112,11 @@
     "open": "Обзор",
     "hide": "Скрыть",
     "genDate": "Сгенерировано",
-    "cancelled": "Отменены"
+    "cancelled": "Отменены",
+    "colEvent": "Ивент",
+    "colStatus": "Статус",
+    "colMeta": "H1 / Meta Title",
+    "colLangs": "Языки",
+    "colWhen": "Дата"
   }
 }

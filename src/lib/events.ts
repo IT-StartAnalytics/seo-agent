@@ -373,22 +373,17 @@ export type EventGenerated = {
   performers: string[];
 };
 
-export async function getEventGenerated(id: string): Promise<EventGenerated | null> {
-  const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
-  const cols = [
-    'status', 'finished_at', 'event_types', 'performers',
-    'generated_langs', 'published_langs', 'unpublished_langs',
-    'api_status_code', 'api_status_msg',
-    'h1_en', 'meta_title_en', 'meta_desc_en',
-    'h1_ar', 'meta_title_ar', 'meta_desc_ar',
-    'h1_ru', 'meta_title_ru', 'meta_desc_ru',
-    'h1_fr', 'meta_title_fr', 'meta_desc_fr'
-  ].join(',');
-  const runs = await sb(
-    `seo_agent_runs?select=${cols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=1`
-  );
-  const r = runs[0];
-  if (!r) return null;
+const GEN_COLS = [
+  'status', 'finished_at', 'event_types', 'performers',
+  'generated_langs', 'published_langs', 'unpublished_langs',
+  'api_status_code', 'api_status_msg',
+  'h1_en', 'meta_title_en', 'meta_desc_en',
+  'h1_ar', 'meta_title_ar', 'meta_desc_ar',
+  'h1_ru', 'meta_title_ru', 'meta_desc_ru',
+  'h1_fr', 'meta_title_fr', 'meta_desc_fr'
+].join(',');
+
+function shapeGenRow(r: Row): EventGenerated {
   const langs = LANGS.map((l) => ({
     lang: l as string,
     h1: cs(r, `h1_${l}`),
@@ -407,4 +402,29 @@ export async function getEventGenerated(id: string): Promise<EventGenerated | nu
     event_types: arr(r, 'event_types') ?? [],
     performers: arr(r, 'performers') ?? []
   };
+}
+
+export async function getEventGenerated(id: string): Promise<EventGenerated | null> {
+  const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const runs = await sb(
+    `seo_agent_runs?select=event_id,${GEN_COLS}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=1`
+  );
+  return runs[0] ? shapeGenRow(runs[0]) : null;
+}
+
+export async function getEventGeneratedBatch(
+  ids: string[]
+): Promise<Record<string, EventGenerated>> {
+  const clean = ids.map((x) => String(x).replace(/[^a-zA-Z0-9_-]/g, '')).filter(Boolean);
+  if (!clean.length) return {};
+  const rows = await sb(
+    `seo_agent_runs?select=event_id,${GEN_COLS}&event_id=in.(${clean.join(',')})&meta_title_en=not.is.null&order=finished_at.desc&limit=3000`
+  );
+  const out: Record<string, EventGenerated> = {};
+  for (const r of rows) {
+    const id = String(r.event_id);
+    if (out[id]) continue; // rows ordered desc -> first seen is latest
+    out[id] = shapeGenRow(r);
+  }
+  return out;
 }
