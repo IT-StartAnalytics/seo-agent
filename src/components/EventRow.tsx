@@ -157,7 +157,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
       </tr>
 
       {open && gen && (
-        <tr className="border-b border-black/5 dark:border-white/10 bg-card">
+        <tr className="border-b border-black/5 dark:border-white/10 bg-muted">
           <td colSpan={4} className="px-4 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {gen.langs.map((a) => (
