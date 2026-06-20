@@ -117,7 +117,8 @@ function clean(value: string | null): string | null {
   // Drop a dangling incomplete entity and mark the cut with an ellipsis.
   const trimmed = out.replace(/&#?[a-zA-Z0-9]*$/, '').replace(/[\s,;:.\-]+$/, '');
   if (trimmed !== out && trimmed.length) out = trimmed + '…';
-  return out.length ? out : null;
+  if (!out.length || /^(null|undefined)$/i.test(out)) return null;
+  return out;
 }
 
 // cleaned string getter

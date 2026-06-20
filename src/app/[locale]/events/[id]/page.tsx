@@ -110,7 +110,7 @@ export default async function EventDetailPage({
               <RegenerateButton eventId={data.event_id} />
             </div>
 
-            {/* Source data */}
+            {/* Source data (incl. current admin meta tags) */}
             {data.source && (
               <section className="mt-7">
                 <h2 className="text-sm font-semibold text-foreground/70">{t('source')}</h2>
@@ -123,23 +123,29 @@ export default async function EventDetailPage({
                   <Row label="URL" value={data.source.url} href={data.source.url} />
                   <Row label={t('description')} value={data.source.description} />
                 </div>
-              </section>
-            )}
 
-            {/* Existing meta tags from the admin panel (raw_payload) */}
-            {data.admin && (
-              <section className="mt-7">
-                <h2 className="text-sm font-semibold text-foreground/70">{t('adminMeta')}</h2>
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  {LANGS.map((l) => (
-                    <div key={l} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
-                      <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[l]}</div>
-                      <MetaField label="H1" value={data.admin!.h1[l]} rtl={l === 'ar'} />
-                      <MetaField label="Meta Title" value={data.admin!.meta_title[l]} rtl={l === 'ar'} limit={60} />
-                      <MetaField label="Meta Description" value={data.admin!.meta_description[l]} rtl={l === 'ar'} limit={250} />
+                {/* Current meta tags from the admin panel — only non-empty fields/languages */}
+                {data.admin && (
+                  <div className="mt-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground/55">{t('adminMeta')}</h3>
+                    <div className="mt-2 grid gap-4 sm:grid-cols-2">
+                      {LANGS.map((l) => {
+                        const h1 = data.admin!.h1[l];
+                        const mt = data.admin!.meta_title[l];
+                        const md = data.admin!.meta_description[l];
+                        if (!h1 && !mt && !md) return null;
+                        return (
+                          <div key={l} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
+                            <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[l]}</div>
+                            {h1 && <MetaField label="H1" value={h1} rtl={l === 'ar'} />}
+                            {mt && <MetaField label="Meta Title" value={mt} rtl={l === 'ar'} limit={60} />}
+                            {md && <MetaField label="Meta Description" value={md} rtl={l === 'ar'} limit={250} />}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </section>
             )}
 
