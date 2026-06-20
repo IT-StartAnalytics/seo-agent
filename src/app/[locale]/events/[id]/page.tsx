@@ -92,7 +92,7 @@ export default async function EventDetailPage({
             {data.source && (
               <section className="mt-7">
                 <h2 className="text-sm font-semibold text-foreground/70">{t('source')}</h2>
-                <div className="mt-2 rounded-2xl border border-black/5 dark:border-white/10 p-4">
+                <div className="mt-2 rounded-2xl border border-black/10 dark:border-white/10 bg-card shadow-sm p-4">
                   <Row label={t('venue')} value={data.source.venue} />
                   <Row label={t('city')} value={[data.source.city, data.source.country].filter(Boolean).join(', ') || null} />
                   <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />

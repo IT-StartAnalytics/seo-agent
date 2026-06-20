@@ -77,7 +77,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {v.langs.map((a) => (
-          <div key={a.lang} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
+          <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
             <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[a.lang] ?? a.lang.toUpperCase()}</div>
             <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
             <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />

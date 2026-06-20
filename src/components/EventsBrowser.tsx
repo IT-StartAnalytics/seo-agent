@@ -77,7 +77,7 @@ function FilterDropdown({
         <span className="text-foreground/40 text-[10px]">▾</span>
       </button>
       {open && (
-        <div className="absolute left-0 z-30 mt-1 min-w-[240px] rounded-xl border border-black/10 dark:border-white/15 bg-background shadow-lg p-1">
+        <div className="absolute left-0 z-30 mt-1 min-w-[240px] rounded-xl border border-black/10 dark:border-white/15 bg-card shadow-lg p-1">
           {options.map((o) => {
             const on = draft.has(o.key);
             return (
@@ -328,10 +328,10 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       </p>
 
       {/* List (table) */}
-      <div className="mt-2 overflow-x-auto rounded-2xl border border-black/5 dark:border-white/10">
+      <div className="mt-2 overflow-x-auto rounded-2xl border border-black/10 dark:border-white/10 bg-card shadow-sm">
         <table className="w-full min-w-[920px] text-sm">
           <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wide text-foreground/45 border-b border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03]">
+            <tr className="text-left text-[11px] uppercase tracking-wide text-foreground/45 border-b border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.04]">
               <th className="px-4 py-2.5 font-medium">
                 <button onClick={() => toggleSort('event')} className="inline-flex items-center gap-1 hover:text-foreground">
                   {t('colEvent')}

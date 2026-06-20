@@ -3,18 +3,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f3f4f6;
+  --background: #e9ecf1;
   --foreground: #1a1a1a;
+  --card: #ffffff;
 }
 
 .dark {
-  --background: #1d2330;
+  --background: #141821;
   --foreground: #e8eaf0;
+  --card: #1f2735;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 

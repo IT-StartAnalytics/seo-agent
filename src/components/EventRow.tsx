@@ -161,7 +161,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
           <td colSpan={4} className="px-4 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {gen.langs.map((a) => (
-                <div key={a.lang} className="rounded-xl border border-black/5 dark:border-white/10 bg-background p-3">
+                <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">
                   <div className="text-xs font-semibold text-foreground/60">{a.lang.toUpperCase()}</div>
                   <Field label="H1" value={a.h1} rtl={a.lang === 'ar'} />
                   <Field label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
@@ -171,7 +171,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {gen.event_types.length > 0 && (
-                <div className="rounded-xl border border-black/5 dark:border-white/10 bg-background p-3">
+                <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">
                   <div className="text-[10px] uppercase tracking-wide text-foreground/45">{t('categories')}</div>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {gen.event_types.map((c) => (
@@ -183,7 +183,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
                 </div>
               )}
               {gen.performers.length > 0 && (
-                <div className="rounded-xl border border-black/5 dark:border-white/10 bg-background p-3">
+                <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">
                   <div className="text-[10px] uppercase tracking-wide text-foreground/45">{t('performers')}</div>
                   <div className="mt-1.5 text-sm text-foreground/85">{gen.performers.join(', ')}</div>
                 </div>
