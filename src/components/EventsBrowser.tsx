@@ -122,8 +122,8 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
   const [selected, setSelected] = useState<Set<string>>(new Set()); // empty = all
   const [query, setQuery] = useState('');
   const [visible, setVisible] = useState(PAGE);
-  const [sortKey, setSortKey] = useState<'event' | 'date' | null>(null);
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [sortKey, setSortKey] = useState<'event' | 'date' | null>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const groupLabel = (g: string) => {
     const map: Record<string, string> = {
