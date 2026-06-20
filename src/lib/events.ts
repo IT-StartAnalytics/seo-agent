@@ -315,10 +315,12 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
         sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`)
       )
     ),
-    sb('new_events_stream?select=event_id&limit=1000')
+    sb('new_events_stream?select=event_id,seo_done&limit=1000')
   ]);
 
-  const newSet = new Set(streamRows.map((r) => String(r.event_id)));
+  const newSet = new Set(
+    streamRows.filter((r) => r.seo_done !== true).map((r) => String(r.event_id))
+  );
   const rows = pages.flat();
   const ids = rows.map((r) => String(r.event_id));
 
