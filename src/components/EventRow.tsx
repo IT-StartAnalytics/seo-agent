@@ -17,22 +17,6 @@ function statusGroup(status: string | null): string {
   return s;
 }
 
-function LangLine({label, langs, tone}: {label: string; langs: string[]; tone: string}) {
-  if (!langs || langs.length === 0) return null;
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="w-7 text-[9px] uppercase text-foreground/40">{label}</span>
-      <div className="flex flex-wrap gap-1">
-        {langs.map((l) => (
-          <span key={l} className={`rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${tone}`}>
-            {l.toLowerCase()}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function Field({label, value, rtl, limit}: {label: string; value: string | null; rtl?: boolean; limit?: number}) {
   if (!value) return null;
   const len = [...value].length;
@@ -133,18 +117,6 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
         </td>
 
 
-        {/* Langs */}
-        <td className="px-3 py-3 whitespace-nowrap">
-          {gen ? (
-            <div className="space-y-0.5">
-              <LangLine label="PUB" langs={gen.published_langs} tone="bg-green-500/15 text-green-600 dark:text-green-400" />
-              <LangLine label="GEN" langs={gen.generated_langs} tone="bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" />
-              <LangLine label="REJ" langs={gen.unpublished_langs} tone="bg-red-500/15 text-red-600 dark:text-red-400" />
-            </div>
-          ) : (
-            <span className="text-foreground/30">—</span>
-          )}
-        </td>
 
 
         {/* When */}
@@ -165,7 +137,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
 
       {open && gen && (
         <tr className="border-b border-black/5 dark:border-white/10 bg-black/[0.015] dark:bg-white/[0.02]">
-          <td colSpan={5} className="px-4 py-4">
+          <td colSpan={4} className="px-4 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {gen.langs.map((a) => (
                 <div key={a.lang} className="rounded-xl border border-black/5 dark:border-white/10 bg-background p-3">
