@@ -67,7 +67,7 @@ function FilterDropdown({
         className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
           count > 0
             ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
-            : 'border-black/15 dark:border-white/20 hover:border-black/30 dark:hover:border-white/35'
+            : 'border-black/15 dark:border-white/20 bg-card shadow-sm hover:border-black/30 dark:hover:border-white/35'
         }`}
       >
         <span>{label}</span>
@@ -316,9 +316,9 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
           }}
           onKeyDown={(e) => e.key === 'Enter' && openById()}
           placeholder={t('searchPlaceholder')}
-          className="flex-1 rounded-xl border border-black/15 dark:border-white/20 bg-background px-4 py-2.5 text-sm outline-none focus:border-indigo-500"
+          className="flex-1 rounded-xl border border-black/15 dark:border-white/20 bg-card shadow-sm px-4 py-2.5 text-sm outline-none focus:border-indigo-500"
         />
-        <button onClick={openById} className="rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-medium whitespace-nowrap">
+        <button onClick={openById} className="rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-medium whitespace-nowrap shadow-sm hover:opacity-90 transition-opacity">
           {t('openById')}
         </button>
       </div>
