@@ -11,7 +11,7 @@ function Cell({label, value, rtl, limit}: {label: string; value: string | null; 
   const over = limit ? len > limit : false;
   return (
     <div className="mt-2">
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-foreground/45">
+      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-foreground">
         <span>{label}</span>
         {limit ? <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span> : null}
       </div>
@@ -77,7 +77,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {v.langs.map((a) => (
-          <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-muted p-4">
+          <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
             <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[a.lang] ?? a.lang.toUpperCase()}</div>
             <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
             <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
@@ -90,7 +90,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
         <div className="mt-3 flex flex-col gap-3">
           {v.event_types.length > 0 && (
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-foreground/45">{t('categories')}</div>
+              <div className="text-[11px] uppercase tracking-wide text-foreground">{t('categories')}</div>
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {v.event_types.map((c) => (
                   <span key={c} className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2.5 py-0.5 text-xs">
@@ -102,7 +102,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
           )}
           {v.performers.length > 0 && (
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-foreground/45">{t('performers')}</div>
+              <div className="text-[11px] uppercase tracking-wide text-foreground">{t('performers')}</div>
               <div className="mt-1 text-sm text-foreground/85">{v.performers.join(', ')}</div>
             </div>
           )}
