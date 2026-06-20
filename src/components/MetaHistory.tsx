@@ -87,9 +87,9 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
       </div>
 
       {(v.event_types.length > 0 || v.performers.length > 0) && (
-        <div className="mt-3 flex flex-col gap-3 rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
           {v.event_types.length > 0 && (
-            <div>
+            <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
               <div className="text-xs uppercase tracking-wide text-foreground">{t('categories')}</div>
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {v.event_types.map((c) => (
@@ -101,7 +101,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
             </div>
           )}
           {v.performers.length > 0 && (
-            <div>
+            <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
               <div className="text-xs uppercase tracking-wide text-foreground">{t('performers')}</div>
               <div className="mt-1 text-sm text-foreground/85">{v.performers.join(', ')}</div>
             </div>
