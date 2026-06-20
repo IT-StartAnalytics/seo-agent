@@ -22,14 +22,19 @@ function FilterDropdown({
   label,
   options,
   selected,
-  onToggle
+  onApply,
+  applyLabel,
+  clearLabel
 }: {
   label: string;
   options: {key: string; label: string; value: number}[];
   selected: Set<string>;
-  onToggle: (k: string) => void;
+  onApply: (keys: string[], optionKeys: string[]) => void;
+  applyLabel: string;
+  clearLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<Set<string>>(new Set());
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -38,7 +43,23 @@ function FilterDropdown({
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
+  useEffect(() => {
+    if (open) setDraft(new Set(options.filter((o) => selected.has(o.key)).map((o) => o.key)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   const count = options.reduce((n, o) => (selected.has(o.key) ? n + 1 : n), 0);
+  function toggleDraft(k: string) {
+    setDraft((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  }
+  function apply() {
+    onApply(Array.from(draft), options.map((o) => o.key));
+    setOpen(false);
+  }
   return (
     <div ref={ref} className="relative">
       <button
@@ -58,11 +79,11 @@ function FilterDropdown({
       {open && (
         <div className="absolute left-0 z-30 mt-1 min-w-[240px] rounded-xl border border-black/10 dark:border-white/15 bg-background shadow-lg p-1">
           {options.map((o) => {
-            const on = selected.has(o.key);
+            const on = draft.has(o.key);
             return (
               <button
                 key={o.key}
-                onClick={() => onToggle(o.key)}
+                onClick={() => toggleDraft(o.key)}
                 className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
               >
                 <span className="flex items-center gap-2">
@@ -79,6 +100,14 @@ function FilterDropdown({
               </button>
             );
           })}
+          <div className="flex items-center justify-between gap-2 mt-1 pt-1.5 px-1 border-t border-black/5 dark:border-white/10">
+            <button onClick={() => setDraft(new Set())} className="px-2 py-1 text-xs text-foreground/55 hover:text-foreground">
+              {clearLabel}
+            </button>
+            <button onClick={apply} className="rounded-lg bg-foreground text-background px-3 py-1.5 text-xs font-medium">
+              {applyLabel}
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -208,16 +237,12 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     const id = query.trim().replace(/[^a-zA-Z0-9_-]/g, '');
     if (id) router.push(`/events/${id}`);
   }
-  function toggleFilter(k: string) {
+  function applyFilter(keys: string[], optionKeys: string[]) {
     setVisible(PAGE);
-    if (k === 'all') {
-      setSelected(new Set());
-      return;
-    }
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(k)) next.delete(k);
-      else next.add(k);
+      for (const k of optionKeys) next.delete(k);
+      for (const k of keys) next.add(k);
       return next;
     });
   }
@@ -227,9 +252,9 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     <div className="mt-8">
       {/* Filter dropdowns */}
       <div className="flex flex-wrap items-center gap-2">
-        <FilterDropdown label={t('groupProcessing')} options={procOptions} selected={selected} onToggle={toggleFilter} />
+        <FilterDropdown label={t('groupProcessing')} options={procOptions} selected={selected} onApply={applyFilter} applyLabel={t('apply')} clearLabel={t('reset')} />
         {statusOptions.length > 0 && (
-          <FilterDropdown label={t('groupStatus')} options={statusOptions} selected={selected} onToggle={toggleFilter} />
+          <FilterDropdown label={t('groupStatus')} options={statusOptions} selected={selected} onApply={applyFilter} applyLabel={t('apply')} clearLabel={t('reset')} />
         )}
         {selected.size > 0 && (
           <button

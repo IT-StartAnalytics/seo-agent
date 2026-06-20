@@ -117,6 +117,7 @@
     "colStatus": "Статус",
     "colMeta": "H1 / Meta Title",
     "colLangs": "Языки",
-    "colWhen": "Дата"
+    "colWhen": "Дата",
+    "apply": "Применить"
   }
 }

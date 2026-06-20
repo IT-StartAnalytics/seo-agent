@@ -117,6 +117,7 @@
     "colStatus": "Status",
     "colMeta": "H1 / Meta Title",
     "colLangs": "Langs",
-    "colWhen": "When"
+    "colWhen": "When",
+    "apply": "Apply"
   }
 }
