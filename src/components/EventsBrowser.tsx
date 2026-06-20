@@ -263,7 +263,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
                       href={e.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-indigo-500 hover:underline whitespace-nowrap"
+                      className="inline-flex items-center rounded-full border border-black/15 dark:border-white/20 px-2.5 py-0.5 text-[11px] text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] whitespace-nowrap"
                     >
                       {t('openPage')} ↗
                     </a>
