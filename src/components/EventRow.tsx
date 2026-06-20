@@ -35,6 +35,23 @@ function Field({label, value, rtl, limit}: {label: string; value: string | null;
 export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated | null}) {
   const t = useTranslations('Events');
   const [open, setOpen] = useState(false);
+  const [review, setReview] = useState<'approved' | null>(e.review === 'approved' ? 'approved' : null);
+  const [savingReview, setSavingReview] = useState(false);
+
+  async function toggleReview(ev: React.MouseEvent) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (savingReview) return;
+    const next = review === 'approved' ? null : 'approved';
+    setSavingReview(true);
+    const res = await fetch('/api/review', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({event_id: e.event_id, status: next ?? 'clear'})
+    });
+    setSavingReview(false);
+    if (res.ok) setReview(next);
+  }
 
   const statusLabel = (k: string) =>
     (
@@ -92,16 +109,20 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
                 {t('newTab')}
               </span>
             )}
-            {gen &&
-              (e.review === 'approved' ? (
-                <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-green-500/15 text-green-600 dark:text-green-400">
-                  {t('approved')}
-                </span>
-              ) : (
-                <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                  {t('reviewPending')}
-                </span>
-              ))}
+            {gen && (
+              <button
+                onClick={toggleReview}
+                disabled={savingReview}
+                title={review === 'approved' ? t('reviewPending') : t('approved')}
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors disabled:opacity-50 ${
+                  review === 'approved'
+                    ? 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25'
+                    : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
+                }`}
+              >
+                {savingReview ? '…' : review === 'approved' ? t('approved') : t('reviewPending')}
+              </button>
+            )}
           </div>
         </td>
 
