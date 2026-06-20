@@ -174,7 +174,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       .filter((k) => (counts[k] ?? 0) > 0 || k === 'all')
       .map((k) => ({key: k, label: cardLabel(k), value: counts[k] ?? 0}));
   // Group 1: processing (SEO workflow). Group 2: sale status.
-  const procOptions = buildCards(['new', 'generated', 'not_generated', 'review_pending', 'approved', 'rejected']);
+  const procOptions = buildCards(['new', 'generated', 'not_generated', 'review_pending', 'approved']);
   const statusOptions = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
 
   const matchesKey = (e: CatalogEvent, key: string) => {

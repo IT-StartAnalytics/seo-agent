@@ -108,17 +108,16 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
                 {t('newTab')}
               </span>
             )}
-            {e.review && (
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                  e.review === 'approved'
-                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-red-500/15 text-red-600 dark:text-red-400'
-                }`}
-              >
-                {e.review === 'approved' ? t('approved') : t('rejected')}
-              </span>
-            )}
+            {gen &&
+              (e.review === 'approved' ? (
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-green-500/15 text-green-600 dark:text-green-400">
+                  {t('approved')}
+                </span>
+              ) : (
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                  {t('reviewPending')}
+                </span>
+              ))}
           </div>
         </td>
 

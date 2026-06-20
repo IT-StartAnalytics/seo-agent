@@ -131,15 +131,9 @@ export default async function EventDetailPage({
                   >
                     {g ? t('generated') : t('notGenerated')}
                   </span>
-                  {data.review && (
-                    <span
-                      className={`rounded-full px-2 py-0.5 font-medium ${
-                        data.review === 'approved'
-                          ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-                          : 'bg-red-500/15 text-red-600 dark:text-red-400'
-                      }`}
-                    >
-                      {data.review === 'approved' ? t('approved') : t('rejected')}
+                  {data.review === 'approved' && (
+                    <span className="rounded-full px-2 py-0.5 font-medium bg-green-500/15 text-green-600 dark:text-green-400">
+                      {t('approved')}
                     </span>
                   )}
                 </div>
