@@ -329,7 +329,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
 
       {/* List (table) */}
       <div className="mt-2 overflow-x-auto rounded-2xl border border-black/10 dark:border-white/10 bg-card shadow-sm">
-        <table className="w-full min-w-[920px] text-sm">
+        <table className="w-full min-w-[920px] text-sm table-fixed">
           <thead>
             <tr className="text-left text-xs uppercase tracking-wide text-foreground/45 border-b border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.04]">
               <th className="px-4 py-2.5 font-medium">
@@ -338,14 +338,14 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
                   {sortMark('event')}
                 </button>
               </th>
-              <th className="px-3 py-2.5 font-medium">{t('colStatus')}</th>
-              <th className="px-3 py-2.5 font-medium">
+              <th className="w-[150px] px-3 py-2.5 font-medium">{t('colStatus')}</th>
+              <th className="w-[170px] px-3 py-2.5 font-medium">
                 <button onClick={() => toggleSort('date')} className="inline-flex items-center gap-1 hover:text-foreground">
                   {t('colWhen')}
                   {sortMark('date')}
                 </button>
               </th>
-              <th className="px-3 py-2.5" />
+              <th className="w-[96px] px-3 py-2.5" />
             </tr>
           </thead>
           <tbody>
