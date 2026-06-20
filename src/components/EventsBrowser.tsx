@@ -301,7 +301,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
             {t('reset')}
           </button>
         )}
-        <span className="ml-auto text-xs text-foreground/45">
+        <span className="ml-auto text-xs text-foreground">
           {t('total')}: {events.length}
         </span>
       </div>
@@ -323,7 +323,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
         </button>
       </div>
 
-      <p className="mt-4 text-xs text-foreground/45">
+      <p className="mt-4 text-xs text-foreground">
         {t('count')}: {filtered.length}
       </p>
 
@@ -331,7 +331,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       <div className="mt-2 overflow-x-auto rounded-2xl border border-black/10 dark:border-white/10 bg-card shadow-sm">
         <table className="w-full min-w-[920px] text-sm table-fixed">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-foreground/45 border-b border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.04]">
+            <tr className="text-left text-xs uppercase tracking-wide text-foreground border-b border-black/10 dark:border-white/10 bg-black/[0.08] dark:bg-white/[0.07]">
               <th className="px-4 py-2.5 font-medium">
                 <button onClick={() => toggleSort('event')} className="inline-flex items-center gap-1 hover:text-foreground">
                   {t('colEvent')}
