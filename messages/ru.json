@@ -122,6 +122,9 @@
     "regenRunning": "Идёт генерация… (до ~2 мин)",
     "regenDone": "Готово",
     "regenError": "Ошибка",
-    "regenNoResult": "Результат не получен — проверьте n8n"
+    "regenNoResult": "Результат не получен — проверьте n8n",
+    "adminOriginal": "исходное (админка)",
+    "older": "Старее",
+    "newer": "Новее"
   }
 }

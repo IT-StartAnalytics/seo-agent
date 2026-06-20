@@ -122,6 +122,9 @@
     "regenRunning": "Generating… (up to ~2 min)",
     "regenDone": "Done",
     "regenError": "Error",
-    "regenNoResult": "No result yet — check n8n"
+    "regenNoResult": "No result yet — check n8n",
+    "adminOriginal": "initial (admin)",
+    "older": "Older",
+    "newer": "Newer"
   }
 }

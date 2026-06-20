@@ -2,6 +2,7 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import RegenerateButton from '@/components/RegenerateButton';
 import ReviewButtons from '@/components/ReviewButtons';
+import MetaHistory from '@/components/MetaHistory';
 import {Link} from '@/i18n/navigation';
 import {getEventById, LANGS, type EventDetail, type Lang} from '@/lib/events';
 
@@ -48,33 +49,6 @@ function Row({label, value, href}: {label: string; value: string | null; href?: 
       ) : (
         <span className="text-foreground/85 break-words">{value}</span>
       )}
-    </div>
-  );
-}
-
-// Stacked admin meta field: small label + counter over the value (blank when empty).
-function MetaCell({
-  label,
-  value,
-  rtl,
-  limit
-}: {
-  label: string;
-  value: string | null;
-  rtl?: boolean;
-  limit?: number;
-}) {
-  const len = value ? [...value].length : 0;
-  const over = limit ? len > limit : false;
-  return (
-    <div>
-      <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-foreground/40">
-        <span>{label}</span>
-        {limit ? <span className={over ? 'text-red-500' : 'text-foreground/35'}>{len}/{limit}</span> : null}
-      </div>
-      <p dir={rtl ? 'rtl' : undefined} className="text-sm text-foreground/85 break-words min-h-[1.1rem]">
-        {value ?? ''}
-      </p>
     </div>
   );
 }
@@ -157,26 +131,7 @@ export default async function EventDetailPage({
                   <Row label="URL" value={data.source.url} href={data.source.url} />
                   <Row label={t('description')} value={data.source.description} />
 
-                  {data.admin && (
-                    <div className="mt-2">
-                      <div className="mb-2 pt-1 text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
-                      {data.admin.map((a) => (
-                        <div
-                          key={a.lang}
-                          className="flex gap-3 py-3 border-b border-black/5 dark:border-white/10 last:border-0"
-                        >
-                          <span className="w-32 shrink-0 pt-0.5 text-foreground/50 font-medium">
-                            {a.lang.toUpperCase()}
-                          </span>
-                          <div className="flex-1 space-y-2.5">
-                            <MetaCell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
-                            <MetaCell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
-                            <MetaCell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {data.history.length > 0 && <MetaHistory versions={data.history} />}
                 </div>
               </section>
             )}

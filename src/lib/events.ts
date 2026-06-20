@@ -33,11 +33,19 @@ export type GeneratedMeta = {
   meta_description: Record<Lang, string | null>;
 };
 
+export type MetaVersion = {
+  date: string | null;
+  status: string | null;
+  source: 'run' | 'admin';
+  langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[];
+};
+
 export type EventDetail = {
   event_id: string;
   found: boolean;
   is_attraction: boolean;
   review: ReviewStatus | null;
+  history: MetaVersion[];
   source: {
     url: string | null;
     name_en: string | null;
@@ -202,7 +210,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
 
   const [lookup, runs, stream] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=5`),
+    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`)
   ]);
 
@@ -266,11 +274,30 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
   const isAttraction = lk ? catsLk.includes('attraction') : st ? Boolean(st.is_attraction) : false;
 
+  const runVersions: MetaVersion[] = runs
+    .map((r) => ({
+      date: s(r, 'finished_at'),
+      status: s(r, 'status'),
+      source: 'run' as const,
+      langs: LANGS.map((l) => ({
+        lang: l as string,
+        h1: cs(r, `h1_${l}`),
+        meta_title: cs(r, `meta_title_${l}`),
+        meta_description: cs(r, `meta_desc_${l}`)
+      })).filter((x) => x.h1 || x.meta_title || x.meta_description)
+    }))
+    .filter((v) => v.langs.length > 0);
+  const history: MetaVersion[] = [...runVersions];
+  if (admin && admin.length > 0) {
+    history.push({date: null, status: null, source: 'admin', langs: admin});
+  }
+
   return {
     event_id: eid,
     found: Boolean(lk || rn || st),
     is_attraction: isAttraction,
     review,
+    history,
     source: lk
       ? {
           url: s(lk, 'url'),
