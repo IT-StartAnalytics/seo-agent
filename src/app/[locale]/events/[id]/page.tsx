@@ -154,14 +154,14 @@ export default async function EventDetailPage({
                   {data.admin && (
                     <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/10">
                       <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
-                      {(['en', 'ar'] as const).map((l) => (
-                        <Fragment key={l}>
+                      {data.admin.map((a) => (
+                        <Fragment key={a.lang}>
                           <div className="pt-2.5 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-foreground/45">
-                            {l.toUpperCase()}
+                            {a.lang.toUpperCase()}
                           </div>
-                          <MetaRow label="H1" value={data.admin!.h1[l]} rtl={l === 'ar'} />
-                          <MetaRow label="Meta Title" value={data.admin!.meta_title[l]} rtl={l === 'ar'} limit={60} />
-                          <MetaRow label="Meta Description" value={data.admin!.meta_description[l]} rtl={l === 'ar'} limit={250} />
+                          <MetaRow label="H1" value={a.h1} rtl={a.lang === 'ar'} />
+                          <MetaRow label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
+                          <MetaRow label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
                         </Fragment>
                       ))}
                     </div>

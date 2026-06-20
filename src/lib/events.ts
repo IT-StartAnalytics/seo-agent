@@ -53,11 +53,9 @@ export type EventDetail = {
     promo_img: string | null;
     friendly_url: string | null;
   } | null;
-  admin: {
-    h1: Record<'en' | 'ar', string | null>;
-    meta_title: Record<'en' | 'ar', string | null>;
-    meta_description: Record<'en' | 'ar', string | null>;
-  } | null;
+  admin:
+    | {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]
+    | null;
   stream: {is_attraction: boolean; seo_done: boolean; status: string | null} | null;
   generated: GeneratedMeta | null;
 };
@@ -213,18 +211,32 @@ export async function getEventById(id: string): Promise<EventDetail> {
         : null)
     : null;
 
-  const admin = rp
-    ? {
-        h1: {en: clean(rs('event_name_en') ?? rs('event_long_name_en')), ar: clean(rs('event_name_ar') ?? rs('event_long_name_ar'))},
-        meta_title: {en: clean(rs('meta_title_en')), ar: clean(rs('meta_title_ar'))},
-        meta_description: {en: clean(rs('meta_description_en')), ar: clean(rs('meta_description_ar'))}
-      }
-    : null;
+  const META_LANG_RE = /^(?:meta_title|meta_description|event_name|event_long_name)_([a-z]{2})$/;
+  const adminLangs = new Set<string>();
+  if (rp) {
+    for (const k of Object.keys(rp)) {
+      const m = k.match(META_LANG_RE);
+      if (m) adminLangs.add(m[1]);
+    }
+  }
+  const langPref = ['en', 'ar', 'ru', 'fr'];
+  const admin =
+    adminLangs.size > 0
+      ? Array.from(adminLangs)
+          .sort((a, b) => {
+            const ia = langPref.indexOf(a);
+            const ib = langPref.indexOf(b);
+            return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+          })
+          .map((l) => ({
+            lang: l,
+            h1: clean(rs(`event_name_${l}`) ?? rs(`event_long_name_${l}`)),
+            meta_title: clean(rs(`meta_title_${l}`)),
+            meta_description: clean(rs(`meta_description_${l}`))
+          }))
+      : null;
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
   const isAttraction = st ? Boolean(st.is_attraction) : catsLk.includes('attraction');
-  const hasAdmin =
-    admin &&
-    (admin.h1.en || admin.h1.ar || admin.meta_title.en || admin.meta_title.ar || admin.meta_description.en || admin.meta_description.ar);
 
   return {
     event_id: eid,
@@ -254,7 +266,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
       ? {is_attraction: Boolean(st.is_attraction), seo_done: Boolean(st.seo_done), status: s(st, 'status')}
       : null,
     generated: rn ? shapeGenerated(rn) : null,
-    admin: hasAdmin ? admin : null
+    admin: admin
   };
 }
 
