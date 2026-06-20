@@ -45,10 +45,10 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
         <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
         <div className="flex items-center gap-2 text-xs">
           <button
-            onClick={() => setI((x) => Math.min(versions.length - 1, x + 1))}
-            disabled={i >= versions.length - 1}
+            onClick={() => setI((x) => Math.max(0, x - 1))}
+            disabled={i <= 0}
             className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            title={t('older')}
+            title={t('newer')}
           >
             ←
           </button>
@@ -58,10 +58,10 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
             {v.status ? ` · ${v.status.replace(/_/g, ' ')}` : ''}
           </span>
           <button
-            onClick={() => setI((x) => Math.max(0, x - 1))}
-            disabled={i <= 0}
+            onClick={() => setI((x) => Math.min(versions.length - 1, x + 1))}
+            disabled={i >= versions.length - 1}
             className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            title={t('newer')}
+            title={t('older')}
           >
             →
           </button>
