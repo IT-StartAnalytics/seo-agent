@@ -275,9 +275,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
             <tr className="text-left text-[11px] uppercase tracking-wide text-foreground/45 border-b border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03]">
               <th className="px-4 py-2.5 font-medium">{t('colEvent')}</th>
               <th className="px-3 py-2.5 font-medium">{t('colStatus')}</th>
-              <th className="px-3 py-2.5 font-medium">{t('colMeta')}</th>
               <th className="px-3 py-2.5 font-medium">{t('colLangs')}</th>
-              <th className="px-3 py-2.5 font-medium">API</th>
               <th className="px-3 py-2.5 font-medium">{t('colWhen')}</th>
               <th className="px-3 py-2.5" />
             </tr>
@@ -285,7 +283,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
           <tbody>
             {shown.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-5 text-foreground/60">
+                <td colSpan={5} className="px-4 py-5 text-foreground/60">
                   {t('empty')}
                 </td>
               </tr>

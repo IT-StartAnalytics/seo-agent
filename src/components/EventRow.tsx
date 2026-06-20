@@ -65,7 +65,6 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
       } as Record<string, string>
     )[k] ?? k.replace(/_/g, ' ');
 
-  const enLang = gen?.langs.find((l) => l.lang === 'en');
   const date = gen?.finished_at
     ? new Date(gen.finished_at).toLocaleString(undefined, {
         day: '2-digit',
@@ -134,17 +133,6 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
           )}
         </td>
 
-        {/* H1 / Meta Title */}
-        <td className="px-3 py-3 max-w-[320px]">
-          {enLang ? (
-            <div className="min-w-0">
-              <div className="text-sm text-foreground/85 line-clamp-1">{enLang.h1 ?? '—'}</div>
-              <div className="text-xs text-foreground/50 line-clamp-1">{enLang.meta_title ?? ''}</div>
-            </div>
-          ) : (
-            <span className="text-foreground/30">—</span>
-          )}
-        </td>
 
         {/* Langs */}
         <td className="px-3 py-3 whitespace-nowrap">
@@ -159,17 +147,6 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
           )}
         </td>
 
-        {/* API */}
-        <td className="px-3 py-3 whitespace-nowrap text-xs text-foreground/60">
-          {gen?.api_status_code ? (
-            <span>
-              {gen.api_status_code}
-              {gen.api_status_msg ? <span className="text-foreground/40"> {gen.api_status_msg}</span> : null}
-            </span>
-          ) : (
-            <span className="text-foreground/30">—</span>
-          )}
-        </td>
 
         {/* When */}
         <td className="px-3 py-3 whitespace-nowrap text-xs text-foreground/60">{date ?? <span className="text-foreground/30">—</span>}</td>
@@ -189,7 +166,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
 
       {open && gen && (
         <tr className="border-b border-black/5 dark:border-white/10 bg-black/[0.015] dark:bg-white/[0.02]">
-          <td colSpan={7} className="px-4 py-4">
+          <td colSpan={5} className="px-4 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {gen.langs.map((a) => (
                 <div key={a.lang} className="rounded-xl border border-black/5 dark:border-white/10 bg-background p-3">
