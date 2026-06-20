@@ -4,6 +4,7 @@ import {useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {Link, useRouter} from '@/i18n/navigation';
 import type {CatalogEvent} from '@/lib/events';
+import EventRow from './EventRow';
 
 function statusGroup(status: string | null): string {
   const s = (status ?? '').toLowerCase();
@@ -243,65 +244,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
         {shown.length === 0 ? (
           <p className="p-5 text-sm text-foreground/60">{t('empty')}</p>
         ) : (
-          shown.map((e) => (
-            <div
-              key={e.event_id}
-              className="flex items-center justify-between gap-4 p-4 hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
-            >
-              <div className="min-w-0 flex-1">
-                <Link href={`/events/${e.event_id}`} className="block font-medium truncate hover:underline">
-                  {e.name ?? `Event ${e.event_id}`}
-                </Link>
-                <div className="text-xs text-foreground/50 mt-0.5 flex items-center gap-2 flex-wrap">
-                  <span>
-                    ID {e.event_id}
-                    {e.city ? ` · ${e.city}` : ''}
-                    {e.country ? `, ${e.country}` : ''}
-                  </span>
-                  {e.url && (
-                    <a
-                      href={e.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center rounded-full border border-black/15 dark:border-white/20 px-2.5 py-0.5 text-[11px] text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] whitespace-nowrap"
-                    >
-                      {t('openPage')} ↗
-                    </a>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {e.is_new && (
-                  <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-[11px] font-medium">
-                    {t('newTab')}
-                  </span>
-                )}
-                <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-[11px] capitalize">
-                  {groupLabel(statusGroup(e.status))}
-                </span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                    e.is_generated
-                      ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-                      : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                  }`}
-                >
-                  {e.is_generated ? t('generated') : t('notGenerated')}
-                </span>
-                {e.review && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                      e.review === 'approved'
-                        ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-red-500/15 text-red-600 dark:text-red-400'
-                    }`}
-                  >
-                    {e.review === 'approved' ? t('approved') : t('rejected')}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))
+          shown.map((e) => <EventRow key={e.event_id} e={e} />)
         )}
       </div>
 

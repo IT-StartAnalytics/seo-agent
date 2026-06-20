@@ -356,3 +356,55 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
     };
   });
 }
+
+
+// ---- Quick overview (lazy, for the list) ---------------------------------
+
+export type EventGenerated = {
+  status: string | null;
+  finished_at: string | null;
+  generated_langs: string[];
+  published_langs: string[];
+  unpublished_langs: string[];
+  api_status_code: number | null;
+  api_status_msg: string | null;
+  langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[];
+  event_types: string[];
+  performers: string[];
+};
+
+export async function getEventGenerated(id: string): Promise<EventGenerated | null> {
+  const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const cols = [
+    'status', 'finished_at', 'event_types', 'performers',
+    'generated_langs', 'published_langs', 'unpublished_langs',
+    'api_status_code', 'api_status_msg',
+    'h1_en', 'meta_title_en', 'meta_desc_en',
+    'h1_ar', 'meta_title_ar', 'meta_desc_ar',
+    'h1_ru', 'meta_title_ru', 'meta_desc_ru',
+    'h1_fr', 'meta_title_fr', 'meta_desc_fr'
+  ].join(',');
+  const runs = await sb(
+    `seo_agent_runs?select=${cols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=1`
+  );
+  const r = runs[0];
+  if (!r) return null;
+  const langs = LANGS.map((l) => ({
+    lang: l as string,
+    h1: cs(r, `h1_${l}`),
+    meta_title: cs(r, `meta_title_${l}`),
+    meta_description: cs(r, `meta_desc_${l}`)
+  })).filter((x) => x.h1 || x.meta_title || x.meta_description);
+  return {
+    status: s(r, 'status'),
+    finished_at: s(r, 'finished_at'),
+    generated_langs: arr(r, 'generated_langs') ?? [],
+    published_langs: arr(r, 'published_langs') ?? [],
+    unpublished_langs: arr(r, 'unpublished_langs') ?? [],
+    api_status_code: r.api_status_code == null ? null : Number(r.api_status_code),
+    api_status_msg: s(r, 'api_status_msg'),
+    langs,
+    event_types: arr(r, 'event_types') ?? [],
+    performers: arr(r, 'performers') ?? []
+  };
+}
