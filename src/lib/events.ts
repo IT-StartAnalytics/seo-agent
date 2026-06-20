@@ -128,10 +128,13 @@ function clean(value: string | null): string | null {
     .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, ' ')
     .replace(/<[^>]+>/g, '');
   let out = decodeEntities(noTags).replace(/\s+/g, ' ').trim();
-  // Source data truncates long fields mid-entity (e.g. "...Man,&rdqu").
-  // Drop a dangling incomplete entity and mark the cut with an ellipsis.
-  const trimmed = out.replace(/&#?[a-zA-Z0-9]*$/, '').replace(/[\s,;:.\-]+$/, '');
-  if (trimmed !== out && trimmed.length) out = trimmed + '…';
+  // Source data sometimes truncates long fields mid-HTML-entity (e.g. "...Man,&rdqu").
+  // Only then strip the dangling fragment and mark the cut with an ellipsis.
+  // Normal text (incl. a final period) is left untouched.
+  const frag = out.match(/&#?[a-zA-Z0-9]+$/);
+  if (frag) {
+    out = out.slice(0, out.length - frag[0].length).replace(/[\s,;:.\-]+$/, '') + '…';
+  }
   if (!out.length || /^(null|undefined)$/i.test(out)) return null;
   return out;
 }
