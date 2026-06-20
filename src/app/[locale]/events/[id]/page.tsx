@@ -1,3 +1,4 @@
+import {Fragment} from 'react';
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import RegenerateButton from '@/components/RegenerateButton';
@@ -47,6 +48,33 @@ function Row({label, value, href}: {label: string; value: string | null; href?: 
       ) : (
         <span className="text-foreground/85 break-words">{value}</span>
       )}
+    </div>
+  );
+}
+
+// Table row for an admin meta field — always shown (blank when empty), with counter.
+function MetaRow({
+  label,
+  value,
+  rtl,
+  limit
+}: {
+  label: string;
+  value: string | null;
+  rtl?: boolean;
+  limit?: number;
+}) {
+  const len = value ? [...value].length : 0;
+  const over = limit ? len > limit : false;
+  return (
+    <div className="flex gap-3 py-1.5 text-sm border-b border-black/5 dark:border-white/10 last:border-0">
+      <span className="w-40 shrink-0 text-foreground/50">
+        {label}
+        {limit ? <span className={`ml-1 ${over ? 'text-red-500' : 'text-foreground/35'}`}>{len}/{limit}</span> : null}
+      </span>
+      <span dir={rtl ? 'rtl' : undefined} className="flex-1 text-foreground/85 break-words">
+        {value ?? ''}
+      </span>
     </div>
   );
 }
@@ -122,30 +150,23 @@ export default async function EventDetailPage({
                   <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
                   <Row label="URL" value={data.source.url} href={data.source.url} />
                   <Row label={t('description')} value={data.source.description} />
-                </div>
 
-                {/* Current meta tags from the admin panel — only non-empty fields/languages */}
-                {data.admin && (
-                  <div className="mt-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground/55">{t('adminMeta')}</h3>
-                    <div className="mt-2 grid gap-4 sm:grid-cols-2">
-                      {LANGS.map((l) => {
-                        const h1 = data.admin!.h1[l];
-                        const mt = data.admin!.meta_title[l];
-                        const md = data.admin!.meta_description[l];
-                        if (!h1 && !mt && !md) return null;
-                        return (
-                          <div key={l} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
-                            <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[l]}</div>
-                            {h1 && <MetaField label="H1" value={h1} rtl={l === 'ar'} />}
-                            {mt && <MetaField label="Meta Title" value={mt} rtl={l === 'ar'} limit={60} />}
-                            {md && <MetaField label="Meta Description" value={md} rtl={l === 'ar'} limit={250} />}
+                  {data.admin && (
+                    <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/10">
+                      <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
+                      {(['en', 'ar'] as const).map((l) => (
+                        <Fragment key={l}>
+                          <div className="pt-2.5 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-foreground/45">
+                            {l.toUpperCase()}
                           </div>
-                        );
-                      })}
+                          <MetaRow label="H1" value={data.admin!.h1[l]} rtl={l === 'ar'} />
+                          <MetaRow label="Meta Title" value={data.admin!.meta_title[l]} rtl={l === 'ar'} limit={60} />
+                          <MetaRow label="Meta Description" value={data.admin!.meta_description[l]} rtl={l === 'ar'} limit={250} />
+                        </Fragment>
+                      ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </section>
             )}
 

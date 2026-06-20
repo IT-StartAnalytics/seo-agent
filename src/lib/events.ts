@@ -54,9 +54,9 @@ export type EventDetail = {
     friendly_url: string | null;
   } | null;
   admin: {
-    h1: Record<Lang, string | null>;
-    meta_title: Record<Lang, string | null>;
-    meta_description: Record<Lang, string | null>;
+    h1: Record<'en' | 'ar', string | null>;
+    meta_title: Record<'en' | 'ar', string | null>;
+    meta_description: Record<'en' | 'ar', string | null>;
   } | null;
   stream: {is_attraction: boolean; seo_done: boolean; status: string | null} | null;
   generated: GeneratedMeta | null;
@@ -215,9 +215,9 @@ export async function getEventById(id: string): Promise<EventDetail> {
 
   const admin = rp
     ? {
-        h1: {en: clean(rs('event_name_en') ?? rs('event_long_name_en')), ru: null, ar: clean(rs('event_name_ar') ?? rs('event_long_name_ar')), fr: null},
-        meta_title: {en: clean(rs('meta_title_en')), ru: null, ar: clean(rs('meta_title_ar')), fr: null},
-        meta_description: {en: clean(rs('meta_description_en')), ru: null, ar: clean(rs('meta_description_ar')), fr: null}
+        h1: {en: clean(rs('event_name_en') ?? rs('event_long_name_en')), ar: clean(rs('event_name_ar') ?? rs('event_long_name_ar'))},
+        meta_title: {en: clean(rs('meta_title_en')), ar: clean(rs('meta_title_ar'))},
+        meta_description: {en: clean(rs('meta_description_en')), ar: clean(rs('meta_description_ar'))}
       }
     : null;
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
