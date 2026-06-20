@@ -182,12 +182,19 @@ export async function getEventById(id: string): Promise<EventDetail> {
 
   const [lookup, runs, stream] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&order=finished_at.desc&limit=1`),
+    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&order=finished_at.desc&limit=10`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`)
   ]);
 
   const lk = lookup[0];
-  const rn = runs[0];
+  const META_KEYS = [
+    'h1_en', 'meta_title_en', 'meta_desc_en',
+    'h1_ar', 'meta_title_ar', 'meta_desc_ar',
+    'h1_ru', 'meta_title_ru', 'meta_desc_ru',
+    'h1_fr', 'meta_title_fr', 'meta_desc_fr'
+  ];
+  const hasContent = (r: Row) => META_KEYS.some((k) => r[k] != null && String(r[k]).trim() !== '');
+  const rn = runs.find(hasContent) ?? null;
   const st = stream[0];
 
   const rp =
