@@ -10,13 +10,13 @@ function Cell({label, value, rtl, limit}: {label: string; value: string | null; 
   const len = value ? [...value].length : 0;
   const over = limit ? len > limit : false;
   return (
-    <div>
-      <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-foreground/40">
+    <div className="mt-2">
+      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-foreground/45">
         <span>{label}</span>
-        {limit ? <span className={over ? 'text-red-500' : 'text-foreground/35'}>{len}/{limit}</span> : null}
+        {limit ? <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span> : null}
       </div>
-      <p dir={rtl ? 'rtl' : undefined} className="text-sm text-foreground/85 break-words min-h-[1.1rem]">
-        {value ?? ''}
+      <p dir={rtl ? 'rtl' : undefined} className={`text-sm ${value ? 'text-foreground/85' : 'text-foreground/35'}`}>
+        {value ?? '—'}
       </p>
     </div>
   );
@@ -68,17 +68,13 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
         </div>
       </div>
 
-      <div>
+      <div className="grid gap-4 sm:grid-cols-2">
         {v.langs.map((a) => (
-          <div key={a.lang} className="flex gap-3 py-3 border-b border-black/5 dark:border-white/10 last:border-0">
-            <span className="w-32 shrink-0 pt-0.5 text-foreground/50 font-medium">
-              {LANG_LABEL[a.lang] ?? a.lang.toUpperCase()}
-            </span>
-            <div className="flex-1 space-y-2.5">
-              <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
-              <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
-              <Cell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
-            </div>
+          <div key={a.lang} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
+            <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[a.lang] ?? a.lang.toUpperCase()}</div>
+            <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
+            <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
+            <Cell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
           </div>
         ))}
       </div>
