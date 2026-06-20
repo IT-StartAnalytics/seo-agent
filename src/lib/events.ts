@@ -6,7 +6,7 @@
 import {getAllReviews, getReview, type ReviewStatus} from './reviews';
 
 export type Lang = 'en' | 'ru' | 'ar' | 'fr';
-export const LANGS: Lang[] = ['en', 'ru', 'ar', 'fr'];
+export const LANGS: Lang[] = ['en', 'ar', 'ru', 'fr'];
 
 export type NewEvent = {
   event_id: string;
