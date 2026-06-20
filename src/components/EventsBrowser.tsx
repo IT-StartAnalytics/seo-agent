@@ -41,10 +41,12 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
 
   // Counts for the cards
   const counts = useMemo(() => {
-    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0};
+    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0, generated: 0, not_generated: 0};
     for (const e of events) {
       if (e.is_new) c.new++;
       if (e.is_attraction) c.attractions++;
+      if (e.is_generated) c.generated++;
+      else c.not_generated++;
       const g = statusGroup(e.status);
       c[g] = (c[g] ?? 0) + 1;
     }
@@ -53,9 +55,9 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
 
   // Ordered card list (only show non-empty)
   const cards = useMemo(() => {
-    const order = ['all', 'new', 'on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation'];
+    const order = ['all', 'new', 'generated', 'not_generated', 'on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation'];
     const label = (k: string) =>
-      k === 'all' ? t('total') : k === 'new' ? t('newTab') : k === 'attractions' ? t('attractions') : groupLabel(k);
+      k === 'all' ? t('total') : k === 'new' ? t('newTab') : k === 'attractions' ? t('attractions') : k === 'generated' ? t('generated') : k === 'not_generated' ? t('notGenerated') : groupLabel(k);
     return order
       .filter((k) => (counts[k] ?? 0) > 0 || k === 'all')
       .map((k) => ({key: k, label: label(k), value: counts[k] ?? 0}));
@@ -64,6 +66,8 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
   const matchesKey = (e: CatalogEvent, key: string) => {
     if (key === 'new') return e.is_new;
     if (key === 'attractions') return e.is_attraction;
+    if (key === 'generated') return e.is_generated;
+    if (key === 'not_generated') return !e.is_generated;
     return statusGroup(e.status) === key;
   };
   const matchesActive = (e: CatalogEvent) => {
@@ -173,6 +177,15 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
                 )}
                 <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-[11px] capitalize">
                   {groupLabel(statusGroup(e.status))}
+                </span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                    e.is_generated
+                      ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+                      : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                  }`}
+                >
+                  {e.is_generated ? t('generated') : t('notGenerated')}
                 </span>
                 {e.url && (
                   <a

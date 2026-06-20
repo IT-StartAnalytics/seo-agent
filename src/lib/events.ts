@@ -77,6 +77,20 @@ async function sb(path: string): Promise<Row[]> {
   return (await res.json()) as Row[];
 }
 
+async function sbRpc<T>(fn: string, body: unknown): Promise<T> {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_KEY;
+  if (!url || !key) throw new Error('SUPABASE_URL or SUPABASE_KEY is not set');
+  const res = await fetch(`${url}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+    cache: 'no-store'
+  });
+  if (!res.ok) throw new Error(`Supabase rpc ${fn} failed: ${res.status}`);
+  return (await res.json()) as T;
+}
+
 const s = (r: Row, k: string) => (r[k] == null ? null : String(r[k]));
 const arr = (r: Row, k: string) => (Array.isArray(r[k]) ? (r[k] as string[]) : null);
 
@@ -287,6 +301,7 @@ export type CatalogEvent = {
   status: string | null;
   is_attraction: boolean;
   is_new: boolean;
+  is_generated: boolean;
   url: string | null;
 };
 
@@ -305,6 +320,15 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
 
   const newSet = new Set(streamRows.map((r) => String(r.event_id)));
   const rows = pages.flat();
+  const ids = rows.map((r) => String(r.event_id));
+
+  let generatedSet = new Set<string>();
+  try {
+    const gen = await sbRpc<string[]>('generated_event_ids', {p_ids: ids});
+    generatedSet = new Set(gen ?? []);
+  } catch {
+    // if the RPC fails, fall back to "none generated" rather than breaking the page
+  }
 
   return rows.map((r) => {
     const cats = (s(r, 'all_categories') ?? '').toLowerCase();
@@ -316,6 +340,7 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       status: s(r, 'status'),
       is_attraction: cats.includes('attraction'),
       is_new: newSet.has(String(r.event_id)),
+      is_generated: generatedSet.has(String(r.event_id)),
       url: s(r, 'url')
     };
   });
