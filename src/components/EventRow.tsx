@@ -65,8 +65,8 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
       } as Record<string, string>
     )[k] ?? k.replace(/_/g, ' ');
 
-  const date = gen?.finished_at
-    ? new Date(gen.finished_at).toLocaleString(undefined, {
+  const date = e.gen_date
+    ? new Date(e.gen_date).toLocaleString(undefined, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',

@@ -122,6 +122,8 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
   const [selected, setSelected] = useState<Set<string>>(new Set()); // empty = all
   const [query, setQuery] = useState('');
   const [visible, setVisible] = useState(PAGE);
+  const [sortKey, setSortKey] = useState<'event' | 'date' | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const groupLabel = (g: string) => {
     const map: Record<string, string> = {
@@ -202,7 +204,23 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     });
   }, [events, selected, query]);
 
-  const shown = filtered.slice(0, visible);
+  const sorted = useMemo(() => {
+    if (!sortKey) return filtered;
+    const arr = [...filtered];
+    const dir = sortDir === 'asc' ? 1 : -1;
+    arr.sort((a, b) => {
+      if (sortKey === 'event') return (a.name ?? '').localeCompare(b.name ?? '') * dir;
+      const ad = a.gen_date;
+      const bd = b.gen_date;
+      if (!ad && !bd) return 0;
+      if (!ad) return 1; // nulls last
+      if (!bd) return -1;
+      return (ad < bd ? -1 : ad > bd ? 1 : 0) * dir;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
+
+  const shown = sorted.slice(0, visible);
 
   const [summaries, setSummaries] = useState<Record<string, EventGenerated | null>>({});
   const shownKey = shown.map((e) => e.event_id).join(',');
@@ -247,6 +265,18 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     });
   }
 
+
+  function toggleSort(key: 'event' | 'date') {
+    setVisible(PAGE);
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'date' ? 'desc' : 'asc');
+    }
+  }
+  const sortIndicator = (key: 'event' | 'date') =>
+    sortKey === key ? (sortDir === 'asc' ? '↑' : '↓') : '';
 
   return (
     <div className="mt-8">
@@ -298,10 +328,20 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
         <table className="w-full min-w-[920px] text-sm">
           <thead>
             <tr className="text-left text-[11px] uppercase tracking-wide text-foreground/45 border-b border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03]">
-              <th className="px-4 py-2.5 font-medium">{t('colEvent')}</th>
+              <th className="px-4 py-2.5 font-medium">
+                <button onClick={() => toggleSort('event')} className="inline-flex items-center gap-1 hover:text-foreground">
+                  {t('colEvent')}
+                  <span className="text-[10px] text-indigo-500">{sortIndicator('event')}</span>
+                </button>
+              </th>
               <th className="px-3 py-2.5 font-medium">{t('colStatus')}</th>
               <th className="px-3 py-2.5 font-medium">{t('colLangs')}</th>
-              <th className="px-3 py-2.5 font-medium">{t('colWhen')}</th>
+              <th className="px-3 py-2.5 font-medium">
+                <button onClick={() => toggleSort('date')} className="inline-flex items-center gap-1 hover:text-foreground">
+                  {t('colWhen')}
+                  <span className="text-[10px] text-indigo-500">{sortIndicator('date')}</span>
+                </button>
+              </th>
               <th className="px-3 py-2.5" />
             </tr>
           </thead>

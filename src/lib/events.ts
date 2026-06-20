@@ -310,6 +310,7 @@ export type CatalogEvent = {
   is_attraction: boolean;
   is_new: boolean;
   is_generated: boolean;
+  gen_date: string | null;
   review: ReviewStatus | null;
   url: string | null;
 };
@@ -333,10 +334,10 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
   const rows = pages.flat();
   const ids = rows.map((r) => String(r.event_id));
 
-  let generatedSet = new Set<string>();
+  const genMap = new Map<string, string>();
   try {
-    const gen = await sbRpc<string[]>('generated_event_ids', {p_ids: ids});
-    generatedSet = new Set(gen ?? []);
+    const gen = await sbRpc<{event_id: string; finished_at: string}[]>('generated_event_dates', {p_ids: ids});
+    for (const r of gen ?? []) genMap.set(String(r.event_id), r.finished_at);
   } catch {
     // if the RPC fails, fall back to "none generated" rather than breaking the page
   }
@@ -353,7 +354,8 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       status: s(r, 'status'),
       is_attraction: cats.includes('attraction'),
       is_new: newSet.has(String(r.event_id)),
-      is_generated: generatedSet.has(String(r.event_id)),
+      is_generated: genMap.has(String(r.event_id)),
+      gen_date: genMap.get(String(r.event_id)) ?? null,
       review: reviews.get(String(r.event_id)) ?? null,
       url: s(r, 'url')
     };
