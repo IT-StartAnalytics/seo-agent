@@ -99,6 +99,8 @@
     "attractionsTitle": "Аттракционы",
     "eventsSubtitle": "Каталог ивентов. Карточки — фильтр (мультивыбор), или поиск по ID.",
     "attractionsSubtitle": "Каталог аттракционов. Карточки — фильтр (мультивыбор), или поиск по ID.",
-    "openPage": "Открыть"
+    "openPage": "Открыть",
+    "groupProcessing": "Обработка",
+    "groupStatus": "Статус"
   }
 }

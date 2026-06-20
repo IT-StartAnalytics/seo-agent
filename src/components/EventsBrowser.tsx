@@ -53,15 +53,23 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     return c;
   }, [events]);
 
-  // Ordered card list (only show non-empty)
-  const cards = useMemo(() => {
-    const order = ['all', 'new', 'generated', 'not_generated', 'on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation'];
-    const label = (k: string) =>
-      k === 'all' ? t('total') : k === 'new' ? t('newTab') : k === 'attractions' ? t('attractions') : k === 'generated' ? t('generated') : k === 'not_generated' ? t('notGenerated') : groupLabel(k);
-    return order
+  const cardLabel = (k: string) =>
+    k === 'all'
+      ? t('total')
+      : k === 'new'
+      ? t('newTab')
+      : k === 'generated'
+      ? t('generated')
+      : k === 'not_generated'
+      ? t('notGenerated')
+      : groupLabel(k);
+  const buildCards = (order: string[]) =>
+    order
       .filter((k) => (counts[k] ?? 0) > 0 || k === 'all')
-      .map((k) => ({key: k, label: label(k), value: counts[k] ?? 0}));
-  }, [counts, t]);
+      .map((k) => ({key: k, label: cardLabel(k), value: counts[k] ?? 0}));
+  // Group 1: processing (SEO workflow). Group 2: sale status.
+  const procCards = buildCards(['all', 'new', 'generated', 'not_generated']);
+  const statusCards = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
 
   const matchesKey = (e: CatalogEvent, key: string) => {
     if (key === 'new') return e.is_new;
@@ -105,29 +113,44 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     });
   }
 
+  const renderCard = (c: {key: string; label: string; value: number}) => {
+    const on = c.key === 'all' ? selected.size === 0 : selected.has(c.key);
+    return (
+      <button
+        key={c.key}
+        onClick={() => toggleFilter(c.key)}
+        className={`flex items-baseline gap-1.5 rounded-xl border px-3 py-1.5 transition-colors ${
+          on
+            ? 'border-indigo-500 bg-indigo-500/10'
+            : 'border-black/10 dark:border-white/12 hover:border-black/25 dark:hover:border-white/30'
+        }`}
+      >
+        <span className="text-base font-semibold tabular-nums leading-none">{c.value}</span>
+        <span className={`text-[11px] whitespace-nowrap ${on ? 'text-indigo-600 dark:text-indigo-300' : 'text-foreground/55'}`}>
+          {c.label}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div className="mt-8">
-      {/* Clickable stat cards = filter (compact, wrap to one/few rows) */}
-      <div className="flex flex-wrap gap-2">
-        {cards.map((c) => {
-          const on = c.key === 'all' ? selected.size === 0 : selected.has(c.key);
-          return (
-            <button
-              key={c.key}
-              onClick={() => toggleFilter(c.key)}
-              className={`flex items-baseline gap-1.5 rounded-xl border px-3 py-1.5 transition-colors ${
-                on
-                  ? 'border-indigo-500 bg-indigo-500/10'
-                  : 'border-black/10 dark:border-white/12 hover:border-black/25 dark:hover:border-white/30'
-              }`}
-            >
-              <span className="text-base font-semibold tabular-nums leading-none">{c.value}</span>
-              <span className={`text-[11px] whitespace-nowrap ${on ? 'text-indigo-600 dark:text-indigo-300' : 'text-foreground/55'}`}>
-                {c.label}
-              </span>
-            </button>
-          );
-        })}
+      {/* Clickable stat cards = filter, in two groups */}
+      <div className="space-y-3">
+        <div>
+          <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-foreground/40">
+            {t('groupProcessing')}
+          </div>
+          <div className="flex flex-wrap gap-2">{procCards.map(renderCard)}</div>
+        </div>
+        {statusCards.length > 0 && (
+          <div>
+            <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-foreground/40">
+              {t('groupStatus')}
+            </div>
+            <div className="flex flex-wrap gap-2">{statusCards.map(renderCard)}</div>
+          </div>
+        )}
       </div>
 
       {/* Search */}
