@@ -101,6 +101,12 @@
     "attractionsSubtitle": "Attractions catalog. Click cards to filter (multi-select), or search by ID.",
     "openPage": "Open page",
     "groupProcessing": "Processing",
-    "groupStatus": "Status"
+    "groupStatus": "Status",
+    "approve": "Approve",
+    "reject": "Needs regen",
+    "clearReview": "Clear",
+    "approved": "Approved",
+    "rejected": "Needs regen",
+    "reviewPending": "To review"
   }
 }

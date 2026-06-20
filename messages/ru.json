@@ -101,6 +101,12 @@
     "attractionsSubtitle": "Каталог аттракционов. Карточки — фильтр (мультивыбор), или поиск по ID.",
     "openPage": "Открыть",
     "groupProcessing": "Обработка",
-    "groupStatus": "Статус"
+    "groupStatus": "Статус",
+    "approve": "Одобрить",
+    "reject": "На перегенерацию",
+    "clearReview": "Сбросить",
+    "approved": "Одобрено",
+    "rejected": "На перегенерацию",
+    "reviewPending": "На проверке"
   }
 }

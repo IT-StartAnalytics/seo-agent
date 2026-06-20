@@ -1,6 +1,7 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import RegenerateButton from '@/components/RegenerateButton';
+import ReviewButtons from '@/components/ReviewButtons';
 import {Link} from '@/i18n/navigation';
 import {getEventById, LANGS, type EventDetail, type Lang} from '@/lib/events';
 
@@ -130,9 +131,23 @@ export default async function EventDetailPage({
                   >
                     {g ? t('generated') : t('notGenerated')}
                   </span>
+                  {data.review && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 font-medium ${
+                        data.review === 'approved'
+                          ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+                          : 'bg-red-500/15 text-red-600 dark:text-red-400'
+                      }`}
+                    >
+                      {data.review === 'approved' ? t('approved') : t('rejected')}
+                    </span>
+                  )}
                 </div>
               </div>
-              <RegenerateButton eventId={data.event_id} />
+              <div className="flex flex-col items-end gap-2">
+                <RegenerateButton eventId={data.event_id} />
+                <ReviewButtons eventId={data.event_id} initial={data.review} />
+              </div>
             </div>
 
             {/* Source data (incl. current admin meta tags) */}

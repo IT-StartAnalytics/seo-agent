@@ -3,6 +3,8 @@
 //   seo_event_lookup   - full source data for any event (search by id)
 //   seo_agent_runs     - generated H1 / meta tags (multi-language)
 
+import {getAllReviews, getReview, type ReviewStatus} from './reviews';
+
 export type Lang = 'en' | 'ru' | 'ar' | 'fr';
 export const LANGS: Lang[] = ['en', 'ru', 'ar', 'fr'];
 
@@ -35,6 +37,7 @@ export type EventDetail = {
   event_id: string;
   found: boolean;
   is_attraction: boolean;
+  review: ReviewStatus | null;
   source: {
     url: string | null;
     name_en: string | null;
@@ -256,6 +259,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
             meta_description: clean(rs(`meta_description_${l}`))
           }))
       : null;
+  const review = await getReview(eid);
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
   const isAttraction = lk ? catsLk.includes('attraction') : st ? Boolean(st.is_attraction) : false;
 
@@ -263,6 +267,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     event_id: eid,
     found: Boolean(lk || rn || st),
     is_attraction: isAttraction,
+    review,
     source: lk
       ? {
           url: s(lk, 'url'),
@@ -302,6 +307,7 @@ export type CatalogEvent = {
   is_attraction: boolean;
   is_new: boolean;
   is_generated: boolean;
+  review: ReviewStatus | null;
   url: string | null;
 };
 
@@ -332,6 +338,8 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
     // if the RPC fails, fall back to "none generated" rather than breaking the page
   }
 
+  const reviews = await getAllReviews();
+
   return rows.map((r) => {
     const cats = (s(r, 'all_categories') ?? '').toLowerCase();
     return {
@@ -343,6 +351,7 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       is_attraction: cats.includes('attraction'),
       is_new: newSet.has(String(r.event_id)),
       is_generated: generatedSet.has(String(r.event_id)),
+      review: reviews.get(String(r.event_id)) ?? null,
       url: s(r, 'url')
     };
   });

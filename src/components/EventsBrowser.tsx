@@ -41,12 +41,15 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
 
   // Counts for the cards
   const counts = useMemo(() => {
-    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0, generated: 0, not_generated: 0};
+    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0, generated: 0, not_generated: 0, review_pending: 0, approved: 0, rejected: 0};
     for (const e of events) {
       if (e.is_new) c.new++;
       if (e.is_attraction) c.attractions++;
       if (e.is_generated) c.generated++;
       else c.not_generated++;
+      if (e.review === 'approved') c.approved++;
+      else if (e.review === 'rejected') c.rejected++;
+      if (e.is_generated && !e.review) c.review_pending++;
       const g = statusGroup(e.status);
       c[g] = (c[g] ?? 0) + 1;
     }
@@ -62,13 +65,19 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       ? t('generated')
       : k === 'not_generated'
       ? t('notGenerated')
+      : k === 'review_pending'
+      ? t('reviewPending')
+      : k === 'approved'
+      ? t('approved')
+      : k === 'rejected'
+      ? t('rejected')
       : groupLabel(k);
   const buildCards = (order: string[]) =>
     order
       .filter((k) => (counts[k] ?? 0) > 0 || k === 'all')
       .map((k) => ({key: k, label: cardLabel(k), value: counts[k] ?? 0}));
   // Group 1: processing (SEO workflow). Group 2: sale status.
-  const procCards = buildCards(['all', 'new', 'generated', 'not_generated']);
+  const procCards = buildCards(['all', 'new', 'generated', 'not_generated', 'review_pending', 'approved', 'rejected']);
   const statusCards = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
 
   const matchesKey = (e: CatalogEvent, key: string) => {
@@ -76,6 +85,9 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     if (key === 'attractions') return e.is_attraction;
     if (key === 'generated') return e.is_generated;
     if (key === 'not_generated') return !e.is_generated;
+    if (key === 'approved') return e.review === 'approved';
+    if (key === 'rejected') return e.review === 'rejected';
+    if (key === 'review_pending') return e.is_generated && !e.review;
     return statusGroup(e.status) === key;
   };
   const matchesActive = (e: CatalogEvent) => {
@@ -210,6 +222,17 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
                 >
                   {e.is_generated ? t('generated') : t('notGenerated')}
                 </span>
+                {e.review && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                      e.review === 'approved'
+                        ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                        : 'bg-red-500/15 text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {e.review === 'approved' ? t('approved') : t('rejected')}
+                  </span>
+                )}
                 {e.url && (
                   <a
                     href={e.url}
