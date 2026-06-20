@@ -92,14 +92,16 @@ export default async function EventDetailPage({
             {data.source && (
               <section className="mt-7">
                 <h2 className="text-sm font-semibold text-foreground/70">{t('source')}</h2>
-                <div className="mt-2 rounded-2xl border border-black/10 dark:border-white/10 bg-muted shadow-sm p-4">
-                  <Row label={t('venue')} value={data.source.venue} />
-                  <Row label={t('city')} value={[data.source.city, data.source.country].filter(Boolean).join(', ') || null} />
-                  <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />
-                  <Row label={t('categories')} value={data.source.categories} />
-                  <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
-                  <Row label="URL" value={data.source.url} href={data.source.url} />
-                  <Row label={t('description')} value={data.source.description} />
+                <div className="mt-2 rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.08] dark:bg-white/[0.07] shadow-sm p-4 space-y-4">
+                  <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+                    <Row label={t('venue')} value={data.source.venue} />
+                    <Row label={t('city')} value={[data.source.city, data.source.country].filter(Boolean).join(', ') || null} />
+                    <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />
+                    <Row label={t('categories')} value={data.source.categories} />
+                    <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
+                    <Row label="URL" value={data.source.url} href={data.source.url} />
+                    <Row label={t('description')} value={data.source.description} />
+                  </div>
 
                   {data.history.length > 0 && <MetaHistory versions={data.history} />}
                 </div>
