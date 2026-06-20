@@ -151,8 +151,8 @@ export default async function EventDetailPage({
                   <Row label={t('description')} value={data.source.description} />
 
                   {data.admin && (
-                    <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/10">
-                      <div className="mb-1 text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
+                    <div className="mt-2">
+                      <div className="mb-2 pt-1 text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
                       {data.admin.map((a) => (
                         <div
                           key={a.lang}
