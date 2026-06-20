@@ -6,18 +6,21 @@
   --background: #e9ecf1;
   --foreground: #1a1a1a;
   --card: #ffffff;
+  --muted: #eef1f6;
 }
 
 .dark {
   --background: #141821;
   --foreground: #e8eaf0;
   --card: #1f2735;
+  --muted: #29324a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-muted: var(--muted);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
