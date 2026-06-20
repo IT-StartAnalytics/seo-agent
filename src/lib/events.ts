@@ -236,7 +236,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
           }))
       : null;
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
-  const isAttraction = st ? Boolean(st.is_attraction) : catsLk.includes('attraction');
+  const isAttraction = lk ? catsLk.includes('attraction') : st ? Boolean(st.is_attraction) : false;
 
   return {
     event_id: eid,

@@ -120,11 +120,9 @@ export default async function EventDetailPage({
                 </h1>
                 <div className="mt-2 flex items-center gap-1.5 flex-wrap text-[11px]">
                   <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5">ID {data.event_id}</span>
-                  {data.stream && (
-                    <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5">
-                      {data.stream.is_attraction ? t('attraction') : t('event')}
-                    </span>
-                  )}
+                  <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5">
+                    {data.is_attraction ? t('attraction') : t('event')}
+                  </span>
                   <span
                     className={`rounded-full px-2 py-0.5 font-medium ${
                       g ? 'bg-green-500/15 text-green-600 dark:text-green-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
