@@ -199,7 +199,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
 
   const [lookup, runs, stream] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&order=finished_at.desc&limit=10`),
+    sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=5`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`)
   ]);
 
