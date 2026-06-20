@@ -42,7 +42,14 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
   return (
     <div className="mt-2">
       <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
-        <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
+          {i === 0 && v.source === 'run' && (
+            <span className="rounded-full bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-[10px] font-medium">
+              {t('lastGeneration')}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2 text-xs">
           <button
             onClick={() => setI((x) => Math.max(0, x - 1))}
@@ -78,6 +85,29 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
           </div>
         ))}
       </div>
+
+      {(v.event_types.length > 0 || v.performers.length > 0) && (
+        <div className="mt-3 flex flex-col gap-3">
+          {v.event_types.length > 0 && (
+            <div>
+              <div className="text-[11px] uppercase tracking-wide text-foreground/45">{t('categories')}</div>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {v.event_types.map((c) => (
+                  <span key={c} className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2.5 py-0.5 text-xs">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {v.performers.length > 0 && (
+            <div>
+              <div className="text-[11px] uppercase tracking-wide text-foreground/45">{t('performers')}</div>
+              <div className="mt-1 text-sm text-foreground/85">{v.performers.join(', ')}</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -38,6 +38,8 @@ export type MetaVersion = {
   status: string | null;
   source: 'run' | 'admin';
   langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[];
+  event_types: string[];
+  performers: string[];
 };
 
 export type EventDetail = {
@@ -284,12 +286,14 @@ export async function getEventById(id: string): Promise<EventDetail> {
         h1: cs(r, `h1_${l}`),
         meta_title: cs(r, `meta_title_${l}`),
         meta_description: cs(r, `meta_desc_${l}`)
-      })).filter((x) => x.h1 || x.meta_title || x.meta_description)
+      })).filter((x) => x.h1 || x.meta_title || x.meta_description),
+      event_types: arr(r, 'event_types') ?? [],
+      performers: arr(r, 'performers') ?? []
     }))
     .filter((v) => v.langs.length > 0);
   const history: MetaVersion[] = [...runVersions];
   if (admin && admin.length > 0) {
-    history.push({date: null, status: null, source: 'admin', langs: admin});
+    history.push({date: null, status: null, source: 'admin', langs: admin, event_types: [], performers: []});
   }
 
   return {

@@ -4,38 +4,9 @@ import RegenerateButton from '@/components/RegenerateButton';
 import ReviewButtons from '@/components/ReviewButtons';
 import MetaHistory from '@/components/MetaHistory';
 import {Link} from '@/i18n/navigation';
-import {getEventById, LANGS, type EventDetail, type Lang} from '@/lib/events';
+import {getEventById, type EventDetail} from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
-
-const LANG_LABEL: Record<Lang, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
-
-// Always-rendered meta field (shows a dash when empty)
-function MetaField({
-  label,
-  value,
-  rtl,
-  limit
-}: {
-  label: string;
-  value: string | null;
-  rtl?: boolean;
-  limit?: number;
-}) {
-  const len = value ? [...value].length : 0;
-  const over = limit ? len > limit : false;
-  return (
-    <div className="mt-2">
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-foreground/45">
-        <span>{label}</span>
-        {limit && <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span>}
-      </div>
-      <p dir={rtl ? 'rtl' : undefined} className={`text-sm ${value ? 'text-foreground/85' : 'text-foreground/35'}`}>
-        {value ?? '—'}
-      </p>
-    </div>
-  );
-}
 
 function Row({label, value, href}: {label: string; value: string | null; href?: string | null}) {
   if (!value) return null;
@@ -71,7 +42,6 @@ export default async function EventDetailPage({
     error = true;
   }
 
-  const empty: Record<Lang, string | null> = {en: null, ru: null, ar: null, fr: null};
   const g = data?.generated;
 
   return (
@@ -136,50 +106,6 @@ export default async function EventDetailPage({
               </section>
             )}
 
-            {/* Generated meta tags - always shown (empty when not generated) */}
-            <section className="mt-7">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-foreground/70">{t('generatedMeta')}</h2>
-                {!g && <span className="text-xs text-foreground/45">· {t('notGeneratedYet')}</span>}
-              </div>
-
-              {g && (g.event_types?.length || g.performers?.length) ? (
-                <div className="mt-3 flex flex-col gap-3">
-                  {g.event_types && g.event_types.length > 0 && (
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-foreground/45">{t('categories')}</div>
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        {g.event_types.map((c) => (
-                          <span key={c} className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2.5 py-0.5 text-xs">{c}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {g.performers && g.performers.length > 0 && (
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-foreground/45">{t('performers')}</div>
-                      <div className="mt-1 text-sm text-foreground/85">{g.performers.join(', ')}</div>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {LANGS.map((l) => {
-                  const h1 = (g?.h1 ?? empty)[l];
-                  const mt = (g?.meta_title ?? empty)[l];
-                  const md = (g?.meta_description ?? empty)[l];
-                  return (
-                    <div key={l} className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-4">
-                      <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[l]}</div>
-                      <MetaField label="H1" value={h1} rtl={l === 'ar'} />
-                      <MetaField label="Meta Title" value={mt} rtl={l === 'ar'} limit={60} />
-                      <MetaField label="Meta Description" value={md} rtl={l === 'ar'} limit={250} />
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
           </>
         )}
       </main>
