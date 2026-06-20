@@ -248,14 +248,28 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
               key={e.event_id}
               className="flex items-center justify-between gap-4 p-4 hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
             >
-              <Link href={`/events/${e.event_id}`} className="min-w-0 flex-1">
-                <div className="font-medium truncate">{e.name ?? `Event ${e.event_id}`}</div>
-                <div className="text-xs text-foreground/50 mt-0.5">
-                  ID {e.event_id}
-                  {e.city ? ` · ${e.city}` : ''}
-                  {e.country ? `, ${e.country}` : ''}
+              <div className="min-w-0 flex-1">
+                <Link href={`/events/${e.event_id}`} className="block font-medium truncate hover:underline">
+                  {e.name ?? `Event ${e.event_id}`}
+                </Link>
+                <div className="text-xs text-foreground/50 mt-0.5 flex items-center gap-2 flex-wrap">
+                  <span>
+                    ID {e.event_id}
+                    {e.city ? ` · ${e.city}` : ''}
+                    {e.country ? `, ${e.country}` : ''}
+                  </span>
+                  {e.url && (
+                    <a
+                      href={e.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-indigo-500 hover:underline whitespace-nowrap"
+                    >
+                      {t('openPage')} ↗
+                    </a>
+                  )}
                 </div>
-              </Link>
+              </div>
               <div className="flex items-center gap-1.5 shrink-0">
                 {e.is_new && (
                   <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-[11px] font-medium">
@@ -284,17 +298,6 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
                   >
                     {e.review === 'approved' ? t('approved') : t('rejected')}
                   </span>
-                )}
-                {e.url && (
-                  <a
-                    href={e.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={t('openPage')}
-                    className="rounded-full border border-black/15 dark:border-white/20 px-2 py-0.5 text-[11px] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-                  >
-                    {t('openPage')} ↗
-                  </a>
                 )}
               </div>
             </div>
