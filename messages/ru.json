@@ -107,6 +107,7 @@
     "clearReview": "Сбросить",
     "approved": "Одобрено",
     "rejected": "На перегенерацию",
-    "reviewPending": "На проверке"
+    "reviewPending": "На проверке",
+    "reset": "Сбросить"
   }
 }

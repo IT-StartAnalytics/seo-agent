@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {Link, useRouter} from '@/i18n/navigation';
 import type {CatalogEvent} from '@/lib/events';
@@ -15,6 +15,73 @@ function statusGroup(status: string | null): string {
   if (s === 'cancelled' || s === 'declined') return 'cancelled';
   if (s === 'pending' || s === 'approved') return 'moderation';
   return s;
+}
+
+function FilterDropdown({
+  label,
+  options,
+  selected,
+  onToggle
+}: {
+  label: string;
+  options: {key: string; label: string; value: number}[];
+  selected: Set<string>;
+  onToggle: (k: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+  const count = options.reduce((n, o) => (selected.has(o.key) ? n + 1 : n), 0);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+          count > 0
+            ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
+            : 'border-black/15 dark:border-white/20 hover:border-black/30 dark:hover:border-white/35'
+        }`}
+      >
+        <span>{label}</span>
+        {count > 0 && (
+          <span className="rounded-full bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 leading-none">{count}</span>
+        )}
+        <span className="text-foreground/40 text-[10px]">▾</span>
+      </button>
+      {open && (
+        <div className="absolute left-0 z-30 mt-1 min-w-[240px] rounded-xl border border-black/10 dark:border-white/15 bg-background shadow-lg p-1">
+          {options.map((o) => {
+            const on = selected.has(o.key);
+            return (
+              <button
+                key={o.key}
+                onClick={() => onToggle(o.key)}
+                className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`flex h-4 w-4 items-center justify-center rounded border text-[10px] ${
+                      on ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-black/25 dark:border-white/30'
+                    }`}
+                  >
+                    {on ? '✓' : ''}
+                  </span>
+                  {o.label}
+                </span>
+                <span className="tabular-nums text-foreground/45">{o.value}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const PAGE = 100;
@@ -77,8 +144,8 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       .filter((k) => (counts[k] ?? 0) > 0 || k === 'all')
       .map((k) => ({key: k, label: cardLabel(k), value: counts[k] ?? 0}));
   // Group 1: processing (SEO workflow). Group 2: sale status.
-  const procCards = buildCards(['all', 'new', 'generated', 'not_generated', 'review_pending', 'approved', 'rejected']);
-  const statusCards = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
+  const procOptions = buildCards(['new', 'generated', 'not_generated', 'review_pending', 'approved', 'rejected']);
+  const statusOptions = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
 
   const matchesKey = (e: CatalogEvent, key: string) => {
     if (key === 'new') return e.is_new;
@@ -125,44 +192,29 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
     });
   }
 
-  const renderCard = (c: {key: string; label: string; value: number}) => {
-    const on = c.key === 'all' ? selected.size === 0 : selected.has(c.key);
-    return (
-      <button
-        key={c.key}
-        onClick={() => toggleFilter(c.key)}
-        className={`flex items-baseline gap-1.5 rounded-xl border px-3 py-1.5 transition-colors ${
-          on
-            ? 'border-indigo-500 bg-indigo-500/10'
-            : 'border-black/10 dark:border-white/12 hover:border-black/25 dark:hover:border-white/30'
-        }`}
-      >
-        <span className="text-base font-semibold tabular-nums leading-none">{c.value}</span>
-        <span className={`text-[11px] whitespace-nowrap ${on ? 'text-indigo-600 dark:text-indigo-300' : 'text-foreground/55'}`}>
-          {c.label}
-        </span>
-      </button>
-    );
-  };
 
   return (
     <div className="mt-8">
-      {/* Clickable stat cards = filter, in two groups */}
-      <div className="space-y-3">
-        <div>
-          <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-foreground/40">
-            {t('groupProcessing')}
-          </div>
-          <div className="flex flex-wrap gap-2">{procCards.map(renderCard)}</div>
-        </div>
-        {statusCards.length > 0 && (
-          <div>
-            <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-foreground/40">
-              {t('groupStatus')}
-            </div>
-            <div className="flex flex-wrap gap-2">{statusCards.map(renderCard)}</div>
-          </div>
+      {/* Filter dropdowns */}
+      <div className="flex flex-wrap items-center gap-2">
+        <FilterDropdown label={t('groupProcessing')} options={procOptions} selected={selected} onToggle={toggleFilter} />
+        {statusOptions.length > 0 && (
+          <FilterDropdown label={t('groupStatus')} options={statusOptions} selected={selected} onToggle={toggleFilter} />
         )}
+        {selected.size > 0 && (
+          <button
+            onClick={() => {
+              setSelected(new Set());
+              setVisible(PAGE);
+            }}
+            className="rounded-full border border-black/15 dark:border-white/20 px-3 py-1.5 text-xs text-foreground/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+          >
+            {t('reset')}
+          </button>
+        )}
+        <span className="ml-auto text-xs text-foreground/45">
+          {t('total')}: {events.length}
+        </span>
       </div>
 
       {/* Search */}

@@ -107,6 +107,7 @@
     "clearReview": "Clear",
     "approved": "Approved",
     "rejected": "Needs regen",
-    "reviewPending": "To review"
+    "reviewPending": "To review",
+    "reset": "Reset"
   }
 }
