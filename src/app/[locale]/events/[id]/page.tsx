@@ -75,16 +75,11 @@ export default async function EventDetailPage({
                   >
                     {g ? t('generated') : t('notGenerated')}
                   </span>
-                  {data.review === 'approved' && (
-                    <span className="rounded-full px-2 py-0.5 font-medium bg-green-500/15 text-green-600 dark:text-green-400">
-                      {t('approved')}
-                    </span>
-                  )}
+                  <ReviewButtons eventId={data.event_id} initial={data.review} />
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <RegenerateButton eventId={data.event_id} />
-                <ReviewButtons eventId={data.event_id} initial={data.review} />
               </div>
             </div>
 

@@ -35,13 +35,14 @@ export default function ReviewButtons({
     <button
       onClick={toggle}
       disabled={saving}
-      className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-colors disabled:opacity-50 ${
+      title={approved ? t('reviewPending') : t('approved')}
+      className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
         approved
-          ? 'bg-green-500/15 border-green-500/40 text-green-600 dark:text-green-400'
-          : 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400'
+          ? 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25'
+          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
       }`}
     >
-      {saving ? '…' : approved ? t('approved') : t('approve')}
+      {saving ? '…' : approved ? t('approved') : t('reviewPending')}
     </button>
   );
 }
