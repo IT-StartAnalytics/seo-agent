@@ -23,7 +23,7 @@ function Field({label, value, rtl, limit}: {label: string; value: string | null;
   const over = limit ? len > limit : false;
   return (
     <div className="mt-2">
-      <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-foreground/40">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground/40">
         <span>{label}</span>
         {limit ? <span className={over ? 'text-red-500' : 'text-foreground/35'}>{len}/{limit}</span> : null}
       </div>
@@ -94,18 +94,18 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
                 href={e.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-black/15 dark:border-white/20 px-2 py-0.5 text-[10px] text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] whitespace-nowrap"
+                className="inline-flex items-center rounded-full border border-black/15 dark:border-white/20 px-2 py-0.5 text-xs text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] whitespace-nowrap"
               >
                 {t('openPage')} ↗
               </a>
             )}
           </div>
           <div className="mt-1.5 flex items-center gap-1 flex-wrap">
-            <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-[10px] capitalize">
+            <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-xs capitalize">
               {statusLabel(statusGroup(e.status))}
             </span>
             {e.is_new && (
-              <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-[10px] font-medium">
+              <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium">
                 {t('newTab')}
               </span>
             )}
@@ -114,7 +114,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
                 onClick={toggleReview}
                 disabled={savingReview}
                 title={review === 'approved' ? t('reviewPending') : t('approved')}
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors disabled:opacity-50 ${
+                className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                   review === 'approved'
                     ? 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25'
                     : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
@@ -129,7 +129,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
         {/* Status (generation) */}
         <td className="px-3 py-3 whitespace-nowrap">
           {gen ? (
-            <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-[11px] font-medium capitalize">
+            <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium capitalize">
               {(gen.status ?? '').replace(/_/g, ' ') || t('generated')}
             </span>
           ) : (
@@ -148,7 +148,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
           {gen && (
             <button
               onClick={() => setOpen((o) => !o)}
-              className="rounded-full border border-black/15 dark:border-white/20 px-2.5 py-0.5 text-[11px] text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+              className="rounded-full border border-black/15 dark:border-white/20 px-2.5 py-0.5 text-xs text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             >
               {open ? t('hide') : t('open')}
             </button>
@@ -172,7 +172,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {gen.event_types.length > 0 && (
                 <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">
-                  <div className="text-[10px] uppercase tracking-wide text-foreground">{t('categories')}</div>
+                  <div className="text-xs uppercase tracking-wide text-foreground">{t('categories')}</div>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {gen.event_types.map((c) => (
                       <span key={c} className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2.5 py-0.5 text-xs">
@@ -184,7 +184,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
               )}
               {gen.performers.length > 0 && (
                 <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">
-                  <div className="text-[10px] uppercase tracking-wide text-foreground">{t('performers')}</div>
+                  <div className="text-xs uppercase tracking-wide text-foreground">{t('performers')}</div>
                   <div className="mt-1.5 text-sm text-foreground/85">{gen.performers.join(', ')}</div>
                 </div>
               )}

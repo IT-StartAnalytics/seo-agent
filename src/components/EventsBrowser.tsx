@@ -72,9 +72,9 @@ function FilterDropdown({
       >
         <span>{label}</span>
         {count > 0 && (
-          <span className="rounded-full bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 leading-none">{count}</span>
+          <span className="rounded-full bg-indigo-500 text-white text-xs px-1.5 py-0.5 leading-none">{count}</span>
         )}
-        <span className="text-foreground/40 text-[10px]">▾</span>
+        <span className="text-foreground/40 text-xs">▾</span>
       </button>
       {open && (
         <div className="absolute left-0 z-30 mt-1 min-w-[240px] rounded-xl border border-black/10 dark:border-white/15 bg-card shadow-lg p-1">
@@ -88,7 +88,7 @@ function FilterDropdown({
               >
                 <span className="flex items-center gap-2">
                   <span
-                    className={`flex h-4 w-4 items-center justify-center rounded border text-[10px] ${
+                    className={`flex h-4 w-4 items-center justify-center rounded border text-xs ${
                       on ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-black/25 dark:border-white/30'
                     }`}
                   >
@@ -277,9 +277,9 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
   }
   const sortMark = (key: 'event' | 'date') =>
     sortKey === key ? (
-      <span className="text-[11px] text-indigo-500">{sortDir === 'asc' ? '↑' : '↓'}</span>
+      <span className="text-xs text-indigo-500">{sortDir === 'asc' ? '↑' : '↓'}</span>
     ) : (
-      <span className="text-[11px] text-foreground/30">↕</span>
+      <span className="text-xs text-foreground/30">↕</span>
     );
 
   return (
@@ -331,7 +331,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
       <div className="mt-2 overflow-x-auto rounded-2xl border border-black/10 dark:border-white/10 bg-card shadow-sm">
         <table className="w-full min-w-[920px] text-sm">
           <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wide text-foreground/45 border-b border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.04]">
+            <tr className="text-left text-xs uppercase tracking-wide text-foreground/45 border-b border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.04]">
               <th className="px-4 py-2.5 font-medium">
                 <button onClick={() => toggleSort('event')} className="inline-flex items-center gap-1 hover:text-foreground">
                   {t('colEvent')}

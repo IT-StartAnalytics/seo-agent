@@ -63,7 +63,7 @@ export default async function EventDetailPage({
                 <h1 className="text-2xl font-semibold tracking-tight">
                   {data.source?.name_en ?? `Event ${data.event_id}`}
                 </h1>
-                <div className="mt-2 flex items-center gap-1.5 flex-wrap text-[11px]">
+                <div className="mt-2 flex items-center gap-1.5 flex-wrap text-xs">
                   <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5">ID {data.event_id}</span>
                   <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5">
                     {data.is_attraction ? t('attraction') : t('event')}

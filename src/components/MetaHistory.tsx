@@ -11,7 +11,7 @@ function Cell({label, value, rtl, limit}: {label: string; value: string | null; 
   const over = limit ? len > limit : false;
   return (
     <div className="mt-2">
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-foreground">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground">
         <span>{label}</span>
         {limit ? <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span> : null}
       </div>
@@ -45,7 +45,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
         <div className="flex items-center gap-2">
           <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
           {i === 0 && v.source === 'run' && (
-            <span className="rounded-full bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-[10px] font-medium">
+            <span className="rounded-full bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
               {t('lastGeneration')}
             </span>
           )}
@@ -90,7 +90,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
         <div className="mt-3 flex flex-col gap-3">
           {v.event_types.length > 0 && (
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-foreground">{t('categories')}</div>
+              <div className="text-xs uppercase tracking-wide text-foreground">{t('categories')}</div>
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {v.event_types.map((c) => (
                   <span key={c} className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2.5 py-0.5 text-xs">
@@ -102,7 +102,7 @@ export default function MetaHistory({versions}: {versions: MetaVersion[]}) {
           )}
           {v.performers.length > 0 && (
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-foreground">{t('performers')}</div>
+              <div className="text-xs uppercase tracking-wide text-foreground">{t('performers')}</div>
               <div className="mt-1 text-sm text-foreground/85">{v.performers.join(', ')}</div>
             </div>
           )}

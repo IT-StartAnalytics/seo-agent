@@ -89,20 +89,20 @@ export default function RegenerateButton({eventId}: {eventId: string}) {
       </button>
 
       {phase === 'running' && (
-        <span className="text-[11px] text-foreground/55 text-right max-w-[220px]">{t('regenRunning')}</span>
+        <span className="text-xs text-foreground/55 text-right max-w-[220px]">{t('regenRunning')}</span>
       )}
       {phase === 'done' && (
-        <span className="text-[11px] text-green-600 dark:text-green-400 text-right">
+        <span className="text-xs text-green-600 dark:text-green-400 text-right">
           {t('regenDone')}: {resultStatus}
         </span>
       )}
       {phase === 'error' && (
-        <span className="text-[11px] text-red-600 dark:text-red-400 text-right max-w-[220px]">
+        <span className="text-xs text-red-600 dark:text-red-400 text-right max-w-[220px]">
           {t('regenError')}: {resultStatus}
         </span>
       )}
       {phase === 'noresult' && (
-        <span className="text-[11px] text-amber-600 dark:text-amber-400 text-right max-w-[220px]">{t('regenNoResult')}</span>
+        <span className="text-xs text-amber-600 dark:text-amber-400 text-right max-w-[220px]">{t('regenNoResult')}</span>
       )}
     </div>
   );
