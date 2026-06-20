@@ -66,6 +66,7 @@ export type EventDetail = {
     promo_img: string | null;
     friendly_url: string | null;
   } | null;
+  indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null;
   admin:
     | {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]
     | null;
@@ -210,10 +211,11 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
 
-  const [lookup, runs, stream] = await Promise.all([
+  const [lookup, runs, stream, idx] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
-    sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`)
+    sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
+    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index&event_id=eq.${eid}&limit=1`).catch(() => [])
   ]);
 
   const lk = lookup[0];
@@ -226,6 +228,10 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const hasContent = (r: Row) => META_KEYS.some((k) => r[k] != null && String(r[k]).trim() !== '');
   const rn = runs.find(hasContent) ?? null;
   const st = stream[0];
+  const ix = idx[0];
+  const indexed = ix
+    ? {en: !ix.is_no_index, ar: !ix.is_no_index, ru: !ix.ru_no_index, fr: !ix.fr_no_index}
+    : null;
 
   const rp =
     st && typeof st.raw_payload === 'object' && st.raw_payload
@@ -301,6 +307,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     found: Boolean(lk || rn || st),
     is_attraction: isAttraction,
     review,
+    indexed,
     history,
     source: lk
       ? {

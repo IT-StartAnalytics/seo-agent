@@ -98,7 +98,7 @@ export default async function EventDetailPage({
                     <Row label={t('description')} value={data.source.description} />
                   </div>
 
-                  {data.history.length > 0 && <MetaHistory versions={data.history} />}
+                  {data.history.length > 0 && <MetaHistory versions={data.history} indexed={data.indexed} />}
                 </div>
               </section>
             )}

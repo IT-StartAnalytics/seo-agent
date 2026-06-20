@@ -75,6 +75,8 @@
     "city": "City",
     "dates": "Dates",
     "categories": "Categories",
+    "indexed": "Indexed",
+    "noIndex": "No-index",
     "performers": "Performers",
     "titleProtected": "Title protected",
     "description": "Description",

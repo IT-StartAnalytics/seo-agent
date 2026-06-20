@@ -75,6 +75,8 @@
     "city": "Город",
     "dates": "Даты",
     "categories": "Категории",
+    "indexed": "Индексируется",
+    "noIndex": "Не индексируется",
     "performers": "Артисты",
     "titleProtected": "Заголовок защищён",
     "description": "Описание",
