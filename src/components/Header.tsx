@@ -3,6 +3,7 @@ import {cookies} from 'next/headers';
 import {Link} from '@/i18n/navigation';
 import {AUTH_COOKIE, verifySessionToken} from '@/lib/auth';
 import LocaleSwitcher from './LocaleSwitcher';
+import ThemeToggle from './ThemeToggle';
 
 export default async function Header() {
   const t = await getTranslations('Nav');
@@ -26,6 +27,7 @@ export default async function Header() {
               </Link>
             </>
           )}
+          <ThemeToggle />
           <LocaleSwitcher />
           {authed && (
             <form action="/api/auth/logout" method="post">
