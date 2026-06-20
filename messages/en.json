@@ -111,6 +111,7 @@
     "reset": "Reset",
     "open": "Open",
     "hide": "Hide",
-    "genDate": "Generated"
+    "genDate": "Generated",
+    "cancelled": "Cancelled"
   }
 }
