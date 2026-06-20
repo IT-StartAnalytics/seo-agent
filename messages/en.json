@@ -118,6 +118,10 @@
     "colMeta": "H1 / Meta Title",
     "colLangs": "Langs",
     "colWhen": "When",
-    "apply": "Apply"
+    "apply": "Apply",
+    "regenRunning": "Generating… (up to ~2 min)",
+    "regenDone": "Done",
+    "regenError": "Error",
+    "regenNoResult": "No result yet — check n8n"
   }
 }

@@ -118,6 +118,10 @@
     "colMeta": "H1 / Meta Title",
     "colLangs": "Языки",
     "colWhen": "Дата",
-    "apply": "Применить"
+    "apply": "Применить",
+    "regenRunning": "Идёт генерация… (до ~2 мин)",
+    "regenDone": "Готово",
+    "regenError": "Ошибка",
+    "regenNoResult": "Результат не получен — проверьте n8n"
   }
 }

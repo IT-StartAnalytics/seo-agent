@@ -428,3 +428,27 @@ export async function getEventGeneratedBatch(
   }
   return out;
 }
+
+// ---- Generation run status (for the regenerate button) -------------------
+
+export type RunStatus = {
+  status: string | null;
+  finished_at: string | null;
+  api_status_code: number | null;
+  api_status_msg: string | null;
+};
+
+export async function getLatestRun(id: string): Promise<RunStatus | null> {
+  const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const rows = await sb(
+    `seo_agent_runs?select=status,finished_at,api_status_code,api_status_msg&event_id=eq.${eid}&order=finished_at.desc.nullslast&limit=1`
+  );
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    status: s(r, 'status'),
+    finished_at: s(r, 'finished_at'),
+    api_status_code: r.api_status_code == null ? null : Number(r.api_status_code),
+    api_status_msg: s(r, 'api_status_msg')
+  };
+}
