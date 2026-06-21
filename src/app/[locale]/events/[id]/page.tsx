@@ -87,7 +87,7 @@ export default async function EventDetailPage({
             {/* Source data (incl. current admin meta tags) */}
             {data.source && (
               <section className="mt-7">
-                <h2 className="text-sm font-semibold text-foreground/70">{t('source')}</h2>
+                <h2 className="text-sm font-semibold text-foreground">{t('source')}</h2>
                 <div className="mt-2 rounded-2xl border border-black/10 dark:border-white/10 bg-muted shadow-sm p-4 space-y-4">
                   <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
                     <Row label={t('venue')} value={data.source.venue} />
@@ -102,7 +102,7 @@ export default async function EventDetailPage({
 
                   {ovLangs.length > 0 && (
                     <div>
-                      <div className="mb-2 text-xs font-semibold text-foreground/55">{t('description')}</div>
+                      <div className="mb-2 text-xs font-semibold text-foreground">{t('description')}</div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         {ovLangs.map((l) => {
                           const val = overviews[l] as string;

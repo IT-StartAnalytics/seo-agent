@@ -44,7 +44,7 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
     <div className="mt-2">
       <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="text-xs font-semibold text-foreground/55">{t('adminMeta')}</div>
+          <div className="text-xs font-semibold text-foreground">{t('adminMeta')}</div>
           {i === 0 && v.source === 'run' && (
             <span className="rounded-full bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
               {t('lastGeneration')}
