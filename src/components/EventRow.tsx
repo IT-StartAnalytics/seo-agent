@@ -104,11 +104,6 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
             <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-xs capitalize">
               {statusLabel(statusGroup(e.status))}
             </span>
-            {e.is_new && (
-              <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium">
-                {t('newTab')}
-              </span>
-            )}
             {gen && (
               <button
                 onClick={toggleReview}
