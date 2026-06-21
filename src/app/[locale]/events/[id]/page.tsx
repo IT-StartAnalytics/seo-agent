@@ -1,6 +1,5 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
-import RegenerateButton from '@/components/RegenerateButton';
 import ReviewButtons from '@/components/ReviewButtons';
 import MetaHistory from '@/components/MetaHistory';
 import {Link} from '@/i18n/navigation';
@@ -78,9 +77,6 @@ export default async function EventDetailPage({
                   <ReviewButtons eventId={data.event_id} initial={data.review} />
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <RegenerateButton eventId={data.event_id} />
-              </div>
             </div>
 
             {/* Source data (incl. current admin meta tags) */}
@@ -98,7 +94,7 @@ export default async function EventDetailPage({
                     <Row label={t('description')} value={data.source.description} />
                   </div>
 
-                  {data.history.length > 0 && <MetaHistory versions={data.history} indexed={data.indexed} />}
+                  {data.history.length > 0 && <MetaHistory versions={data.history} indexed={data.indexed} eventId={data.event_id} />}
                 </div>
               </section>
             )}

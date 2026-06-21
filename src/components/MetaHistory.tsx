@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import type {MetaVersion} from '@/lib/events';
+import RegenerateButton from './RegenerateButton';
 
 const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
 
@@ -22,7 +23,7 @@ function Cell({label, value, rtl, limit}: {label: string; value: string | null; 
   );
 }
 
-export default function MetaHistory({versions, indexed}: {versions: MetaVersion[]; indexed?: Record<string, boolean> | null}) {
+export default function MetaHistory({versions, indexed, eventId}: {versions: MetaVersion[]; indexed?: Record<string, boolean> | null; eventId?: string}) {
   const t = useTranslations('Events');
   const [i, setI] = useState(0);
   if (!versions.length) return null;
@@ -51,6 +52,7 @@ export default function MetaHistory({versions, indexed}: {versions: MetaVersion[
           )}
         </div>
         <div className="flex items-center gap-2 text-xs">
+          {eventId && <RegenerateButton eventId={eventId} />}
           <button
             onClick={() => setI((x) => Math.max(0, x - 1))}
             disabled={i <= 0}
