@@ -64,6 +64,7 @@ function FilterDropdown({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
+        data-tip={`Filter: ${label}`}
         className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
           count > 0
             ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
@@ -101,10 +102,10 @@ function FilterDropdown({
             );
           })}
           <div className="flex items-center justify-between gap-2 mt-1 pt-1.5 px-1 border-t border-black/5 dark:border-white/10">
-            <button onClick={() => setDraft(new Set())} className="px-2 py-1 text-xs text-foreground/55 hover:text-foreground">
+            <button onClick={() => setDraft(new Set())} data-tip="Clear selection" className="px-2 py-1 text-xs text-foreground/55 hover:text-foreground">
               {clearLabel}
             </button>
-            <button onClick={apply} className="rounded-lg bg-foreground text-background px-3 py-1.5 text-xs font-medium">
+            <button onClick={apply} data-tip="Apply selected filters" className="rounded-lg bg-foreground text-background px-3 py-1.5 text-xs font-medium">
               {applyLabel}
             </button>
           </div>
@@ -296,6 +297,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
               setSelected(new Set());
               setVisible(PAGE);
             }}
+            data-tip="Reset all filters"
             className="rounded-full border border-black/15 dark:border-white/20 px-3 py-1.5 text-xs text-foreground/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
           >
             {t('reset')}
@@ -316,9 +318,10 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
           }}
           onKeyDown={(e) => e.key === 'Enter' && openById()}
           placeholder={t('searchPlaceholder')}
+          title="Search by event ID or name"
           className="flex-1 rounded-xl border border-black/15 dark:border-white/20 bg-card shadow-sm px-4 py-2.5 text-sm outline-none focus:border-indigo-500"
         />
-        <button onClick={openById} className="rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-medium whitespace-nowrap shadow-sm hover:opacity-90 transition-opacity">
+        <button onClick={openById} data-tip="Open event by ID" className="rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-medium whitespace-nowrap shadow-sm hover:opacity-90 transition-opacity">
           {t('openById')}
         </button>
       </div>
@@ -333,14 +336,14 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
           <thead>
             <tr className="text-left text-xs uppercase tracking-wide text-foreground border-b border-black/10 dark:border-white/10 bg-black/[0.08] dark:bg-white/[0.07]">
               <th className="px-4 py-2.5 font-medium">
-                <button onClick={() => toggleSort('event')} className="inline-flex items-center gap-1 hover:text-foreground">
+                <button onClick={() => toggleSort('event')} data-tip="Sort by name" data-tip-pos="bottom" className="inline-flex items-center gap-1 hover:text-foreground">
                   {t('colEvent')}
                   {sortMark('event')}
                 </button>
               </th>
               <th className="w-[150px] px-3 py-2.5 font-medium">{t('colStatus')}</th>
               <th className="w-[170px] px-3 py-2.5 font-medium">
-                <button onClick={() => toggleSort('date')} className="inline-flex items-center gap-1 hover:text-foreground">
+                <button onClick={() => toggleSort('date')} data-tip="Sort by date" data-tip-pos="bottom" className="inline-flex items-center gap-1 hover:text-foreground">
                   {t('colWhen')}
                   {sortMark('date')}
                 </button>
@@ -366,6 +369,7 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
         <div className="mt-4 text-center">
           <button
             onClick={() => setVisible((v) => v + PAGE)}
+            data-tip="Load more events"
             className="rounded-full border border-black/15 dark:border-white/20 px-5 py-2 text-sm font-medium hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
           >
             {t('showMore')} ({filtered.length - visible})

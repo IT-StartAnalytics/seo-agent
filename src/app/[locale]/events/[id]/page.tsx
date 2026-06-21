@@ -52,7 +52,7 @@ export default async function EventDetailPage({
     <>
       <Header />
       <main className="flex-1 mx-auto max-w-7xl px-6 py-10 w-full">
-        <Link href={data?.is_attraction ? '/attractions' : '/events'} className="text-sm text-indigo-500 hover:underline">
+        <Link href={data?.is_attraction ? '/attractions' : '/events'} data-tip="Back to list" className="text-sm text-indigo-500 hover:underline">
           ← {t('back')}
         </Link>
 
@@ -84,6 +84,7 @@ export default async function EventDetailPage({
               </div>
               <Link
                 href={`/events/${data.event_id}/manual`}
+                data-tip="Generate with a custom prompt and model"
                 className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3.5 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-300 hover:bg-violet-500/20 transition-colors"
               >
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

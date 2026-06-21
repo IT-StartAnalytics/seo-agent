@@ -81,7 +81,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
       <tr className="border-b border-black/5 dark:border-white/10 align-top">
         {/* Event */}
         <td className="px-4 py-3 min-w-[240px]">
-          <Link href={`/events/${e.event_id}`} className="font-medium hover:underline line-clamp-2">
+          <Link href={`/events/${e.event_id}`} data-tip="Open event card" className="font-medium hover:underline line-clamp-2">
             {e.name ?? `Event ${e.event_id}`}
           </Link>
           <div className="text-xs text-foreground/50 mt-1 flex items-center gap-2 flex-wrap">
@@ -94,6 +94,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
                 href={e.url}
                 target="_blank"
                 rel="noreferrer"
+                data-tip="Open the live page on Platinumlist"
                 className="inline-flex items-center rounded-full border border-black/15 dark:border-white/20 px-2 py-0.5 text-xs text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] whitespace-nowrap"
               >
                 {t('openPage')} ↗
@@ -101,14 +102,14 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
             )}
           </div>
           <div className="mt-1.5 flex items-center gap-1 flex-wrap">
-            <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-xs capitalize">
+            <span data-tip="Event status" className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-xs capitalize">
               {statusLabel(statusGroup(e.status))}
             </span>
             {gen && (
               <button
                 onClick={toggleReview}
                 disabled={savingReview}
-                title={review === 'approved' ? t('reviewPending') : t('approved')}
+                data-tip="Toggle status: approved / to-review"
                 className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                   review === 'approved'
                     ? 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25'
@@ -143,6 +144,7 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
           {gen && (
             <button
               onClick={() => setOpen((o) => !o)}
+              data-tip="Show / hide generated meta preview"
               className="rounded-full border border-black/15 dark:border-white/20 px-2.5 py-0.5 text-xs text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             >
               {open ? t('hide') : t('open')}
