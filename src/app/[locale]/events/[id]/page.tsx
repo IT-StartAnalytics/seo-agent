@@ -23,18 +23,6 @@ function Row({label, value, href}: {label: string; value: string | null; href?: 
   );
 }
 
-function Para({label, value, rtl}: {label: string; value: string | null; rtl?: boolean}) {
-  if (!value) return null;
-  return (
-    <div>
-      <div className="text-xs uppercase tracking-wide text-foreground/45">{label}</div>
-      <p dir={rtl ? 'rtl' : undefined} className="mt-1 text-sm text-foreground/85 break-words whitespace-pre-line">
-        {value}
-      </p>
-    </div>
-  );
-}
-
 export default async function EventDetailPage({
   params
 }: {
@@ -107,22 +95,20 @@ export default async function EventDetailPage({
 
                   {data.history.length > 0 && <MetaHistory versions={data.history} indexed={data.indexed} eventId={data.event_id} />}
 
-                  {(data.source.overview_en || data.source.description_en || data.source.overview_ar || data.source.description_ar) && (
+                  {(data.source.overview_en || data.source.overview_ar) && (
                     <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
                       <div className="text-xs uppercase tracking-wide text-foreground">{t('description')}</div>
                       <div className="mt-3 grid gap-5 sm:grid-cols-2">
-                        {(data.source.overview_en || data.source.description_en) && (
-                          <div className="space-y-3">
-                            <div className="text-xs font-semibold text-foreground/60">EN</div>
-                            <Para label="overview_description" value={data.source.overview_en} />
-                            <Para label="description" value={data.source.description_en} />
+                        {data.source.overview_en && (
+                          <div>
+                            <div className="mb-1.5 text-xs font-semibold text-foreground/60">EN</div>
+                            <p className="text-sm text-foreground/85 break-words whitespace-pre-line">{data.source.overview_en}</p>
                           </div>
                         )}
-                        {(data.source.overview_ar || data.source.description_ar) && (
-                          <div className="space-y-3">
-                            <div className="text-xs font-semibold text-foreground/60">AR</div>
-                            <Para label="overview_description" value={data.source.overview_ar} rtl />
-                            <Para label="description" value={data.source.description_ar} rtl />
+                        {data.source.overview_ar && (
+                          <div>
+                            <div className="mb-1.5 text-xs font-semibold text-foreground/60">AR</div>
+                            <p dir="rtl" className="text-sm text-foreground/85 break-words whitespace-pre-line">{data.source.overview_ar}</p>
                           </div>
                         )}
                       </div>
