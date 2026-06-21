@@ -82,6 +82,15 @@ export default async function EventDetailPage({
                   <ReviewButtons eventId={data.event_id} initial={data.review} />
                 </div>
               </div>
+              <Link
+                href={`/events/${data.event_id}/manual`}
+                className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3.5 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-300 hover:bg-violet-500/20 transition-colors"
+              >
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" />
+                </svg>
+                Manual regenerate
+              </Link>
             </div>
 
             {/* Source data (incl. current admin meta tags) */}
