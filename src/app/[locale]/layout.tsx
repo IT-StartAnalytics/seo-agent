@@ -3,6 +3,7 @@ import {NextIntlClientProvider, hasLocale} from 'next-intl';
 import {notFound} from 'next/navigation';
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {routing} from '@/i18n/routing';
+import NavProgress from '@/components/NavProgress';
 import '../globals.css';
 
 export function generateStaticParams() {
@@ -46,6 +47,7 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <NavProgress />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
