@@ -128,7 +128,13 @@
     "adminOriginal": "initial (admin)",
     "older": "Older",
     "newer": "Newer",
-    "lastGeneration": "latest generation"
+    "lastGeneration": "latest generation",
+    "metaGenerated": "Generated",
+    "metaLive": "Live on site",
+    "liveUpdated": "Updated",
+    "noGeneratedMeta": "No generated meta yet.",
+    "noLiveMeta": "No live meta in the synced data.",
+    "liveHint": "Live data is synced from the site periodically (about hourly), so recent admin edits may appear here with a delay."
   },
   "Home": {
     "title": "SEO Agent",

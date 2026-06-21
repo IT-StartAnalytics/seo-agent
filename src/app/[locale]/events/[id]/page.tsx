@@ -1,7 +1,7 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import ReviewButtons from '@/components/ReviewButtons';
-import MetaHistory from '@/components/MetaHistory';
+import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
 import {getEventById, type EventDetail} from '@/lib/events';
 
@@ -98,7 +98,9 @@ export default async function EventDetailPage({
                     <Row label="URL" value={data.source.url} href={data.source.url} />
                   </div>
 
-                  {data.history.length > 0 && <MetaHistory versions={data.history} indexed={data.indexed} eventId={data.event_id} />}
+                  {(data.history.length > 0 || (data.live?.langs.length ?? 0) > 0) && (
+                    <MetaTabs versions={data.history} indexed={data.indexed} eventId={data.event_id} live={data.live} />
+                  )}
 
                   {ovLangs.length > 0 && (
                     <div>
