@@ -129,5 +129,12 @@
     "older": "Older",
     "newer": "Newer",
     "lastGeneration": "latest generation"
+  },
+  "Home": {
+    "title": "SEO Agent",
+    "subtitle": "Manage SEO meta tags for PlatinumList events and attractions — review, regenerate and track indexation.",
+    "eventsTile": "Browse the full events catalog. Review, regenerate and approve SEO meta tags.",
+    "attractionsTile": "Browse attractions. Review, regenerate and approve their SEO meta tags.",
+    "open": "Open"
   }
 }

@@ -3,6 +3,7 @@ import {cookies} from 'next/headers';
 import {Link} from '@/i18n/navigation';
 import {AUTH_COOKIE, verifySessionToken} from '@/lib/auth';
 import ThemeToggle from './ThemeToggle';
+import Logo from './Logo';
 
 export default async function Header() {
   const t = await getTranslations('Nav');
@@ -12,8 +13,8 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-10 bg-card/80 backdrop-blur border-b border-black/10 dark:border-white/10">
       <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="font-semibold tracking-tight text-lg">
-          SEO<span className="text-indigo-500">Agent</span>
+        <Link href="/" className="flex items-center">
+          <Logo />
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           {authed && (
