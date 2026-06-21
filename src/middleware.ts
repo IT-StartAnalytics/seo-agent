@@ -7,19 +7,13 @@ const intlMiddleware = createMiddleware(routing);
 
 export default async function middleware(req: NextRequest) {
   const {pathname} = req.nextUrl;
-  const maybeLocale = pathname.split('/')[1];
-  const locale = (routing.locales as readonly string[]).includes(maybeLocale)
-    ? maybeLocale
-    : routing.defaultLocale;
-
-  const isLoginPage =
-    pathname === '/login' || pathname === `/${locale}/login`;
+  const isLoginPage = pathname === '/login';
 
   if (!isLoginPage) {
     const authed = await verifySessionToken(req.cookies.get(AUTH_COOKIE)?.value);
     if (!authed) {
       const url = req.nextUrl.clone();
-      url.pathname = `/${locale}/login`;
+      url.pathname = '/login';
       return NextResponse.redirect(url);
     }
   }
