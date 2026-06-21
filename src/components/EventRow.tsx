@@ -108,7 +108,6 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
               <button
                 onClick={toggleReview}
                 disabled={savingReview}
-                title={review === 'approved' ? t('reviewPending') : t('approved')}
                 className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                   review === 'approved'
                     ? 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25'

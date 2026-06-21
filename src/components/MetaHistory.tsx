@@ -56,7 +56,6 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
             onClick={() => setI((x) => Math.max(0, x - 1))}
             disabled={i <= 0}
             className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            title={t('newer')}
           >
             ←
           </button>
@@ -69,7 +68,6 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
             onClick={() => setI((x) => Math.min(versions.length - 1, x + 1))}
             disabled={i >= versions.length - 1}
             className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            title={t('older')}
           >
             →
           </button>

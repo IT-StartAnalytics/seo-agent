@@ -84,6 +84,7 @@ export default async function EventDetailPage({
               </div>
               <Link
                 href={`/events/${data.event_id}/manual`}
+                title="Generate meta tags with a custom prompt and model"
                 className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3.5 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-300 hover:bg-violet-500/20 transition-colors"
               >
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
