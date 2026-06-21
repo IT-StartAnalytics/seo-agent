@@ -366,13 +366,14 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
   const cols = 'event_id,event_name_en,city,country,status,all_categories,url';
   // Supabase caps responses at ~1000 rows; page through the catalog.
   const offsets = [0, 1000, 2000];
-  const [pages, streamRows] = await Promise.all([
+  const [pages, streamRows, reviews] = await Promise.all([
     Promise.all(
       offsets.map((off) =>
         sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`)
       )
     ),
-    sb('new_events_stream?select=event_id,seo_done&limit=1000')
+    sb('new_events_stream?select=event_id,seo_done&limit=1000'),
+    getAllReviews()
   ]);
 
   const newSet = new Set(
@@ -389,7 +390,6 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
     // if the RPC fails, fall back to "none generated" rather than breaking the page
   }
 
-  const reviews = await getAllReviews();
 
   return rows.map((r) => {
     const cats = (s(r, 'all_categories') ?? '').toLowerCase();
