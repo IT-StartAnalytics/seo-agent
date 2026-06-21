@@ -45,7 +45,7 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
       <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
         <div className="flex items-center gap-2">
           {i === 0 && v.source === 'run' && (
-            <span data-tip="Most recent generation" className="rounded-full bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
+            <span className="rounded-full bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
               {t('lastGeneration')}
             </span>
           )}
@@ -56,7 +56,7 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
             onClick={() => setI((x) => Math.max(0, x - 1))}
             disabled={i <= 0}
             className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            data-tip="Newer version"
+            title={t('newer')}
           >
             ←
           </button>
@@ -69,7 +69,7 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
             onClick={() => setI((x) => Math.min(versions.length - 1, x + 1))}
             disabled={i >= versions.length - 1}
             className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            data-tip="Older version"
+            title={t('older')}
           >
             →
           </button>
@@ -83,7 +83,6 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
               <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[a.lang] ?? a.lang.toUpperCase()}</div>
               {indexed && indexed[a.lang] !== undefined && (
                 <span
-                  data-tip={indexed[a.lang] ? 'Indexed on the live site' : 'No-index on the live site'}
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                     indexed[a.lang]
                       ? 'bg-green-500/15 text-green-600 dark:text-green-400'

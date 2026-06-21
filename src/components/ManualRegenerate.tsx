@@ -52,7 +52,7 @@ export default function ManualRegenerate() {
 
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-4 flex-wrap">
-            <label data-tip="Choose the AI model for generation" className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
               <span className="text-xs text-foreground/55">Model:</span>
               <select
                 value={model}
@@ -76,7 +76,6 @@ export default function ManualRegenerate() {
                     key={l.k}
                     type="button"
                     onClick={() => toggle(l.k)}
-                    data-tip="Include / exclude this language"
                     className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
                       on
                         ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
@@ -94,7 +93,6 @@ export default function ManualRegenerate() {
             type="button"
             onClick={() => setPreview(true)}
             disabled={!prompt.trim() || selected.length === 0}
-            data-tip="Generate meta tags from the prompt"
             className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

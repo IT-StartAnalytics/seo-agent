@@ -23,7 +23,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="Toggle theme"
-      data-tip="Toggle light / dark theme" data-tip-pos="bottom"
+      title="Theme"
       className="inline-flex items-center justify-center rounded-full border border-black/15 dark:border-white/20 w-7 h-7 text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
     >
       {dark ? (

@@ -76,7 +76,6 @@ export default function RegenerateButton({eventId}: {eventId: string}) {
       <button
         onClick={start}
         disabled={busy}
-        data-tip="Re-run automatic generation for this event"
         className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 border border-violet-500/40 text-violet-600 dark:text-violet-300 px-3 py-1.5 text-xs font-medium hover:bg-violet-500/25 disabled:opacity-50 transition-colors"
       >
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">

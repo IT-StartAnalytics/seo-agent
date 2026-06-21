@@ -13,20 +13,20 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-10 bg-card/80 backdrop-blur border-b border-black/10 dark:border-white/10">
       <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center" data-tip="Home" data-tip-pos="bottom">
+        <Link href="/" className="flex items-center">
           <Logo />
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           {authed && (
             <>
-              <Link href="/events" data-tip="Browse events catalog" data-tip-pos="bottom" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
+              <Link href="/events" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V9a2 2 0 0 0 0 4v1.5A1.5 1.5 0 0 1 18.5 16h-13A1.5 1.5 0 0 1 4 14.5V13a2 2 0 0 0 0-4z" />
                   <path d="M14 6v10" strokeDasharray="1 2.2" />
                 </svg>
                 {t('events')}
               </Link>
-              <Link href="/attractions" data-tip="Browse attractions catalog" data-tip-pos="bottom" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
+              <Link href="/attractions" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="10" r="7.2" />
                   <circle cx="12" cy="10" r="1.7" />
@@ -42,7 +42,6 @@ export default async function Header() {
             <form action="/api/auth/logout" method="post">
               <button
                 type="submit"
-                data-tip="Sign out" data-tip-pos="bottom"
                 className="rounded-full bg-foreground text-background px-4 py-1.5 text-sm font-medium"
               >
                 {t('signOut')}

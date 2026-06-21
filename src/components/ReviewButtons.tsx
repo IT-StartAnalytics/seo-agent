@@ -35,7 +35,7 @@ export default function ReviewButtons({
     <button
       onClick={toggle}
       disabled={saving}
-      data-tip="Toggle status: approved / to-review"
+      title={approved ? t('reviewPending') : t('approved')}
       className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
         approved
           ? 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25'
