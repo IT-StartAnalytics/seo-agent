@@ -361,6 +361,40 @@ export async function getEventById(id: string): Promise<EventDetail> {
   };
 }
 
+
+export type EventLive = {
+  updated_at: string | null;
+  langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[];
+} | null;
+
+export async function getEventLive(
+  id: string
+): Promise<{live: EventLive; indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null}> {
+  const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const idx = await sb(
+    `seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`
+  ).catch(() => [] as Row[]);
+  const ix = idx[0];
+  const indexed = ix
+    ? {en: !ix.is_no_index, ar: !ix.is_no_index, ru: !ix.ru_no_index, fr: !ix.fr_no_index}
+    : null;
+  const ovOf = (key: string) => (ix && ix[key] != null ? clean(String(ix[key])) : null);
+  const live: EventLive = ix
+    ? {
+        updated_at: ix.live_updated_at != null ? String(ix.live_updated_at) : null,
+        langs: (['en', 'ar'] as const)
+          .map((l) => ({
+            lang: l as string,
+            h1: ovOf(`live_h1_${l}`),
+            meta_title: ovOf(`meta_title_${l}`),
+            meta_description: ovOf(`meta_description_${l}`)
+          }))
+          .filter((x) => x.h1 || x.meta_title || x.meta_description)
+      }
+    : null;
+  return {live, indexed};
+}
+
 // ---- Full catalog dashboard ----------------------------------------------
 
 export type CatalogEvent = {

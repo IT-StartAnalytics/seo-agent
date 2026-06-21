@@ -4,7 +4,6 @@ import ReviewButtons from '@/components/ReviewButtons';
 import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
 import {getEventById, type EventDetail} from '@/lib/events';
-import {isLangMismatch} from '@/lib/lang';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,32 +118,15 @@ export default async function EventDetailPage({
                       <div className="grid gap-4 sm:grid-cols-2">
                         {ovLangs.map((l) => {
                           const val = overviews[l] as string;
-                          const warn = isLangMismatch(l, val);
                           return (
-                            <div
-                              key={l}
-                              className={`rounded-xl border bg-card p-4 ${
-                                warn ? 'border-amber-500/50' : 'border-black/10 dark:border-white/10'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="text-xs font-semibold text-foreground/60">{OV_LABEL[l]}</div>
-                                {warn && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                      <path d="M10.29 3.86 1.82 18a1.5 1.5 0 0 0 1.29 2.25h17.78A1.5 1.5 0 0 0 22.18 18L13.71 3.86a1.5 1.5 0 0 0-2.42 0z" />
-                                      <path d="M12 9v4M12 17h.01" />
-                                    </svg>
-                                    Language mismatch
-                                  </span>
-                                )}
-                              </div>
+                            <div key={l} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+                              <div className="text-xs font-semibold text-foreground/60">{OV_LABEL[l]}</div>
                               <div className="mt-2">
                                 <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground">
                                   <span>Overview Description</span>
                                   <span className="text-foreground/40">{[...val].length}</span>
                                 </div>
-                                <p dir={l === 'ar' ? 'rtl' : undefined} className={`mt-1 text-sm break-words whitespace-pre-line ${warn ? 'text-amber-700 dark:text-amber-300' : 'text-foreground/85'}`}>
+                                <p dir={l === 'ar' ? 'rtl' : undefined} className="mt-1 text-sm text-foreground/85 break-words whitespace-pre-line">
                                   {val}
                                 </p>
                               </div>

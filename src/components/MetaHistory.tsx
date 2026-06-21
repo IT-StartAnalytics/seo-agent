@@ -4,30 +4,19 @@ import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import type {MetaVersion} from '@/lib/events';
 import RegenerateButton from './RegenerateButton';
-import {isLangMismatch} from '@/lib/lang';
 
 const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
 
-function Cell({label, value, rtl, limit, lang}: {label: string; value: string | null; rtl?: boolean; limit?: number; lang?: string}) {
+function Cell({label, value, rtl, limit}: {label: string; value: string | null; rtl?: boolean; limit?: number}) {
   const len = value ? [...value].length : 0;
   const over = limit ? len > limit : false;
-  const warn = lang ? isLangMismatch(lang, value) : false;
   return (
     <div className="mt-2">
-      <div className="flex items-center gap-2 flex-wrap text-xs uppercase tracking-wide text-foreground">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground">
         <span>{label}</span>
         {limit ? <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span> : null}
-        {warn && (
-          <span className="inline-flex items-center gap-1 normal-case rounded-full bg-amber-500/15 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M10.29 3.86 1.82 18a1.5 1.5 0 0 0 1.29 2.25h17.78A1.5 1.5 0 0 0 22.18 18L13.71 3.86a1.5 1.5 0 0 0-2.42 0z" />
-              <path d="M12 9v4M12 17h.01" />
-            </svg>
-            mismatch
-          </span>
-        )}
       </div>
-      <p dir={rtl ? 'rtl' : undefined} className={`text-sm ${value ? (warn ? 'text-amber-700 dark:text-amber-300' : 'text-foreground/85') : 'text-foreground/35'}`}>
+      <p dir={rtl ? 'rtl' : undefined} className={`text-sm ${value ? 'text-foreground/85' : 'text-foreground/35'}`}>
         {value ?? '—'}
       </p>
     </div>
@@ -102,9 +91,9 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
                 </span>
               )}
             </div>
-            <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} lang={a.lang} />
-            <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} lang={a.lang} />
-            <Cell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} lang={a.lang} />
+            <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
+            <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
+            <Cell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
           </div>
         ))}
       </div>
