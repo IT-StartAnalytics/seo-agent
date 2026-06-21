@@ -59,6 +59,10 @@ export type EventDetail = {
     start: string | null;
     end: string | null;
     description: string | null;
+    overview_en: string | null;
+    overview_ar: string | null;
+    description_en: string | null;
+    description_ar: string | null;
     categories: string | null;
     status: string | null;
     is_title_protected: boolean | null;
@@ -215,7 +219,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index&event_id=eq.${eid}&limit=1`).catch(() => [])
+    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,overview_description_ar,description_ar&event_id=eq.${eid}&limit=1`).catch(() => [])
   ]);
 
   const lk = lookup[0];
@@ -232,6 +236,8 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const indexed = ix
     ? {en: !ix.is_no_index, ar: !ix.is_no_index, ru: !ix.ru_no_index, fr: !ix.fr_no_index}
     : null;
+  const ovAr = ix && ix.overview_description_ar != null ? clean(String(ix.overview_description_ar)) : null;
+  const dscAr = ix && ix.description_ar != null ? clean(String(ix.description_ar)) : null;
 
   const rp =
     st && typeof st.raw_payload === 'object' && st.raw_payload
@@ -321,6 +327,10 @@ export async function getEventById(id: string): Promise<EventDetail> {
           start: s(lk, 'event_start_datetime'),
           end: s(lk, 'event_end_datetime'),
           description: cs(lk, 'overview_description_en') || cs(lk, 'description_en'),
+          overview_en: cs(lk, 'overview_description_en'),
+          overview_ar: ovAr,
+          description_en: cs(lk, 'description_en'),
+          description_ar: dscAr,
           categories: cs(lk, 'all_categories'),
           status: s(lk, 'status'),
           is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
