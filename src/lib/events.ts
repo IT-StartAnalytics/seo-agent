@@ -215,7 +215,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr&event_id=eq.${eid}&limit=1`).catch(() => [])
+    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction&event_id=eq.${eid}&limit=1`).catch(() => [])
   ]);
 
   const lk = lookup[0];
@@ -284,7 +284,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
       : null;
   const review = await getReview(eid);
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
-  const isAttraction = lk ? catsLk.includes('attraction') : st ? Boolean(st.is_attraction) : false;
+  const isAttraction = ix ? Boolean(ix.is_attraction) : lk ? catsLk.includes('attraction') : st ? Boolean(st.is_attraction) : false;
 
   const runVersions: MetaVersion[] = runs
     .map((r) => ({
@@ -366,15 +366,23 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
   const cols = 'event_id,event_name_en,city,country,status,all_categories,url';
   // Supabase caps responses at ~1000 rows; page through the catalog.
   const offsets = [0, 1000, 2000];
-  const [pages, streamRows, reviews] = await Promise.all([
+  const [pages, streamRows, reviews, attrPages] = await Promise.all([
     Promise.all(
       offsets.map((off) =>
         sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`)
       )
     ),
     sb('new_events_stream?select=event_id,seo_done&limit=1000'),
-    getAllReviews()
+    getAllReviews(),
+    Promise.all(
+      offsets.map((off) =>
+        sb(`seo_event_indexation?select=event_id,is_attraction&order=event_id&limit=1000&offset=${off}`)
+      )
+    )
   ]);
+
+  const attrMap = new Map<string, boolean>();
+  for (const r of attrPages.flat()) attrMap.set(String(r.event_id), Boolean(r.is_attraction));
 
   const newSet = new Set(
     streamRows.filter((r) => r.seo_done !== true).map((r) => String(r.event_id))
@@ -399,7 +407,7 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       city: cs(r, 'city'),
       country: cs(r, 'country'),
       status: s(r, 'status'),
-      is_attraction: cats.includes('attraction'),
+      is_attraction: attrMap.has(String(r.event_id)) ? attrMap.get(String(r.event_id))! : cats.includes('attraction'),
       is_new: newSet.has(String(r.event_id)),
       is_generated: genMap.has(String(r.event_id)),
       gen_date: genMap.get(String(r.event_id)) ?? null,
