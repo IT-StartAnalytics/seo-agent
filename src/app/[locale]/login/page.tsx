@@ -1,6 +1,5 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import LoginForm from '@/components/LoginForm';
-import LocaleSwitcher from '@/components/LocaleSwitcher';
 
 export default async function LoginPage({
   params
@@ -13,9 +12,6 @@ export default async function LoginPage({
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
-      <div className="absolute top-5 right-6">
-        <LocaleSwitcher />
-      </div>
       <div className="w-full max-w-sm text-center">
         <div className="font-semibold tracking-tight text-2xl">
           SEO<span className="text-indigo-500">Agent</span>
