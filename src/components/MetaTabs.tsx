@@ -97,7 +97,20 @@ export default function MetaTabs({
           <div className="grid gap-4 sm:grid-cols-2">
             {liveLangs.map((a) => (
               <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                <div className="text-xs font-semibold text-foreground/60">{LBL[a.lang] ?? a.lang.toUpperCase()}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-xs font-semibold text-foreground/60">{LBL[a.lang] ?? a.lang.toUpperCase()}</div>
+                  {indexed && indexed[a.lang] !== undefined && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        indexed[a.lang]
+                          ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+                          : 'bg-foreground/10 text-foreground/55'
+                      }`}
+                    >
+                      {indexed[a.lang] ? t('indexed') : t('noIndex')}
+                    </span>
+                  )}
+                </div>
                 <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
                 <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
                 <Cell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
