@@ -23,6 +23,9 @@ function Row({label, value, href}: {label: string; value: string | null; href?: 
   );
 }
 
+const OV_LANGS = ['en', 'ar', 'ru', 'fr'] as const;
+const OV_LABEL: Record<string, string> = {en: 'EN', ar: 'AR', ru: 'RU', fr: 'FR'};
+
 export default async function EventDetailPage({
   params
 }: {
@@ -42,6 +45,8 @@ export default async function EventDetailPage({
   }
 
   const g = data?.generated;
+  const overviews = data?.source?.overviews ?? {en: null, ar: null, ru: null, fr: null};
+  const ovLangs = OV_LANGS.filter((l) => overviews[l]);
 
   return (
     <>
@@ -95,28 +100,27 @@ export default async function EventDetailPage({
 
                   {data.history.length > 0 && <MetaHistory versions={data.history} indexed={data.indexed} eventId={data.event_id} />}
 
-                  {(data.source.overview_en || data.source.overview_ar) && (
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                      <div className="text-xs uppercase tracking-wide text-foreground">{t('description')}</div>
-                      <div className="mt-3 grid gap-5 sm:grid-cols-2">
-                        {data.source.overview_en && (
-                          <div>
-                            <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-foreground/60">
-                              <span>EN</span>
-                              <span className="font-normal text-foreground/40">{[...data.source.overview_en].length}</span>
+                  {ovLangs.length > 0 && (
+                    <div>
+                      <div className="mb-2 text-xs font-semibold text-foreground/55">{t('description')}</div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {ovLangs.map((l) => {
+                          const val = overviews[l] as string;
+                          return (
+                            <div key={l} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+                              <div className="text-xs font-semibold text-foreground/60">{OV_LABEL[l]}</div>
+                              <div className="mt-2">
+                                <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground">
+                                  <span>Overview Description</span>
+                                  <span className="text-foreground/40">{[...val].length}</span>
+                                </div>
+                                <p dir={l === 'ar' ? 'rtl' : undefined} className="mt-1 text-sm text-foreground/85 break-words whitespace-pre-line">
+                                  {val}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-sm text-foreground/85 break-words whitespace-pre-line">{data.source.overview_en}</p>
-                          </div>
-                        )}
-                        {data.source.overview_ar && (
-                          <div>
-                            <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-foreground/60">
-                              <span>AR</span>
-                              <span className="font-normal text-foreground/40">{[...data.source.overview_ar].length}</span>
-                            </div>
-                            <p dir="rtl" className="text-sm text-foreground/85 break-words whitespace-pre-line">{data.source.overview_ar}</p>
-                          </div>
-                        )}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
