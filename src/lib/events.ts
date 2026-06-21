@@ -67,7 +67,7 @@ export type EventDetail = {
     friendly_url: string | null;
   } | null;
   indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null;
-  live: {updated_at: string | null; langs: {lang: string; meta_title: string | null; meta_description: string | null}[]} | null;
+  live: {updated_at: string | null; langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]} | null;
   admin:
     | {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]
     | null;
@@ -216,7 +216,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at&event_id=eq.${eid}&limit=1`).catch(() => [])
+    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => [])
   ]);
 
   const lk = lookup[0];
@@ -243,10 +243,11 @@ export async function getEventById(id: string): Promise<EventDetail> {
         langs: (['en', 'ar'] as const)
           .map((l) => ({
             lang: l as string,
+            h1: ovOf(`live_h1_${l}`),
             meta_title: ovOf(`meta_title_${l}`),
             meta_description: ovOf(`meta_description_${l}`)
           }))
-          .filter((x) => x.meta_title || x.meta_description)
+          .filter((x) => x.h1 || x.meta_title || x.meta_description)
       }
     : null;
 
