@@ -101,13 +101,19 @@ export default async function EventDetailPage({
                       <div className="mt-3 grid gap-5 sm:grid-cols-2">
                         {data.source.overview_en && (
                           <div>
-                            <div className="mb-1.5 text-xs font-semibold text-foreground/60">EN</div>
+                            <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-foreground/60">
+                              <span>EN</span>
+                              <span className="font-normal text-foreground/40">{[...data.source.overview_en].length}</span>
+                            </div>
                             <p className="text-sm text-foreground/85 break-words whitespace-pre-line">{data.source.overview_en}</p>
                           </div>
                         )}
                         {data.source.overview_ar && (
                           <div>
-                            <div className="mb-1.5 text-xs font-semibold text-foreground/60">AR</div>
+                            <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-foreground/60">
+                              <span>AR</span>
+                              <span className="font-normal text-foreground/40">{[...data.source.overview_ar].length}</span>
+                            </div>
                             <p dir="rtl" className="text-sm text-foreground/85 break-words whitespace-pre-line">{data.source.overview_ar}</p>
                           </div>
                         )}
