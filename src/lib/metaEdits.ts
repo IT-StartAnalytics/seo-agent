@@ -97,3 +97,26 @@ export async function getPublishHistory(eventId: string): Promise<PublishHistory
     return [];
   }
 }
+
+// Latest manual publish per event (for a batch of ids) — used so the catalog list
+// can show the newest version by chronology, including manual edits.
+export async function getLatestPublishBatch(
+  ids: string[]
+): Promise<Record<string, PublishHistoryRow>> {
+  const clean = ids.map(String).filter(Boolean);
+  if (!clean.length) return {};
+  try {
+    const sql = await getSql();
+    const rows = (await sql`
+      select distinct on (event_id) event_id, langs, created_at
+      from meta_publish_history
+      where event_id = any(${clean})
+      order by event_id, created_at desc
+    `) as {event_id: string; langs: MetaEdit[]; created_at: string}[];
+    const out: Record<string, PublishHistoryRow> = {};
+    for (const r of rows) out[String(r.event_id)] = {created_at: String(r.created_at), langs: r.langs || []};
+    return out;
+  } catch {
+    return {};
+  }
+}

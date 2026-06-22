@@ -4,6 +4,7 @@
 //   seo_agent_runs     - generated H1 / meta tags (multi-language)
 
 import {getAllReviews, getReview, type ReviewStatus} from './reviews';
+import type {MetaEdit} from './metaEdits';
 
 export type Lang = 'en' | 'ru' | 'ar' | 'fr';
 export const LANGS: Lang[] = ['en', 'ar', 'ru', 'fr'];
@@ -513,12 +514,56 @@ function shapeGenRow(r: Row): EventGenerated {
   };
 }
 
+// Parse run/publish timestamps (Supabase ISO or Neon Postgres) for chronology compare.
+function gts(d: string | null): number {
+  if (!d) return 0;
+  const raw = String(d).trim();
+  const iso = raw.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00');
+  const t = Date.parse(iso);
+  if (!isNaN(t)) return t;
+  const t2 = Date.parse(raw);
+  return isNaN(t2) ? 0 : t2;
+}
+
+// Build an EventGenerated from a manual publish (Neon meta_publish_history),
+// reusing event_types/performers from the latest run when available.
+function shapeManualGen(
+  pub: {created_at: string; langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]},
+  run?: EventGenerated
+): EventGenerated {
+  const langs = (pub.langs || [])
+    .map((a) => ({lang: a.lang, h1: a.h1 ?? null, meta_title: a.meta_title ?? null, meta_description: a.meta_description ?? null}))
+    .filter((x) => x.h1 || x.meta_title || x.meta_description);
+  return {
+    status: 'manual',
+    finished_at: pub.created_at,
+    generated_langs: run?.generated_langs ?? [],
+    published_langs: langs.map((x) => x.lang),
+    unpublished_langs: [],
+    api_status_code: null,
+    api_status_msg: null,
+    langs,
+    event_types: run?.event_types ?? [],
+    performers: run?.performers ?? []
+  };
+}
+
 export async function getEventGenerated(id: string): Promise<EventGenerated | null> {
   const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
   const runs = await sb(
     `seo_agent_runs?select=event_id,${GEN_COLS}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=1`
   );
-  return runs[0] ? shapeGenRow(runs[0]) : null;
+  const run = runs[0] ? shapeGenRow(runs[0]) : undefined;
+  let pub: {created_at: string; langs: MetaEdit[]} | undefined;
+  try {
+    const {getLatestPublishBatch} = await import('./metaEdits');
+    pub = (await getLatestPublishBatch([eid]))[eid];
+  } catch {
+    pub = undefined;
+  }
+  // Show whichever is newest by chronology (manual publish can be the latest).
+  if (pub && gts(pub.created_at) >= gts(run?.finished_at ?? null)) return shapeManualGen(pub, run);
+  return run ?? null;
 }
 
 export async function getEventGeneratedBatch(
@@ -535,6 +580,18 @@ export async function getEventGeneratedBatch(
     const id = String(r.event_id);
     if (out[id]) continue; // rows ordered desc -> first seen is latest
     out[id] = shapeGenRow(r);
+  }
+  // Merge in manual publishes (Neon) and keep whichever is newest by chronology.
+  try {
+    const {getLatestPublishBatch} = await import('./metaEdits');
+    const pubs = await getLatestPublishBatch(clean);
+    for (const id of Object.keys(pubs)) {
+      const pub = pubs[id];
+      const run = out[id];
+      if (gts(pub.created_at) >= gts(run?.finished_at ?? null)) out[id] = shapeManualGen(pub, run);
+    }
+  } catch {
+    // Neon unavailable -> fall back to generated runs only.
   }
   return out;
 }
