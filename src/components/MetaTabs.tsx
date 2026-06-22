@@ -94,8 +94,8 @@ export default function MetaTabs({
   return (
     <div>
       <div className="mb-3 inline-flex rounded-full border border-black/10 dark:border-white/10 bg-card p-0.5 text-xs font-medium">
-        {tabBtn('gen', t('metaGenerated'))}
         {tabBtn('live', t('metaLive'))}
+        {tabBtn('gen', t('metaGenerated'))}
         {tabBtn('edit', 'Edit')}
       </div>
 
