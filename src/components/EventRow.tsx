@@ -67,8 +67,13 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
       } as Record<string, string>
     )[k] ?? k.replace(/_/g, ' ');
 
-  const date = e.gen_date
-    ? new Date(e.gen_date).toLocaleString(undefined, {
+  // Prefer the latest version's time (gen.finished_at = manual publish time when a
+  // manual edit is the newest by chronology), falling back to the catalog gen date.
+  const rawDate = gen?.finished_at ?? e.gen_date;
+  // Normalize Postgres "2026-06-22 19:40:00+00" -> ISO so all browsers parse it.
+  const dateSrc = rawDate ? rawDate.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00') : rawDate;
+  const date = dateSrc
+    ? new Date(dateSrc).toLocaleString(undefined, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
