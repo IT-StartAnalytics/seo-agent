@@ -8,6 +8,19 @@ import {getEventById, type EventDetail} from '@/lib/events';
 import {getMetaEdits, getPublishHistory} from '@/lib/metaEdits';
 import type {MetaVersion} from '@/lib/events';
 
+// Parse timestamps from different sources (Supabase ISO with a "T", Neon Postgres
+// with a space, or a JS Date.toString()) into a comparable number for sorting.
+function ts(d: string | null): number {
+  if (!d) return 0;
+  const raw = String(d).trim();
+  // Postgres "2026-06-22 17:09:00.123+00" -> ISO-ish; normalize a bare "+00" offset.
+  const iso = raw.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00');
+  const t = Date.parse(iso);
+  if (!isNaN(t)) return t;
+  const t2 = Date.parse(raw);
+  return isNaN(t2) ? 0 : t2;
+}
+
 function mergeHistory(history: MetaVersion[], manual: {created_at: string; langs: MetaVersion['langs']}[]): MetaVersion[] {
   const manualV: MetaVersion[] = manual.map((m) => ({
     date: m.created_at,
@@ -17,7 +30,8 @@ function mergeHistory(history: MetaVersion[], manual: {created_at: string; langs
     event_types: [],
     performers: []
   }));
-  const dated = [...history.filter((v) => v.date), ...manualV].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  // Sort newest-first by parsed time (string localeCompare broke across formats).
+  const dated = [...history.filter((v) => v.date), ...manualV].sort((a, b) => ts(b.date) - ts(a.date));
   const undated = history.filter((v) => !v.date);
   return [...dated, ...undated];
 }
