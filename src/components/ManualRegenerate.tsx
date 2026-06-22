@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useRouter} from '@/i18n/navigation';
 
 const LANGS = [
@@ -43,6 +43,62 @@ export default function ManualRegenerate({eventId}: {eventId?: string}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenLang[] | null>(null);
+  const [savedPrompts, setSavedPrompts] = useState<{id: number; name: string; prompt: string}[]>([]);
+  const [promptName, setPromptName] = useState('');
+  const [savingPrompt, setSavingPrompt] = useState(false);
+  const [promptMsg, setPromptMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/manual-prompts')
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive && Array.isArray(d.prompts)) setSavedPrompts(d.prompts);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function savePrompt() {
+    if (!prompt.trim() || !promptName.trim() || savingPrompt) return;
+    setSavingPrompt(true);
+    setPromptMsg(null);
+    try {
+      const res = await fetch('/api/manual-prompts', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: promptName.trim(), prompt: prompt.trim()})
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.ok && d.prompt) {
+        setSavedPrompts((prev) => [d.prompt, ...prev]);
+        setPromptName('');
+        setPromptMsg('Saved');
+      } else {
+        setPromptMsg('Save failed');
+      }
+    } catch {
+      setPromptMsg('Save failed');
+    } finally {
+      setSavingPrompt(false);
+    }
+  }
+
+  function loadPrompt(p: {prompt: string}) {
+    setPrompt(p.prompt);
+    setPromptMsg(null);
+  }
+
+  async function deletePrompt(id: number) {
+    setSavedPrompts((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await fetch(`/api/manual-prompts?id=${id}`, {method: 'DELETE'});
+    } catch {
+      // ignore
+    }
+  }
 
   function toggle(k: string) {
     setLangs((prev) => {
@@ -113,6 +169,64 @@ export default function ManualRegenerate({eventId}: {eventId?: string}) {
             className="w-full resize-y rounded-xl border border-black/15 dark:border-white/20 bg-muted px-4 py-3 text-sm outline-none focus:border-indigo-500"
           />
           <div className="mt-1 text-right text-xs text-foreground/40">{[...prompt].length} chars</div>
+        </div>
+
+        {/* Save / reuse prompts (stored in Neon, available on any event) */}
+        <div className="space-y-2 border-t border-black/10 dark:border-white/10 pt-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              value={promptName}
+              onChange={(e) => setPromptName(e.target.value)}
+              placeholder="Name this prompt to save it"
+              className="min-w-[12rem] flex-1 rounded-lg border border-black/15 dark:border-white/20 bg-muted px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={savePrompt}
+              disabled={!prompt.trim() || !promptName.trim() || savingPrompt}
+              className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3.5 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-300 transition-colors hover:bg-indigo-500/20 disabled:opacity-40"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h6" />
+                <path d="M17 3v6M20 6h-6" />
+              </svg>
+              {savingPrompt ? 'Saving…' : 'Save prompt'}
+            </button>
+            {promptMsg && (
+              <span className={`text-xs font-medium ${promptMsg === 'Saved' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {promptMsg}
+              </span>
+            )}
+          </div>
+
+          {savedPrompts.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-foreground/55">Saved:</span>
+              {savedPrompts.map((p) => (
+                <span
+                  key={p.id}
+                  className="inline-flex items-center gap-1 rounded-full border border-black/15 dark:border-white/20 bg-muted py-0.5 pl-2.5 pr-1 text-xs"
+                >
+                  <button
+                    type="button"
+                    onClick={() => loadPrompt(p)}
+                    title="Load this prompt into the editor"
+                    className="max-w-[16rem] truncate hover:text-indigo-600 dark:hover:text-indigo-300"
+                  >
+                    {p.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deletePrompt(p.id)}
+                    title="Delete saved prompt"
+                    className="leading-none px-0.5 text-foreground/40 hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-3 flex-wrap">
