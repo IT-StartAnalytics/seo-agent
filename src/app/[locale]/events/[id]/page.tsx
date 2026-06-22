@@ -1,24 +1,28 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import ReviewButtons from '@/components/ReviewButtons';
+import CopyButton from '@/components/CopyButton';
 import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
 import {getEventById, type EventDetail} from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
 
-function Row({label, value, href}: {label: string; value: string | null; href?: string | null}) {
+function Row({label, value, href, copy}: {label: string; value: string | null; href?: string | null; copy?: boolean}) {
   if (!value) return null;
   return (
     <div className="flex gap-3 py-1.5 text-sm border-b border-black/5 dark:border-white/10 last:border-0">
       <span className="w-32 shrink-0 text-foreground/50">{label}</span>
-      {href ? (
-        <a href={href} target="_blank" rel="noreferrer" className="text-indigo-500 hover:underline break-all">
-          {value}
-        </a>
-      ) : (
-        <span className="text-foreground/85 break-words">{value}</span>
-      )}
+      <span className="flex items-start gap-1.5 min-w-0">
+        {href ? (
+          <a href={href} target="_blank" rel="noreferrer" className="text-indigo-500 hover:underline break-all">
+            {value}
+          </a>
+        ) : (
+          <span className="text-foreground/85 break-words">{value}</span>
+        )}
+        {copy && <CopyButton text={value} />}
+      </span>
     </div>
   );
 }
@@ -105,7 +109,7 @@ export default async function EventDetailPage({
                     <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />
                     <Row label={t('categories')} value={data.source.categories} />
                     <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
-                    <Row label="URL" value={data.source.url} href={data.source.url} />
+                    <Row label="URL" value={data.source.url} href={data.source.url} copy />
                   </div>
 
                   {(data.history.length > 0 || (data.live?.langs.length ?? 0) > 0) && (
