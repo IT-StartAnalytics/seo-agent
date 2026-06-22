@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import MetaHistory from './MetaHistory';
+import MetaEditor from './MetaEditor';
 import type {MetaVersion} from '@/lib/events';
 
 const LBL: Record<string, string> = {en: 'EN', ar: 'AR', ru: 'RU', fr: 'FR'};
@@ -36,15 +37,17 @@ export default function MetaTabs({
   versions,
   indexed: indexedInit,
   eventId,
-  live: liveInit
+  live: liveInit,
+  savedEdits
 }: {
   versions: MetaVersion[];
   indexed?: Record<string, boolean> | null;
   eventId?: string;
   live: Live;
+  savedEdits?: Record<string, {h1: string | null; meta_title: string | null; meta_description: string | null}>;
 }) {
   const t = useTranslations('Events');
-  const [tab, setTab] = useState<'gen' | 'live'>('gen');
+  const [tab, setTab] = useState<'gen' | 'live' | 'edit'>('gen');
   const [live, setLive] = useState<Live>(liveInit);
   const [indexed, setIndexed] = useState<Record<string, boolean> | null | undefined>(indexedInit);
   const [refreshing, setRefreshing] = useState(false);
@@ -77,7 +80,7 @@ export default function MetaTabs({
       })
     : null;
 
-  const tabBtn = (key: 'gen' | 'live', label: string) => (
+  const tabBtn = (key: 'gen' | 'live' | 'edit', label: string) => (
     <button
       onClick={() => setTab(key)}
       className={`rounded-full px-3 py-1 transition-colors ${
@@ -93,6 +96,7 @@ export default function MetaTabs({
       <div className="mb-3 inline-flex rounded-full border border-black/10 dark:border-white/10 bg-card p-0.5 text-xs font-medium">
         {tabBtn('gen', t('metaGenerated'))}
         {tabBtn('live', t('metaLive'))}
+        {tabBtn('edit', 'Edit')}
       </div>
 
       {tab === 'gen' ? (
@@ -101,6 +105,8 @@ export default function MetaTabs({
         ) : (
           <p className="text-sm text-foreground/55">{t('noGeneratedMeta')}</p>
         )
+      ) : tab === 'edit' ? (
+        <MetaEditor eventId={eventId} versions={versions} live={live} savedEdits={savedEdits} />
       ) : (
         <div>
           <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
