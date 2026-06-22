@@ -10,7 +10,7 @@ const LANGS = [
   {k: 'fr', label: 'FR'}
 ];
 
-const MODELS = ['GPT-4.1', 'GPT-4o', 'GPT-4o mini', 'Claude 3.5 Sonnet', 'Gemini 2.0 Flash'];
+const MODELS = ['GPT-4.1', 'GPT-4.1 mini', 'GPT-4o', 'GPT-4o mini'];
 
 type GenLang = {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null};
 
