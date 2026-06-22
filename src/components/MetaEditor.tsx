@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useState} from 'react';
+import {useRouter} from '@/i18n/navigation';
 import type {MetaVersion} from '@/lib/events';
 
 const LANGS = [
@@ -61,6 +62,7 @@ export default function MetaEditor({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishStatus, setPublishStatus] = useState<{ok: boolean; msg: string} | null>(null);
+  const router = useRouter();
 
   // Pick up a result carried over from the Manual regenerate page (sessionStorage) and
   // prefill the form once on mount, so the user can review/Save/Publish it here.
@@ -120,6 +122,8 @@ export default function MetaEditor({
     if (res.ok) {
       setSaved(true);
       setSaveError(null);
+      // Re-fetch server data so the Generated history/list reflect it without a reload.
+      router.refresh();
     } else {
       const d = await res.json().catch(() => ({}));
       setSaveError(String(d.detail || d.error || `HTTP ${res.status}`));
@@ -157,6 +161,8 @@ export default function MetaEditor({
     } finally {
       setPublishing(false);
       setSaved(true);
+      // Re-fetch server data so the new published version shows in history without a reload.
+      router.refresh();
     }
   }
 
