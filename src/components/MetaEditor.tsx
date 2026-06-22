@@ -58,12 +58,14 @@ export default function MetaEditor({
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishStatus, setPublishStatus] = useState<{ok: boolean; msg: string} | null>(null);
 
   function set(lang: string, field: keyof Lang, val: string) {
     setForm((p) => ({...p, [lang]: {...p[lang], [field]: val}}));
     setSaved(false);
+    setSaveError(null);
     setPublishStatus(null);
   }
 
@@ -85,7 +87,14 @@ export default function MetaEditor({
       body: JSON.stringify({event_id: eventId, edits: buildEdits()})
     });
     setSaving(false);
-    if (res.ok) setSaved(true);
+    if (res.ok) {
+      setSaved(true);
+      setSaveError(null);
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setSaveError(String(d.detail || d.error || `HTTP ${res.status}`));
+      setSaved(false);
+    }
   }
 
   async function publish() {
@@ -182,6 +191,7 @@ export default function MetaEditor({
         </button>
 
         {saved && !publishStatus && <span className="text-xs font-medium text-green-600 dark:text-green-400">Draft saved</span>}
+        {saveError && <span className="text-xs font-medium text-red-600 dark:text-red-400">Save failed: {saveError}</span>}
         {publishStatus && (
           <span className={`text-xs font-medium ${publishStatus.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             {publishStatus.msg}

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   try {
     await setMetaEdits(id, edits);
     return NextResponse.json({ok: true});
-  } catch {
-    return NextResponse.json({error: 'failed'}, {status: 500});
+  } catch (e) {
+    return NextResponse.json({error: 'failed', detail: String((e as Error)?.message || e)}, {status: 500});
   }
 }
