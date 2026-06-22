@@ -36,7 +36,7 @@ export type GeneratedMeta = {
 export type MetaVersion = {
   date: string | null;
   status: string | null;
-  source: 'run' | 'admin';
+  source: 'run' | 'admin' | 'manual';
   langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[];
   event_types: string[];
   performers: string[];

@@ -5,7 +5,22 @@ import CopyButton from '@/components/CopyButton';
 import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
 import {getEventById, type EventDetail} from '@/lib/events';
-import {getMetaEdits} from '@/lib/metaEdits';
+import {getMetaEdits, getPublishHistory} from '@/lib/metaEdits';
+import type {MetaVersion} from '@/lib/events';
+
+function mergeHistory(history: MetaVersion[], manual: {created_at: string; langs: MetaVersion['langs']}[]): MetaVersion[] {
+  const manualV: MetaVersion[] = manual.map((m) => ({
+    date: m.created_at,
+    status: null,
+    source: 'manual',
+    langs: m.langs,
+    event_types: [],
+    performers: []
+  }));
+  const dated = [...history.filter((v) => v.date), ...manualV].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const undated = history.filter((v) => !v.date);
+  return [...dated, ...undated];
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +66,8 @@ export default async function EventDetailPage({
 
   const g = data?.generated;
   const savedEdits = data && data.found ? await getMetaEdits(id).catch(() => ({})) : {};
+  const manualHistory = data && data.found ? await getPublishHistory(id).catch(() => []) : [];
+  const combinedHistory = data ? mergeHistory(data.history, manualHistory) : [];
   const overviews = data?.source?.overviews ?? {en: null, ar: null, ru: null, fr: null};
   const ovLangs = OV_LANGS.filter((l) => overviews[l]);
 
@@ -115,7 +132,7 @@ export default async function EventDetailPage({
                   </div>
 
                   {(data.history.length > 0 || (data.live?.langs.length ?? 0) > 0) && (
-                    <MetaTabs versions={data.history} indexed={data.indexed} eventId={data.event_id} live={data.live} savedEdits={savedEdits} />
+                    <MetaTabs versions={combinedHistory} indexed={data.indexed} eventId={data.event_id} live={data.live} savedEdits={savedEdits} />
                   )}
 
                   {ovLangs.length > 0 && (

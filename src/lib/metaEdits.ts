@@ -61,3 +61,39 @@ export async function setMetaEdits(eventId: string, edits: MetaEdit[]): Promise<
     `;
   }
 }
+
+let ensuredHist = false;
+async function ensureHistTable() {
+  if (ensuredHist) return;
+  const sql = await getSql();
+  await sql`
+    create table if not exists meta_publish_history (
+      id         bigserial primary key,
+      event_id   text not null,
+      langs      jsonb not null,
+      created_at timestamptz not null default now()
+    )
+  `;
+  ensuredHist = true;
+}
+
+export async function addPublishHistory(eventId: string, langs: MetaEdit[]): Promise<void> {
+  await ensureHistTable();
+  const sql = await getSql();
+  await sql`insert into meta_publish_history (event_id, langs) values (${eventId}, ${JSON.stringify(langs)}::jsonb)`;
+}
+
+export type PublishHistoryRow = {created_at: string; langs: MetaEdit[]};
+
+export async function getPublishHistory(eventId: string): Promise<PublishHistoryRow[]> {
+  try {
+    const sql = await getSql();
+    const rows = (await sql`
+      select langs, created_at from meta_publish_history
+      where event_id = ${eventId} order by created_at desc limit 30
+    `) as {langs: MetaEdit[]; created_at: string}[];
+    return rows.map((r) => ({created_at: String(r.created_at), langs: r.langs || []}));
+  } catch {
+    return [];
+  }
+}

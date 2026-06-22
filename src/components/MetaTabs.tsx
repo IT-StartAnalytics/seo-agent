@@ -4,6 +4,7 @@ import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import MetaHistory from './MetaHistory';
 import MetaEditor from './MetaEditor';
+import RegenerateButton from './RegenerateButton';
 import type {MetaVersion} from '@/lib/events';
 
 const LBL: Record<string, string> = {en: 'EN', ar: 'AR', ru: 'RU', fr: 'FR'};
@@ -33,6 +34,14 @@ function Cell({label, value, rtl, limit}: {label: string; value: string | null; 
   );
 }
 
+function fmtDate(d: string | null): string {
+  if (!d) return '';
+  const t = new Date(d);
+  return isNaN(t.getTime())
+    ? ''
+    : t.toLocaleString(undefined, {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+}
+
 export default function MetaTabs({
   versions,
   indexed: indexedInit,
@@ -48,6 +57,7 @@ export default function MetaTabs({
 }) {
   const t = useTranslations('Events');
   const [tab, setTab] = useState<'gen' | 'live' | 'edit'>('gen');
+  const [i, setI] = useState(0);
   const [live, setLive] = useState<Live>(liveInit);
   const [indexed, setIndexed] = useState<Record<string, boolean> | null | undefined>(indexedInit);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,15 +80,15 @@ export default function MetaTabs({
   }
 
   const liveLangs = live?.langs ?? [];
-  const liveDate = live?.updated_at
-    ? new Date(live.updated_at).toLocaleString(undefined, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    : null;
+  const liveDate = live?.updated_at ? fmtDate(live.updated_at) : null;
+
+  const total = versions.length;
+  const idx = Math.min(i, Math.max(0, total - 1));
+  const cur = total > 0 ? versions[idx] : null;
+  const srcLabel = (v: MetaVersion): string =>
+    v.source === 'manual' ? 'manual' : v.source === 'admin' ? t('adminOriginal') : v.status ? v.status.replace(/_/g, ' ') : 'generated';
+  const srcCls = (v: MetaVersion): string =>
+    v.source === 'manual' ? 'text-violet-600 dark:text-violet-300' : 'text-foreground/55';
 
   const tabBtn = (key: 'gen' | 'live' | 'edit', label: string) => (
     <button
@@ -93,15 +103,47 @@ export default function MetaTabs({
 
   return (
     <div>
-      <div className="mb-3 inline-flex rounded-full border border-black/10 dark:border-white/10 bg-card p-0.5 text-xs font-medium">
-        {tabBtn('live', t('metaLive'))}
-        {tabBtn('gen', t('metaGenerated'))}
-        {tabBtn('edit', 'Edit')}
+      <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex rounded-full border border-black/10 dark:border-white/10 bg-card p-0.5 text-xs font-medium">
+          {tabBtn('live', t('metaLive'))}
+          {tabBtn('gen', t('metaGenerated'))}
+          {tabBtn('edit', 'Edit')}
+        </div>
+
+        {tab === 'gen' && (
+          <div className="flex items-center gap-2 text-xs">
+            {eventId && <RegenerateButton eventId={eventId} />}
+            {total > 0 && cur && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setI((x) => Math.max(0, Math.min(x, total - 1) - 1))}
+                  disabled={idx <= 0}
+                  className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+                  title={t('newer')}
+                >
+                  ←
+                </button>
+                <span className="tabular-nums whitespace-nowrap">
+                  {idx + 1}/{total}
+                  {fmtDate(cur.date) ? ` · ${fmtDate(cur.date)}` : ''} · <span className={srcCls(cur)}>{srcLabel(cur)}</span>
+                </span>
+                <button
+                  onClick={() => setI((x) => Math.min(total - 1, Math.min(x, total - 1) + 1))}
+                  disabled={idx >= total - 1}
+                  className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+                  title={t('older')}
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {tab === 'gen' ? (
-        versions.length > 0 ? (
-          <MetaHistory versions={versions} indexed={indexed} eventId={eventId} />
+        cur ? (
+          <MetaHistory version={cur} indexed={indexed} />
         ) : (
           <p className="text-sm text-foreground/55">{t('noGeneratedMeta')}</p>
         )

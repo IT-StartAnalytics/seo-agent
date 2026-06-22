@@ -1,4 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
+import {addPublishHistory} from '@/lib/metaEdits';
 
 function publishUrl(): string | null {
   if (process.env.N8N_PUBLISH_URL) return process.env.N8N_PUBLISH_URL;
@@ -30,6 +31,11 @@ export async function POST(req: NextRequest) {
     if (!res.ok || data?.ok === false) {
       return NextResponse.json({ok: false, status: res.status, ...data}, {status: 502});
     }
+    const snapshot = edits.filter(
+      (e: {h1?: string | null; meta_title?: string | null; meta_description?: string | null}) =>
+        e.h1 || e.meta_title || e.meta_description
+    );
+    if (snapshot.length) await addPublishHistory(String(eventId), snapshot).catch(() => {});
     return NextResponse.json({ok: true, ...data});
   } catch {
     return NextResponse.json({ok: false, error: 'hook_unreachable'}, {status: 502});

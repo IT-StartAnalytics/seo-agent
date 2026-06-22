@@ -1,9 +1,7 @@
 'use client';
 
-import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import type {MetaVersion} from '@/lib/events';
-import RegenerateButton from './RegenerateButton';
 import CopyButton from './CopyButton';
 
 const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
@@ -24,57 +22,12 @@ function Cell({label, value, rtl, limit}: {label: string; value: string | null; 
   );
 }
 
-export default function MetaHistory({versions, indexed, eventId}: {versions: MetaVersion[]; indexed?: Record<string, boolean> | null; eventId?: string}) {
+export default function MetaHistory({version, indexed}: {version: MetaVersion; indexed?: Record<string, boolean> | null}) {
   const t = useTranslations('Events');
-  const [i, setI] = useState(0);
-  if (!versions.length) return null;
-
-  const v = versions[i];
-  const date = v.date
-    ? new Date(v.date).toLocaleString(undefined, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    : null;
-  const labelRight = date ?? (v.source === 'admin' ? t('adminOriginal') : '');
+  const v = version;
 
   return (
     <div className="mt-2">
-      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          {i === 0 && v.source === 'run' && (
-            <span className="rounded-full bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
-              {t('lastGeneration')}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 text-xs">
-          {eventId && <RegenerateButton eventId={eventId} />}
-          <button
-            onClick={() => setI((x) => Math.max(0, x - 1))}
-            disabled={i <= 0}
-            className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-          >
-            ←
-          </button>
-          <span className="text-foreground/55 tabular-nums whitespace-nowrap">
-            {i + 1}/{versions.length}
-            {labelRight ? ` · ${labelRight}` : ''}
-            {v.status ? ` · ${v.status.replace(/_/g, ' ')}` : ''}
-          </span>
-          <button
-            onClick={() => setI((x) => Math.min(versions.length - 1, x + 1))}
-            disabled={i >= versions.length - 1}
-            className="rounded-full border border-black/15 dark:border-white/20 w-6 h-6 leading-none disabled:opacity-30 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-          >
-            →
-          </button>
-        </div>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2">
         {v.langs.map((a) => (
           <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
