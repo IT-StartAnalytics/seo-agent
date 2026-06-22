@@ -6,18 +6,41 @@ import CopyButton from './CopyButton';
 
 const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
 
-function Cell({label, value, rtl, limit}: {label: string; value: string | null; rtl?: boolean; limit?: number}) {
+// Read-only field that mirrors the Edit-tab inputs (same boxed look + char counter),
+// so meta blocks look identical across tabs; only the Edit tab is actually editable.
+function ReadField({
+  label,
+  value,
+  rtl,
+  limit,
+  tall
+}: {
+  label: string;
+  value: string | null;
+  rtl?: boolean;
+  limit?: number;
+  tall?: boolean;
+}) {
   const len = value ? [...value].length : 0;
   const over = limit ? len > limit : false;
   return (
-    <div className="mt-2">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground">
+    <div>
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground/55">
         <span>{label}</span>
-        {limit ? <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span> : null}
+        {limit ? (
+          <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span>
+        ) : (
+          <span className="text-foreground/40">{len}</span>
+        )}
       </div>
-      <p dir={rtl ? 'rtl' : undefined} className={`text-sm ${value ? 'text-foreground/85' : 'text-foreground/35'}`}>
-        {value ?? '—'}
-      </p>
+      <div
+        dir={rtl ? 'rtl' : undefined}
+        className={`mt-1 w-full rounded-lg border border-black/15 dark:border-white/20 bg-muted px-3 py-1.5 text-sm whitespace-pre-line break-words ${
+          value ? 'text-foreground/85' : 'text-foreground/35'
+        } ${tall ? 'min-h-[6rem]' : 'min-h-[2.25rem]'}`}
+      >
+        {value || '—'}
+      </div>
     </div>
   );
 }
@@ -30,7 +53,7 @@ export default function MetaHistory({version, indexed}: {version: MetaVersion; i
     <div className="mt-2">
       <div className="grid gap-4 sm:grid-cols-2">
         {v.langs.map((a) => (
-          <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+          <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[a.lang] ?? a.lang.toUpperCase()}</div>
               {indexed && indexed[a.lang] !== undefined && (
@@ -45,9 +68,9 @@ export default function MetaHistory({version, indexed}: {version: MetaVersion; i
                 </span>
               )}
             </div>
-            <Cell label="H1" value={a.h1} rtl={a.lang === 'ar'} />
-            <Cell label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
-            <Cell label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} />
+            <ReadField label="H1" value={a.h1} rtl={a.lang === 'ar'} />
+            <ReadField label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
+            <ReadField label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} tall />
           </div>
         ))}
       </div>
