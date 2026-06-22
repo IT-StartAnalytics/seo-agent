@@ -4,6 +4,7 @@ import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import type {MetaVersion} from '@/lib/events';
 import RegenerateButton from './RegenerateButton';
+import CopyButton from './CopyButton';
 
 const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
 
@@ -114,7 +115,10 @@ export default function MetaHistory({versions, indexed, eventId}: {versions: Met
           )}
           {v.performers.length > 0 && (
             <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-              <div className="text-xs uppercase tracking-wide text-foreground">{t('performers')}</div>
+              <div className="flex items-center gap-1.5">
+                <div className="text-xs uppercase tracking-wide text-foreground">{t('performers')}</div>
+                <CopyButton text={v.performers.join('\n')} />
+              </div>
               <div className="mt-1 text-sm text-foreground/85">{v.performers.join(', ')}</div>
             </div>
           )}
