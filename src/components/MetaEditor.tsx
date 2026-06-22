@@ -58,28 +58,67 @@ export default function MetaEditor({
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishStatus, setPublishStatus] = useState<{ok: boolean; msg: string} | null>(null);
 
   function set(lang: string, field: keyof Lang, val: string) {
     setForm((p) => ({...p, [lang]: {...p[lang], [field]: val}}));
     setSaved(false);
+    setPublishStatus(null);
   }
 
-  async function saveDraft() {
-    if (!eventId || saving) return;
-    setSaving(true);
-    const edits = LANGS.map(({k}) => ({
+  function buildEdits() {
+    return LANGS.map(({k}) => ({
       lang: k,
       h1: form[k].h1.trim() || null,
       meta_title: form[k].meta_title.trim() || null,
       meta_description: form[k].meta_description.trim() || null
     }));
+  }
+
+  async function saveDraft() {
+    if (!eventId || saving) return;
+    setSaving(true);
     const res = await fetch('/api/meta-edit', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({event_id: eventId, edits})
+      body: JSON.stringify({event_id: eventId, edits: buildEdits()})
     });
     setSaving(false);
     if (res.ok) setSaved(true);
+  }
+
+  async function publish() {
+    if (!eventId || publishing) return;
+    setPublishing(true);
+    setPublishStatus(null);
+    const edits = buildEdits();
+    // persist the draft alongside publishing
+    await fetch('/api/meta-edit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({event_id: eventId, edits})
+    }).catch(() => {});
+    try {
+      const res = await fetch('/api/publish-meta', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({event_id: eventId, edits})
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.ok) {
+        setPublishStatus({ok: true, msg: d.invalid_fields ? 'Published (some fields rejected by site)' : 'Published to site'});
+      } else if (d.error === 'not_configured') {
+        setPublishStatus({ok: false, msg: 'Publish not configured (missing webhook secret/URL)'});
+      } else {
+        setPublishStatus({ok: false, msg: 'Publish failed' + (d.status ? ` (${d.status})` : '')});
+      }
+    } catch {
+      setPublishStatus({ok: false, msg: 'Publish failed (network)'});
+    } finally {
+      setPublishing(false);
+      setSaved(true);
+    }
   }
 
   const inputCls =
@@ -132,19 +171,27 @@ export default function MetaEditor({
 
         <button
           type="button"
-          disabled
-          title="Will be enabled after the n8n publish step"
-          className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white opacity-40 cursor-not-allowed"
+          onClick={publish}
+          disabled={publishing || !eventId}
+          className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" />
           </svg>
-          Publish to site
+          {publishing ? 'Publishing…' : 'Publish to site'}
         </button>
 
-        {saved && <span className="text-xs font-medium text-green-600 dark:text-green-400">Draft saved</span>}
-        <span className="text-xs text-foreground/40">Publishing will be enabled after the n8n step.</span>
+        {saved && !publishStatus && <span className="text-xs font-medium text-green-600 dark:text-green-400">Draft saved</span>}
+        {publishStatus && (
+          <span className={`text-xs font-medium ${publishStatus.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            {publishStatus.msg}
+          </span>
+        )}
       </div>
+
+      <p className="mt-2 text-xs text-foreground/40">
+        Publish updates the live site immediately; the “Live on site” tab reflects it after the next sync (~hourly).
+      </p>
     </div>
   );
 }
