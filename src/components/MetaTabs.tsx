@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import MetaHistory from './MetaHistory';
 import MetaEditor from './MetaEditor';
@@ -67,6 +67,12 @@ export default function MetaTabs({
   const [indexed, setIndexed] = useState<Record<string, boolean> | null | undefined>(indexedInit);
   const [refreshing, setRefreshing] = useState(false);
   const [checkedAt, setCheckedAt] = useState<Date | null>(null);
+
+  // Open the Edit tab directly when navigated to with a #edit hash (e.g. from Manual regenerate).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (typeof window !== 'undefined' && window.location.hash === '#edit') setTab('edit');
+  }, []);
 
   async function refresh() {
     if (!eventId || refreshing) return;

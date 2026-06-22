@@ -1,6 +1,7 @@
 'use client';
 
 import {useState} from 'react';
+import {useRouter} from '@/i18n/navigation';
 
 const LANGS = [
   {k: 'en', label: 'EN'},
@@ -11,11 +12,37 @@ const LANGS = [
 
 const MODELS = ['GPT-4.1', 'GPT-4o', 'GPT-4o mini', 'Claude 3.5 Sonnet', 'Gemini 2.0 Flash'];
 
-export default function ManualRegenerate() {
+type GenLang = {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null};
+
+function ResultField({label, value, rtl, limit, tall}: {label: string; value: string | null; rtl?: boolean; limit?: number; tall?: boolean}) {
+  const len = value ? [...value].length : 0;
+  const over = limit ? len > limit : false;
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground/55">
+        <span>{label}</span>
+        {limit ? <span className={over ? 'text-red-500' : 'text-foreground/40'}>{len}/{limit}</span> : <span className="text-foreground/40">{len}</span>}
+      </div>
+      <div
+        dir={rtl ? 'rtl' : undefined}
+        className={`mt-1 w-full rounded-lg border border-black/15 dark:border-white/20 bg-muted px-3 py-1.5 text-sm whitespace-pre-line break-words ${
+          value ? 'text-foreground/85' : 'text-foreground/35'
+        } ${tall ? 'min-h-[6rem]' : 'min-h-[2.25rem]'}`}
+      >
+        {value || '—'}
+      </div>
+    </div>
+  );
+}
+
+export default function ManualRegenerate({eventId}: {eventId?: string}) {
+  const router = useRouter();
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState(MODELS[0]);
   const [langs, setLangs] = useState<Set<string>>(new Set(['en', 'ar', 'ru', 'fr']));
-  const [preview, setPreview] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<GenLang[] | null>(null);
 
   function toggle(k: string) {
     setLangs((prev) => {
@@ -26,7 +53,45 @@ export default function ManualRegenerate() {
     });
   }
 
-  const selected = LANGS.filter((l) => langs.has(l.k));
+  const selectedKeys = LANGS.filter((l) => langs.has(l.k)).map((l) => l.k);
+
+  async function generate() {
+    if (!eventId || loading || !prompt.trim() || selectedKeys.length === 0) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await fetch('/api/manual-generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({event_id: eventId, prompt: prompt.trim(), model, langs: selectedKeys})
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.ok && Array.isArray(d.langs)) {
+        setResult(d.langs as GenLang[]);
+      } else if (d.error === 'not_configured') {
+        setError('Generation webhook is not configured (missing N8N_MANUAL_GENERATE_URL / secret).');
+      } else if (d.error === 'empty_result') {
+        setError('The model returned no usable meta. Try refining the prompt.');
+      } else {
+        setError('Generation failed' + (d.status ? ` (${d.status})` : '') + '.');
+      }
+    } catch {
+      setError('Generation failed (network).');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function useInEdit() {
+    if (!eventId || !result) return;
+    try {
+      sessionStorage.setItem(`manualMeta:${eventId}`, JSON.stringify({langs: result, ts: Date.now()}));
+    } catch {
+      // ignore storage errors
+    }
+    router.push(`/events/${eventId}#edit`);
+  }
 
   return (
     <div>
@@ -91,35 +156,48 @@ export default function ManualRegenerate() {
 
           <button
             type="button"
-            onClick={() => setPreview(true)}
-            disabled={!prompt.trim() || selected.length === 0}
+            onClick={generate}
+            disabled={loading || !eventId || !prompt.trim() || selectedKeys.length === 0}
             className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z" />
               <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8z" />
             </svg>
-            Generate
+            {loading ? 'Generating…' : 'Generate'}
           </button>
         </div>
       </div>
 
       {/* Result */}
       <div className="mt-6">
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-2 flex items-center justify-between gap-2 flex-wrap">
           <div className="text-sm font-semibold text-foreground">Result</div>
-          {preview && <div className="text-xs text-foreground/45">Model: {model}</div>}
+          <div className="flex items-center gap-3">
+            {result && <div className="text-xs text-foreground/45">Model: {model}</div>}
+            {result && result.length > 0 && (
+              <button
+                type="button"
+                onClick={useInEdit}
+                className="inline-flex items-center gap-1.5 rounded-full bg-foreground text-background px-3.5 py-1.5 text-xs font-medium shadow-sm hover:opacity-90 transition-opacity"
+              >
+                Use in Edit →
+              </button>
+            )}
+          </div>
         </div>
 
-        {!preview ? (
-          <div className="rounded-2xl border border-dashed border-black/15 dark:border-white/15 p-10 text-center text-sm text-foreground/45">
-            Generated meta tags will appear here after you run the prompt.
+        {error && (
+          <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400">
+            {error}
           </div>
-        ) : (
+        )}
+
+        {loading ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {selected.map((l) => (
-              <div key={l.k} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                <div className="text-xs font-semibold text-foreground/60">{l.label}</div>
+            {selectedKeys.map((k) => (
+              <div key={k} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+                <div className="text-xs font-semibold text-foreground/60">{k.toUpperCase()}</div>
                 {['H1', 'Meta Title', 'Meta Description'].map((field) => (
                   <div key={field} className="mt-2">
                     <div className="text-xs uppercase tracking-wide text-foreground/45">{field}</div>
@@ -132,10 +210,25 @@ export default function ManualRegenerate() {
               </div>
             ))}
           </div>
+        ) : result ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {result.map((a) => (
+              <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4 space-y-1">
+                <div className="text-xs font-semibold text-foreground/60">{a.lang.toUpperCase()}</div>
+                <ResultField label="H1" value={a.h1} rtl={a.lang === 'ar'} />
+                <ResultField label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
+                <ResultField label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} tall />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-black/15 dark:border-white/15 p-10 text-center text-sm text-foreground/45">
+            Generated meta tags will appear here after you run the prompt.
+          </div>
         )}
 
         <p className="mt-3 text-xs text-foreground/40">
-          Generation backend is not connected yet — this page is a layout preview.
+          “Use in Edit” carries the result to the event’s Edit tab, where you can review it and Save draft / Publish.
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import type {MetaVersion} from '@/lib/events';
 
 const LANGS = [
@@ -61,6 +61,36 @@ export default function MetaEditor({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishStatus, setPublishStatus] = useState<{ok: boolean; msg: string} | null>(null);
+
+  // Pick up a result carried over from the Manual regenerate page (sessionStorage) and
+  // prefill the form once on mount, so the user can review/Save/Publish it here.
+  useEffect(() => {
+    if (!eventId || typeof window === 'undefined') return;
+    try {
+      const raw = window.sessionStorage.getItem(`manualMeta:${eventId}`);
+      if (!raw) return;
+      window.sessionStorage.removeItem(`manualMeta:${eventId}`);
+      const data = JSON.parse(raw) as {langs?: {lang: string; h1?: string | null; meta_title?: string | null; meta_description?: string | null}[]};
+      if (!data?.langs?.length) return;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm((prev) => {
+        const next = {...prev};
+        for (const a of data.langs!) {
+          if (!a?.lang || !next[a.lang]) continue;
+          next[a.lang] = {
+            h1: a.h1 ?? '',
+            meta_title: a.meta_title ?? '',
+            meta_description: a.meta_description ?? ''
+          };
+        }
+        return next;
+      });
+      setSaved(false);
+      setPublishStatus(null);
+    } catch {
+      // ignore malformed storage
+    }
+  }, [eventId]);
 
   function set(lang: string, field: keyof Lang, val: string) {
     setForm((p) => ({...p, [lang]: {...p[lang], [field]: val}}));

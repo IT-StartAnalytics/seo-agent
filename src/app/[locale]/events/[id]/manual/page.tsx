@@ -41,7 +41,7 @@ export default async function ManualRegeneratePage({
         </p>
 
         <div className="mt-7">
-          <ManualRegenerate />
+          <ManualRegenerate eventId={id} />
         </div>
       </main>
     </>
