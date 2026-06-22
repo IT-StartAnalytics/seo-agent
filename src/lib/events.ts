@@ -77,13 +77,13 @@ export type EventDetail = {
 
 type Row = Record<string, unknown>;
 
-async function sb(path: string): Promise<Row[]> {
+async function sb(path: string, revalidate?: number): Promise<Row[]> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_KEY;
   if (!url || !key) throw new Error('SUPABASE_URL or SUPABASE_KEY is not set');
   const res = await fetch(`${url}/rest/v1/${path}`, {
     headers: {apikey: key, Authorization: `Bearer ${key}`},
-    cache: 'no-store'
+    ...(revalidate != null ? {next: {revalidate}} : {cache: 'no-store'})
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -418,14 +418,14 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
   const [pages, streamRows, reviews, attrPages] = await Promise.all([
     Promise.all(
       offsets.map((off) =>
-        sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`)
+        sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`, 60)
       )
     ),
-    sb('new_events_stream?select=event_id,seo_done&limit=1000'),
+    sb('new_events_stream?select=event_id,seo_done&limit=1000', 60),
     getAllReviews(),
     Promise.all(
       offsets.map((off) =>
-        sb(`seo_event_indexation?select=event_id,is_attraction&order=event_id&limit=1000&offset=${off}`)
+        sb(`seo_event_indexation?select=event_id,is_attraction&order=event_id&limit=1000&offset=${off}`, 60)
       )
     )
   ]);
@@ -527,7 +527,8 @@ export async function getEventGeneratedBatch(
   const clean = ids.map((x) => String(x).replace(/[^a-zA-Z0-9_-]/g, '')).filter(Boolean);
   if (!clean.length) return {};
   const rows = await sb(
-    `seo_agent_runs?select=event_id,${GEN_COLS}&event_id=in.(${clean.join(',')})&meta_title_en=not.is.null&order=finished_at.desc&limit=3000`
+    `seo_agent_runs?select=event_id,${GEN_COLS}&event_id=in.(${clean.join(',')})&meta_title_en=not.is.null&order=finished_at.desc&limit=3000`,
+    60
   );
   const out: Record<string, EventGenerated> = {};
   for (const r of rows) {
