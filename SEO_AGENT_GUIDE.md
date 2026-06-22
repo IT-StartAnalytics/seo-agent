@@ -1,43 +1,3 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
-
-<!-- BEGIN:seo-agent-project -->
-# SEO Agent — how the agent must operate here (READ FIRST)
-
-This repo is the **SEO Agent** dashboard. Live: https://seo-agent-platinum.vercel.app/
-Before doing anything, read the full project guide further below (and `SEO_AGENT_GUIDE.md`).
-
-## Default working loop for EVERY task (do it exactly like this)
-1. **Clarify first.** For any multi-step/UI/data task, ask scope with the question tool
-   (fields, languages, audience, format), then create a task list. For research, search/inspect first.
-2. **Edit in an ext4 build dir, not on the mount.** The mounted Windows folder is slow and
-   truncates large files written by Write/Edit/python (silent corruption). Pattern:
-   - Ensure a build copy exists at `~/build/seo-agent` (clone from GitHub or rsync the mount once).
-   - Edit there via bash here-docs (`cat > file <<'EOF' … EOF`) or python.
-3. **Always production-build before deploy:** `node node_modules/next/dist/bin/next build`
-   and confirm “Compiled successfully”. Never push a failing build.
-4. **Sync + deploy:** `cp` changed files build→mount (verify with `wc -l`), then commit & push to
-   GitHub `main` with the token (no git remote is stored):
-   ```
-   TOK=$(tr -d ' \t\r\n' < "<mount>/token.txt")
-   git add -A && git commit -q -m "..."
-   git push -q "https://x-access-token:$TOK@github.com/IT-StartAnalytics/seo-agent.git" HEAD:main
-   ```
-   Vercel auto-deploys (~40–60s). Tell the user to hard-refresh (Ctrl+F5).
-5. **One change → build → push → confirm.** Do not promise a change is live until it’s pushed.
-
-## Hard rules
-- **Supabase is READ-ONLY** (shared production DB). Never delete/modify data or tables.
-  The only object we own is the read-only view `seo_event_indexation`. If the DB times out
-  (“Connection terminated…”), it’s the shared instance / other services — not this app.
-- Use the Supabase MCP to inspect data/columns before changing data logic; verify, don’t guess.
-- Never hardcode secrets. They live in Vercel env and `token.txt`.
-- Keep the app connection-light (REST + caching). Don’t add direct Postgres connections.
-- After editing, mind the truncation issue — verify files aren’t cut off (`wc -l`, check last line).
-
 # SEO Agent — Project & Dev Guide
 
 Internal dashboard to review/edit/publish SEO meta tags for PlatinumList events.
@@ -256,5 +216,3 @@ Components (`src/components/...`):
 - Show the history block on all tabs (in progress in MetaTabs).
 - Optional: surface `invalid_fields` detail in the Publish status; warn on clearing
   required fields; show a "has draft" marker in the list.
-
-<!-- END:seo-agent-project -->
