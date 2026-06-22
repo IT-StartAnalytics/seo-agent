@@ -145,12 +145,12 @@ export default function MetaEditor({
 
               <div>
                 <FieldHead label="H1" len={[...f.h1].length} />
-                <input dir={rtl ? 'rtl' : undefined} value={f.h1} onChange={(e) => set(k, 'h1', e.target.value)} className={inputCls} />
+                <textarea dir={rtl ? 'rtl' : undefined} value={f.h1} onChange={(e) => set(k, 'h1', e.target.value)} rows={2} className={`${inputCls} resize-y`} />
               </div>
 
               <div>
                 <FieldHead label="Meta Title" len={[...f.meta_title].length} limit={60} />
-                <input dir={rtl ? 'rtl' : undefined} value={f.meta_title} onChange={(e) => set(k, 'meta_title', e.target.value)} className={inputCls} />
+                <textarea dir={rtl ? 'rtl' : undefined} value={f.meta_title} onChange={(e) => set(k, 'meta_title', e.target.value)} rows={2} className={`${inputCls} resize-y`} />
               </div>
 
               <div>
