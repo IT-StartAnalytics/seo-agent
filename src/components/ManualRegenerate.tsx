@@ -156,7 +156,7 @@ export default function ManualRegenerate({eventId}: {eventId?: string}) {
         <div>
           <div className="text-sm font-semibold text-foreground">Custom prompt</div>
           <p className="mt-0.5 text-xs text-foreground/55">
-            Describe how the meta tags should be generated for this event. Your instructions are added on top of the standard SEO rules.
+            Your instructions define how the meta tags are written for this event — tone, wording and rules. Only the event data and the output format (H1 / Meta Title / Meta Description) are fixed.
           </p>
         </div>
 
@@ -165,7 +165,7 @@ export default function ManualRegenerate({eventId}: {eventId?: string}) {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={8}
-            placeholder="e.g. Emphasize the comedy angle and the headliner's name, mention the city and date, keep the title under 60 characters, friendly and energetic tone…"
+            placeholder="e.g. Write in a friendly, energetic tone. Lead with the headliner. Keep the Meta Title under 60 characters and mention the city and date. Add one sentence about the atmosphere…"
             className="w-full resize-y rounded-xl border border-black/15 dark:border-white/20 bg-muted px-4 py-3 text-sm outline-none focus:border-indigo-500"
           />
           <div className="mt-1 text-right text-xs text-foreground/40">{[...prompt].length} chars</div>
