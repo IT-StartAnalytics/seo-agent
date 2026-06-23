@@ -78,10 +78,16 @@ export type EventDetail = {
 
 type Row = Record<string, unknown>;
 
+// Prefer the service-role key (server-only) so reads keep working once RLS is enabled
+// on the shared DB; fall back to the anon key. Trim to avoid trailing-newline JWT breakage.
+function sbKey(): string {
+  return (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || '').trim();
+}
+
 async function sb(path: string, revalidate?: number): Promise<Row[]> {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_KEY;
-  if (!url || !key) throw new Error('SUPABASE_URL or SUPABASE_KEY is not set');
+  const key = sbKey();
+  if (!url || !key) throw new Error('SUPABASE_URL or SUPABASE service key is not set');
   const res = await fetch(`${url}/rest/v1/${path}`, {
     headers: {apikey: key, Authorization: `Bearer ${key}`},
     ...(revalidate != null ? {next: {revalidate}} : {cache: 'no-store'})
@@ -95,8 +101,8 @@ async function sb(path: string, revalidate?: number): Promise<Row[]> {
 
 async function sbRpc<T>(fn: string, body: unknown): Promise<T> {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_KEY;
-  if (!url || !key) throw new Error('SUPABASE_URL or SUPABASE_KEY is not set');
+  const key = sbKey();
+  if (!url || !key) throw new Error('SUPABASE_URL or SUPABASE service key is not set');
   const res = await fetch(`${url}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: {apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'},
