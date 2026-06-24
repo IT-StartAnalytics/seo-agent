@@ -113,6 +113,26 @@ async function sbRpc<T>(fn: string, body: unknown): Promise<T> {
   return (await res.json()) as T;
 }
 
+// Count of events currently waiting in the generation queue (seo_events_queue).
+// Uses PostgREST exact count header so we don't fetch all rows. Fresh (no cache).
+export async function getQueueCount(): Promise<number | null> {
+  const url = process.env.SUPABASE_URL;
+  const key = sbKey();
+  if (!url || !key) return null;
+  try {
+    const res = await fetch(`${url}/rest/v1/seo_events_queue?select=event_id`, {
+      headers: {apikey: key, Authorization: `Bearer ${key}`, Prefer: 'count=exact', Range: '0-0'},
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const cr = res.headers.get('content-range'); // e.g. "0-0/2" or "*/0"
+    const total = cr ? Number(cr.split('/')[1]) : NaN;
+    return Number.isFinite(total) ? total : null;
+  } catch {
+    return null;
+  }
+}
+
 const s = (r: Row, k: string) => (r[k] == null ? null : String(r[k]));
 const arr = (r: Row, k: string) => (Array.isArray(r[k]) ? (r[k] as string[]) : null);
 

@@ -116,7 +116,7 @@ function FilterDropdown({
 
 const PAGE = 100;
 
-export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
+export default function EventsBrowser({events, queueCount}: {events: CatalogEvent[]; queueCount?: number | null}) {
   const t = useTranslations('Events');
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set()); // empty = all
@@ -303,6 +303,11 @@ export default function EventsBrowser({events}: {events: CatalogEvent[]}) {
         )}
         <span className="ml-auto text-xs text-foreground">
           {t('total')}: {events.length}
+          {queueCount != null && (
+            <span className="ml-2 text-foreground/55" title="Events waiting in the auto-generation queue">
+              · In queue: <span className="font-medium text-foreground/80">{queueCount}</span>
+            </span>
+          )}
         </span>
       </div>
 
