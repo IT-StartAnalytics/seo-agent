@@ -116,9 +116,10 @@ function FilterDropdown({
 
 const PAGE = 100;
 
-export default function EventsBrowser({events, queueCount}: {events: CatalogEvent[]; queueCount?: number | null}) {
+export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[]; queueIds?: string[]}) {
   const t = useTranslations('Events');
   const router = useRouter();
+  const queueSet = useMemo(() => new Set(queueIds ?? []), [queueIds]);
   const [selected, setSelected] = useState<Set<string>>(new Set()); // empty = all
   const [query, setQuery] = useState('');
   const [visible, setVisible] = useState(PAGE);
@@ -187,6 +188,7 @@ export default function EventsBrowser({events, queueCount}: {events: CatalogEven
     if (key === 'approved') return e.review === 'approved';
     if (key === 'rejected') return e.review === 'rejected';
     if (key === 'review_pending') return e.is_generated && !e.review;
+    if (key === 'queue') return queueSet.has(e.event_id);
     return statusGroup(e.status) === key;
   };
   const matchesActive = (e: CatalogEvent) => {
@@ -265,6 +267,16 @@ export default function EventsBrowser({events, queueCount}: {events: CatalogEven
     });
   }
 
+  function toggleQueue() {
+    setVisible(PAGE);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has('queue')) next.delete('queue');
+      else next.add('queue');
+      return next;
+    });
+  }
+
 
   function toggleSort(key: 'event' | 'date') {
     setVisible(PAGE);
@@ -301,14 +313,23 @@ export default function EventsBrowser({events, queueCount}: {events: CatalogEven
             {t('reset')}
           </button>
         )}
-        <span className="ml-auto text-xs text-foreground">
-          {t('total')}: {events.length}
-          {queueCount != null && (
-            <span className="ml-2 text-foreground/55" title="Events waiting in the auto-generation queue">
-              · In queue: <span className="font-medium text-foreground/80">{queueCount}</span>
-            </span>
+        <div className="ml-auto flex items-center gap-2 text-xs">
+          {queueIds && (
+            <button
+              type="button"
+              onClick={toggleQueue}
+              title="Show only events waiting in the auto-generation queue"
+              className={`rounded-full border px-2.5 py-1 font-medium transition-colors ${
+                selected.has('queue')
+                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
+                  : 'border-black/15 dark:border-white/20 text-foreground/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+              }`}
+            >
+              In queue: {queueIds.length}
+            </button>
           )}
-        </span>
+          <span className="text-foreground">{t('total')}: {events.length}</span>
+        </div>
       </div>
 
       {/* Search */}
