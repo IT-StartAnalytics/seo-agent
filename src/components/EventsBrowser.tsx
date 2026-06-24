@@ -191,10 +191,18 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
     if (key === 'queue') return queueSet.has(e.event_id);
     return statusGroup(e.status) === key;
   };
+  // Filter groups: AND across groups, OR within a group.
+  // e.g. (Not generated) [proc] AND (On sale) [status] -> only events matching both.
+  const STATUS_KEYS = new Set(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
+  const groupOf = (key: string): string => (STATUS_KEYS.has(key) ? 'status' : key === 'queue' ? 'queue' : 'proc');
   const matchesActive = (e: CatalogEvent) => {
     if (selected.size === 0) return true; // "all"
-    for (const key of selected) if (matchesKey(e, key)) return true;
-    return false;
+    const byGroup: Record<string, string[]> = {};
+    for (const key of selected) (byGroup[groupOf(key)] ||= []).push(key);
+    for (const g of Object.keys(byGroup)) {
+      if (!byGroup[g].some((k) => matchesKey(e, k))) return false;
+    }
+    return true;
   };
 
   const filtered = useMemo(() => {
