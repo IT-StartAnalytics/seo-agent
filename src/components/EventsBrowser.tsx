@@ -177,7 +177,10 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
       .filter((k) => (counts[k] ?? 0) > 0 || k === 'all')
       .map((k) => ({key: k, label: cardLabel(k), value: counts[k] ?? 0}));
   // Group 1: processing (SEO workflow). Group 2: sale status.
-  const procOptions = buildCards(['generated', 'not_generated', 'review_pending', 'approved']);
+  const procOptions = [
+    ...buildCards(['generated', 'not_generated', 'review_pending', 'approved']),
+    ...(queueIds ? [{key: 'queue', label: 'In queue', value: queueIds.length}] : [])
+  ];
   const statusOptions = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
 
   const matchesKey = (e: CatalogEvent, key: string) => {
@@ -194,7 +197,7 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
   // Filter groups: AND across groups, OR within a group.
   // e.g. (Not generated) [proc] AND (On sale) [status] -> only events matching both.
   const STATUS_KEYS = new Set(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
-  const groupOf = (key: string): string => (STATUS_KEYS.has(key) ? 'status' : key === 'queue' ? 'queue' : 'proc');
+  const groupOf = (key: string): string => (STATUS_KEYS.has(key) ? 'status' : 'proc');
   const matchesActive = (e: CatalogEvent) => {
     if (selected.size === 0) return true; // "all"
     const byGroup: Record<string, string[]> = {};
@@ -275,16 +278,6 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
     });
   }
 
-  function toggleQueue() {
-    setVisible(PAGE);
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has('queue')) next.delete('queue');
-      else next.add('queue');
-      return next;
-    });
-  }
-
 
   function toggleSort(key: 'event' | 'date') {
     setVisible(PAGE);
@@ -321,23 +314,7 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
             {t('reset')}
           </button>
         )}
-        <div className="ml-auto flex items-center gap-2 text-xs">
-          {queueIds && (
-            <button
-              type="button"
-              onClick={toggleQueue}
-              title="Show only events waiting in the auto-generation queue"
-              className={`rounded-full border px-2.5 py-1 font-medium transition-colors ${
-                selected.has('queue')
-                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
-                  : 'border-black/15 dark:border-white/20 text-foreground/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-              }`}
-            >
-              In queue: {queueIds.length}
-            </button>
-          )}
-          <span className="text-foreground">{t('total')}: {events.length}</span>
-        </div>
+        <span className="ml-auto text-xs text-foreground">{t('total')}: {events.length}</span>
       </div>
 
       {/* Search */}
