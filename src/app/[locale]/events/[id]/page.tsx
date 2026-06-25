@@ -22,13 +22,20 @@ function ts(d: string | null): number {
 }
 
 function mergeHistory(history: MetaVersion[], manual: {created_at: string; langs: MetaVersion['langs']}[]): MetaVersion[] {
+  // Manual publishes only change H1/meta, not categories/performers. Inherit those from the
+  // most recent generated run so the Categories/Performers blocks don't vanish on a manual version.
+  const baseRun =
+    history.find((v) => v.source === 'run' && ((v.event_types?.length ?? 0) > 0 || (v.performers?.length ?? 0) > 0)) ??
+    history.find((v) => v.source === 'run');
+  const inheritedTypes = baseRun?.event_types ?? [];
+  const inheritedPerformers = baseRun?.performers ?? [];
   const manualV: MetaVersion[] = manual.map((m) => ({
     date: m.created_at,
     status: null,
     source: 'manual',
     langs: m.langs,
-    event_types: [],
-    performers: []
+    event_types: inheritedTypes,
+    performers: inheritedPerformers
   }));
   // Sort newest-first by parsed time (string localeCompare broke across formats).
   const dated = [...history.filter((v) => v.date), ...manualV].sort((a, b) => ts(b.date) - ts(a.date));
