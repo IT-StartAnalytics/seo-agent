@@ -242,7 +242,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => [])
+    sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => [])
   ]);
 
   const lk = lookup[0];
@@ -257,7 +257,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const st = stream[0];
   const ix = idx[0];
   const indexed = ix
-    ? {en: !ix.is_no_index, ar: !ix.is_no_index, ru: !ix.ru_no_index, fr: !ix.fr_no_index}
+    ? {en: !ix.is_no_index, ar: !ix.ar_no_index, ru: !ix.ru_no_index, fr: !ix.fr_no_index}
     : null;
   const ovOf = (key: string) => (ix && ix[key] != null ? clean(String(ix[key])) : null);
   const ovAr = ovOf('overview_description_ar');
@@ -398,11 +398,11 @@ export async function getEventLive(
 ): Promise<{live: EventLive; indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null}> {
   const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
   const idx = await sb(
-    `seo_event_indexation?select=event_id,is_no_index,ru_no_index,fr_no_index,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`
+    `seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`
   ).catch(() => [] as Row[]);
   const ix = idx[0];
   const indexed = ix
-    ? {en: !ix.is_no_index, ar: !ix.is_no_index, ru: !ix.ru_no_index, fr: !ix.fr_no_index}
+    ? {en: !ix.is_no_index, ar: !ix.ar_no_index, ru: !ix.ru_no_index, fr: !ix.fr_no_index}
     : null;
   const ovOf = (key: string) => (ix && ix[key] != null ? clean(String(ix[key])) : null);
   const live: EventLive = ix
