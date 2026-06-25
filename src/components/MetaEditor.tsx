@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import type {MetaVersion} from '@/lib/events';
 
@@ -27,27 +27,29 @@ function FieldHead({label, len, limit}: {label: string; len: number; limit?: num
 
 export default function MetaEditor({
   eventId,
-  versions,
+  selectedVersion,
+  versionKey,
   live,
   savedEdits
 }: {
   eventId?: string;
-  versions: MetaVersion[];
+  selectedVersion?: MetaVersion | null;
+  versionKey?: string | number;
   live: Live;
   savedEdits?: SavedEdits;
 }) {
-  const gen = versions.find((v) => v.source === 'run');
-  const genMap: Record<string, {h1: string | null; meta_title: string | null; meta_description: string | null}> = {};
-  gen?.langs.forEach((a) => {
-    genMap[a.lang] = a;
+  const selMap: Record<string, {h1: string | null; meta_title: string | null; meta_description: string | null}> = {};
+  selectedVersion?.langs.forEach((a) => {
+    selMap[a.lang] = a;
   });
   const liveMap: Record<string, {h1: string | null; meta_title: string | null; meta_description: string | null}> = {};
   (live?.langs ?? []).forEach((a) => {
     liveMap[a.lang] = a;
   });
 
+  // Initial prefill: saved draft -> selected history version -> live.
   function base(lang: string, field: 'h1' | 'meta_title' | 'meta_description'): string {
-    return savedEdits?.[lang]?.[field] ?? genMap[lang]?.[field] ?? liveMap[lang]?.[field] ?? '';
+    return savedEdits?.[lang]?.[field] ?? selMap[lang]?.[field] ?? liveMap[lang]?.[field] ?? '';
   }
 
   const [form, setForm] = useState<Record<string, Lang>>(() => {
@@ -93,6 +95,31 @@ export default function MetaEditor({
       // ignore malformed storage
     }
   }, [eventId]);
+
+  // When the user picks a different history version in the slider, load THAT version into
+  // the form so it can be edited / saved / published. Skips the first render (initial prefill).
+  const firstVersionRun = useRef(true);
+  useEffect(() => {
+    if (firstVersionRun.current) {
+      firstVersionRun.current = false;
+      return;
+    }
+    setForm(() => {
+      const f: Record<string, Lang> = {};
+      for (const {k} of LANGS) {
+        f[k] = {
+          h1: selMap[k]?.h1 ?? liveMap[k]?.h1 ?? '',
+          meta_title: selMap[k]?.meta_title ?? liveMap[k]?.meta_title ?? '',
+          meta_description: selMap[k]?.meta_description ?? liveMap[k]?.meta_description ?? ''
+        };
+      }
+      return f;
+    });
+    setSaved(false);
+    setSaveError(null);
+    setPublishStatus(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [versionKey]);
 
   function set(lang: string, field: keyof Lang, val: string) {
     setForm((p) => ({...p, [lang]: {...p[lang], [field]: val}}));

@@ -121,9 +121,9 @@ export default function MetaTabs({
           {tabBtn('edit', 'Edit')}
         </div>
 
-        {tab === 'gen' && (
+        {(tab === 'gen' || tab === 'edit') && (
           <div className="flex items-center gap-2 text-xs">
-            {eventId && <RegenerateButton eventId={eventId} />}
+            {tab === 'gen' && eventId && <RegenerateButton eventId={eventId} />}
             {total > 0 && cur && (
               <div className="flex items-center gap-2">
                 <button
@@ -159,7 +159,7 @@ export default function MetaTabs({
           <p className="text-sm text-foreground/55">{t('noGeneratedMeta')}</p>
         )
       ) : tab === 'edit' ? (
-        <MetaEditor eventId={eventId} versions={versions} live={live} savedEdits={savedEdits} />
+        <MetaEditor eventId={eventId} selectedVersion={cur} versionKey={idx} live={live} savedEdits={savedEdits} />
       ) : (
         <div>
           <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
