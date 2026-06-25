@@ -144,7 +144,8 @@ export default async function EventDetailPage({
                 <h2 className="text-sm font-semibold text-foreground">{t('source')}</h2>
                 <div className="mt-2 rounded-2xl border border-black/10 dark:border-white/10 bg-muted shadow-sm p-4 space-y-4">
                   <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                    <Row label={t('venue')} value={data.source.venue} />
+                    <Row label={t('venue')} value={data.source.venue || '—'} />
+                    <Row label={`${t('venue')} (AR)`} value={data.source.venue_ar} />
                     <Row label={t('city')} value={[data.source.city, data.source.country].filter(Boolean).join(', ') || null} />
                     <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />
                     <Row label={t('categories')} value={data.source.categories} />
