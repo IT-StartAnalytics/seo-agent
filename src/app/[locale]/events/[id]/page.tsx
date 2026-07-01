@@ -6,6 +6,8 @@ import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
 import {getEventById, type EventDetail} from '@/lib/events';
 import {getMetaEdits, getPublishHistory} from '@/lib/metaEdits';
+import {getLatestUnresolvedChange} from '@/lib/monitor';
+import SourceChangeBlock from '@/components/SourceChangeBlock';
 import type {MetaVersion} from '@/lib/events';
 
 // Parse timestamps from different sources (Supabase ISO with a "T", Neon Postgres
@@ -88,6 +90,7 @@ export default async function EventDetailPage({
   const g = data?.generated;
   const savedEdits = data && data.found ? await getMetaEdits(id).catch(() => ({})) : {};
   const manualHistory = data && data.found ? await getPublishHistory(id).catch(() => []) : [];
+  const sourceChange = data && data.found ? await getLatestUnresolvedChange(id).catch(() => null) : null;
   const combinedHistory = data ? mergeHistory(data.history, manualHistory) : [];
   const overviews = data?.source?.overviews ?? {en: null, ar: null, ru: null, fr: null};
   const ovLangs = OV_LANGS.filter((l) => overviews[l]);
@@ -137,6 +140,15 @@ export default async function EventDetailPage({
                 Manual regenerate
               </Link>
             </div>
+
+            {sourceChange && (
+              <SourceChangeBlock
+                eventId={data.event_id}
+                changes={sourceChange.changes}
+                action={sourceChange.action}
+                detectedAt={sourceChange.detected_at}
+              />
+            )}
 
             {/* Source data (incl. current admin meta tags) */}
             {data.source && (

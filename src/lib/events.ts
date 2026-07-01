@@ -644,3 +644,53 @@ export async function getLatestRun(id: string): Promise<RunStatus | null> {
     api_status_msg: s(r, 'api_status_msg')
   };
 }
+
+// ---- Source monitor: on-sale + generated events with Venue/City/Dates ----
+// The n8n monitor compares the CURRENT Supabase snapshot against the baseline this
+// feeds. We return RAW venue/city (same column the monitor reads) so cleaning never
+// causes a false "changed" signal.
+
+export type MonitorSourceEvent = {
+  event_id: string;
+  venue: string | null;
+  city: string | null;
+  date_from: string | null;
+  date_to: string | null;
+};
+
+export async function getMonitorSourceEvents(): Promise<MonitorSourceEvent[]> {
+  const cols = 'event_id,venue,city,event_start_datetime,event_end_datetime,status';
+  const offsets = [0, 1000, 2000];
+  const pages = await Promise.all(
+    offsets.map((off) =>
+      sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`, 60)
+    )
+  );
+  const rows = pages.flat();
+  const ids = rows.map((r) => String(r.event_id));
+
+  const genSet = new Set<string>();
+  try {
+    const gen = await sbRpc<{event_id: string; finished_at: string}[]>('generated_event_dates', {p_ids: ids});
+    for (const r of gen ?? []) genSet.add(String(r.event_id));
+  } catch {
+    // if the RPC fails, fall back to "none generated" rather than breaking the monitor
+  }
+
+  const ENDED = /ended|past|expired|cancel|declin|sold[_ ]?out/;
+  const out: MonitorSourceEvent[] = [];
+  for (const r of rows) {
+    const id = String(r.event_id);
+    if (!genSet.has(id)) continue; // only events we've generated meta for
+    const st = (s(r, 'status') ?? '').toLowerCase();
+    if (ENDED.test(st)) continue; // only on-sale-ish
+    out.push({
+      event_id: id,
+      venue: s(r, 'venue'),
+      city: s(r, 'city'),
+      date_from: s(r, 'event_start_datetime'),
+      date_to: s(r, 'event_end_datetime')
+    });
+  }
+  return out;
+}

@@ -116,10 +116,12 @@ function FilterDropdown({
 
 const PAGE = 100;
 
-export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[]; queueIds?: string[]}) {
+export default function EventsBrowser({events, queueIds, changedIds}: {events: CatalogEvent[]; queueIds?: string[]; changedIds?: string[]}) {
   const t = useTranslations('Events');
   const router = useRouter();
   const queueSet = useMemo(() => new Set(queueIds ?? []), [queueIds]);
+  const changedSet = useMemo(() => new Set(changedIds ?? []), [changedIds]);
+  const changedCount = useMemo(() => events.reduce((n, e) => (changedSet.has(e.event_id) ? n + 1 : n), 0), [events, changedSet]);
   const [selected, setSelected] = useState<Set<string>>(new Set()); // empty = all
   const [query, setQuery] = useState('');
   const [visible, setVisible] = useState(PAGE);
@@ -179,7 +181,8 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
   // Group 1: processing (SEO workflow). Group 2: sale status.
   const procOptions = [
     ...buildCards(['generated', 'not_generated', 'review_pending', 'approved']),
-    ...(queueIds ? [{key: 'queue', label: 'In queue', value: queueIds.length}] : [])
+    ...(queueIds ? [{key: 'queue', label: 'In queue', value: queueIds.length}] : []),
+    ...(changedCount > 0 ? [{key: 'source_changed', label: 'Source changed', value: changedCount}] : [])
   ];
   const statusOptions = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
 
@@ -192,6 +195,7 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
     if (key === 'rejected') return e.review === 'rejected';
     if (key === 'review_pending') return e.is_generated && !e.review;
     if (key === 'queue') return queueSet.has(e.event_id);
+    if (key === 'source_changed') return changedSet.has(e.event_id);
     return statusGroup(e.status) === key;
   };
   // Filter groups: AND across groups, OR within a group.
@@ -367,7 +371,7 @@ export default function EventsBrowser({events, queueIds}: {events: CatalogEvent[
                 </td>
               </tr>
             ) : (
-              shown.map((e) => <EventRow key={e.event_id} e={e} gen={summaries[e.event_id] ?? null} />)
+              shown.map((e) => <EventRow key={e.event_id} e={e} gen={summaries[e.event_id] ?? null} changed={changedSet.has(e.event_id)} />)
             )}
           </tbody>
         </table>

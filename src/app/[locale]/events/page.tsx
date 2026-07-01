@@ -2,6 +2,7 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import EventsBrowser from '@/components/EventsBrowser';
 import {getCatalog, getQueueEventIds, type CatalogEvent} from '@/lib/events';
+import {getUnresolvedChangeIds} from '@/lib/monitor';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,13 +30,20 @@ export default async function EventsPage({
     queueIds = [];
   }
 
+  let changedIds: string[] = [];
+  try {
+    changedIds = await getUnresolvedChangeIds();
+  } catch {
+    changedIds = [];
+  }
+
   return (
     <>
       <Header />
       <main className="flex-1 mx-auto max-w-7xl px-6 py-12 w-full">
         <h1 className="text-3xl font-semibold tracking-tight">{t('eventsTitle')}</h1>
         <p className="mt-1 text-sm text-foreground/60">{t('eventsSubtitle')}</p>
-        {error ? <p className="mt-10 text-foreground/70">{t('dbError')}</p> : <EventsBrowser events={events} queueIds={queueIds} />}
+        {error ? <p className="mt-10 text-foreground/70">{t('dbError')}</p> : <EventsBrowser events={events} queueIds={queueIds} changedIds={changedIds} />}
       </main>
     </>
   );

@@ -45,7 +45,7 @@ function parseDate(d: string | null | undefined): Date | null {
   return isNaN(t.getTime()) ? null : t;
 }
 
-export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated | null}) {
+export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: EventGenerated | null; changed?: boolean}) {
   const t = useTranslations('Events');
   const [open, setOpen] = useState(false);
   const [review, setReview] = useState<'approved' | null>(e.review === 'approved' ? 'approved' : null);
@@ -118,6 +118,11 @@ export default function EventRow({e, gen}: {e: CatalogEvent; gen: EventGenerated
             <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-xs capitalize">
               {statusLabel(statusGroup(e.status))}
             </span>
+            {changed && (
+              <span title="Source data (Venue/City/Dates) changed" className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium">
+                Source changed
+              </span>
+            )}
             {gen && (
               <button
                 onClick={toggleReview}
