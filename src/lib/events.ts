@@ -649,6 +649,11 @@ export async function getLatestRun(id: string): Promise<RunStatus | null> {
 // The n8n monitor compares the CURRENT Supabase snapshot against the baseline this
 // feeds. We return RAW venue/city (same column the monitor reads) so cleaning never
 // causes a false "changed" signal.
+//
+// To protect the shared DB we bound the set: skip events already ended (by status OR
+// by date, past a small grace window) and cap the total. The n8n loop reads
+// seo_event_lookup once per returned event, so a smaller set = fewer reads/hour.
+// Tunable via env: MONITOR_PAST_GRACE_DAYS (default 2), MONITOR_MAX_EVENTS (default 1500).
 
 export type MonitorSourceEvent = {
   event_id: string;
@@ -661,9 +666,10 @@ export type MonitorSourceEvent = {
 export async function getMonitorSourceEvents(): Promise<MonitorSourceEvent[]> {
   const cols = 'event_id,venue,city,event_start_datetime,event_end_datetime,status';
   const offsets = [0, 1000, 2000];
+  // Cache the source scan 15 min so repeated/adjacent monitor hits don't re-read the shared DB.
   const pages = await Promise.all(
     offsets.map((off) =>
-      sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`, 60)
+      sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`, 900)
     )
   );
   const rows = pages.flat();
@@ -678,19 +684,23 @@ export async function getMonitorSourceEvents(): Promise<MonitorSourceEvent[]> {
   }
 
   const ENDED = /ended|past|expired|cancel|declin|sold[_ ]?out/;
+  const graceDays = Number(process.env.MONITOR_PAST_GRACE_DAYS || 2);
+  const cutoff = Date.now() - graceDays * 86400000;
+  const cap = Number(process.env.MONITOR_MAX_EVENTS || 1500);
+
   const out: MonitorSourceEvent[] = [];
   for (const r of rows) {
     const id = String(r.event_id);
     if (!genSet.has(id)) continue; // only events we've generated meta for
     const st = (s(r, 'status') ?? '').toLowerCase();
-    if (ENDED.test(st)) continue; // only on-sale-ish
-    out.push({
-      event_id: id,
-      venue: s(r, 'venue'),
-      city: s(r, 'city'),
-      date_from: s(r, 'event_start_datetime'),
-      date_to: s(r, 'event_end_datetime')
-    });
+    if (ENDED.test(st)) continue; // only on-sale-ish by status
+    const from = s(r, 'event_start_datetime');
+    const to = s(r, 'event_end_datetime');
+    const latest = Math.max(gts(from), gts(to));
+    if (latest > 0 && latest < cutoff) continue; // already ended by date
+    out.push({event_id: id, venue: s(r, 'venue'), city: s(r, 'city'), date_from: from, date_to: to});
   }
-  return out;
+  // Keep the nearest-upcoming events first, then cap (protects the loop if the set grows).
+  out.sort((a, b) => gts(a.date_from) - gts(b.date_from));
+  return out.slice(0, cap);
 }
