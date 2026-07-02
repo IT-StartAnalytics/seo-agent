@@ -1,6 +1,7 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import CopyButton from '@/components/CopyButton';
+import CategoryOpen from '@/components/CategoryOpen';
 import {Link} from '@/i18n/navigation';
 import {getCategoryById, type CategoryDetail} from '@/lib/categories';
 
@@ -100,9 +101,9 @@ export default async function CategoryDetailPage({
             <section className="mt-7">
               <h2 className="text-sm font-semibold text-foreground">{t('source')}</h2>
               <div className="mt-2 rounded-2xl border border-black/10 dark:border-white/10 bg-muted shadow-sm p-4 space-y-4">
+                <CategoryOpen baseUrl={data.url} cities={data.cities} />
+
                 <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                  <Row label="URL" value={data.url} href={data.url} copy />
-                  <Row label={t('cities')} value={data.linked_cities} />
                   <Row
                     label={t('events')}
                     value={

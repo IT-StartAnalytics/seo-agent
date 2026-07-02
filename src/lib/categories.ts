@@ -3,6 +3,8 @@
 // Self-contained REST helper (mirrors the pattern in events.ts) so we never touch
 // the shared DB with anything but connection-light cached GETs.
 
+import {parseCities} from './categoryUrl';
+
 type Row = Record<string, unknown>;
 
 function sbKey(): string {
@@ -49,6 +51,7 @@ export type CatalogCategory = {
   is_active: boolean;
   events_total: number | null;
   active_events: number | null;
+  cities: string[];
   has_meta_en: boolean;
   has_meta_ar: boolean;
 };
@@ -61,6 +64,7 @@ export type CategoryDetail = {
   is_attraction: boolean;
   is_active: boolean;
   linked_cities: string | null;
+  cities: string[];
   events_total: number | null;
   active_events: number | null;
   event_names: string | null;
@@ -68,7 +72,7 @@ export type CategoryDetail = {
 };
 
 const LIST_COLS =
-  'category_id,name_en,url,is_attraction,is_active,events_total,active_events,meta_title_en,meta_title_ar';
+  'category_id,name_en,url,is_attraction,is_active,events_total,active_events,linked_cities,meta_title_en,meta_title_ar';
 
 export async function getCategories(): Promise<CatalogCategory[]> {
   const rows = await sbCat(
@@ -83,6 +87,7 @@ export async function getCategories(): Promise<CatalogCategory[]> {
     is_active: Boolean(r.is_active),
     events_total: r.events_total == null ? null : Number(r.events_total),
     active_events: r.active_events == null ? null : Number(r.active_events),
+    cities: parseCities(s(r, 'linked_cities')),
     has_meta_en: !!s(r, 'meta_title_en'),
     has_meta_ar: !!s(r, 'meta_title_ar')
   }));
@@ -103,6 +108,7 @@ export async function getCategoryById(id: string): Promise<CategoryDetail> {
     is_attraction: false,
     is_active: false,
     linked_cities: null,
+    cities: [],
     events_total: null,
     active_events: null,
     event_names: null,
@@ -132,6 +138,7 @@ export async function getCategoryById(id: string): Promise<CategoryDetail> {
     is_attraction: Boolean(r.is_attraction),
     is_active: Boolean(r.is_active),
     linked_cities: clean(s(r, 'linked_cities')),
+    cities: parseCities(s(r, 'linked_cities')),
     events_total: r.events_total == null ? null : Number(r.events_total),
     active_events: r.active_events == null ? null : Number(r.active_events),
     event_names: names ? (names.length > 800 ? names.slice(0, 800) + '…' : names) : null,

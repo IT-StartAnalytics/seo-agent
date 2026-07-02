@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import {useRouter} from '@/i18n/navigation';
 import {Link} from '@/i18n/navigation';
 import type {CatalogCategory} from '@/lib/categories';
+import {pickDefaultCity, categoryUrlForCity} from '@/lib/categoryUrl';
 
 function MetaChips({en, ar}: {en: boolean; ar: boolean}) {
   const items: {label: string; on: boolean}[] = [
@@ -138,16 +139,19 @@ export default function CategoriesBrowser({categories}: {categories: CatalogCate
                     </Link>
                     <div className="text-xs text-foreground/50 mt-1 flex items-center gap-2 flex-wrap">
                       <span>ID {c.category_id}</span>
-                      {c.url && (
-                        <a
-                          href={c.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center rounded-full border border-black/15 dark:border-white/20 px-2 py-0.5 text-xs text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] whitespace-nowrap"
-                        >
-                          {t('openPage')} ↗
-                        </a>
-                      )}
+                      {(() => {
+                        const openUrl = categoryUrlForCity(c.url, pickDefaultCity(c.cities));
+                        return openUrl ? (
+                          <a
+                            href={openUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center rounded-full border border-black/15 dark:border-white/20 px-2 py-0.5 text-xs text-foreground/70 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] whitespace-nowrap"
+                          >
+                            {t('openPage')} ↗
+                          </a>
+                        ) : null;
+                      })()}
                       {!c.is_active && (
                         <span className="rounded-full bg-foreground/10 text-foreground/55 px-2 py-0.5 text-xs">
                           {t('inactive')}
