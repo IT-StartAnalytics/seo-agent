@@ -435,6 +435,7 @@ export type CatalogEvent = {
   gen_date: string | null;
   review: ReviewStatus | null;
   url: string | null;
+  indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null;
 };
 
 export async function getCatalog(): Promise<CatalogEvent[]> {
@@ -451,13 +452,18 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
     getAllReviews(),
     Promise.all(
       offsets.map((off) =>
-        sb(`seo_event_indexation?select=event_id,is_attraction&order=event_id&limit=1000&offset=${off}`, 60)
+        sb(`seo_event_indexation?select=event_id,is_attraction,is_no_index,ar_no_index,ru_no_index,fr_no_index&order=event_id&limit=1000&offset=${off}`, 60)
       )
     )
   ]);
 
   const attrMap = new Map<string, boolean>();
-  for (const r of attrPages.flat()) attrMap.set(String(r.event_id), Boolean(r.is_attraction));
+  const idxMap = new Map<string, {en: boolean; ar: boolean; ru: boolean; fr: boolean}>();
+  for (const r of attrPages.flat()) {
+    const id = String(r.event_id);
+    attrMap.set(id, Boolean(r.is_attraction));
+    idxMap.set(id, {en: !r.is_no_index, ar: !r.ar_no_index, ru: !r.ru_no_index, fr: !r.fr_no_index});
+  }
 
   const newSet = new Set(
     streamRows.filter((r) => r.seo_done !== true).map((r) => String(r.event_id))
@@ -487,7 +493,8 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       is_generated: genMap.has(String(r.event_id)),
       gen_date: genMap.get(String(r.event_id)) ?? null,
       review: reviews.get(String(r.event_id)) ?? null,
-      url: s(r, 'url')
+      url: s(r, 'url'),
+      indexed: idxMap.get(String(r.event_id)) ?? null
     };
   });
 }

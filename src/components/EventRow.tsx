@@ -45,6 +45,36 @@ function parseDate(d: string | null | undefined): Date | null {
   return isNaN(t.getTime()) ? null : t;
 }
 
+function IndexBadges({idx}: {idx: CatalogEvent['indexed']}) {
+  if (!idx) return <span className="text-foreground/25 text-xs">—</span>;
+  const langs: {k: 'en' | 'ar' | 'ru' | 'fr'; label: string}[] = [
+    {k: 'en', label: 'EN'},
+    {k: 'ar', label: 'AR'},
+    {k: 'ru', label: 'RU'},
+    {k: 'fr', label: 'FR'}
+  ];
+  return (
+    <div className="flex flex-wrap gap-1">
+      {langs.map(({k, label}) => {
+        const on = idx[k];
+        return (
+          <span
+            key={k}
+            title={`${label}: ${on ? 'Indexed' : 'No-index'}`}
+            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-semibold leading-none tabular-nums ${
+              on
+                ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+                : 'bg-red-500/15 text-red-600 dark:text-red-400 line-through decoration-red-500/70'
+            }`}
+          >
+            {label}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: EventGenerated | null; changed?: boolean}) {
   const t = useTranslations('Events');
   const [open, setOpen] = useState(false);
@@ -150,6 +180,11 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
           )}
         </td>
 
+        {/* Indexation per language */}
+        <td className="px-3 py-3 align-middle">
+          <IndexBadges idx={e.indexed} />
+        </td>
+
 
 
 
@@ -171,7 +206,7 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
 
       {open && gen && (
         <tr className="border-b border-black/5 dark:border-white/10 bg-muted">
-          <td colSpan={4} className="px-4 py-4">
+          <td colSpan={5} className="px-4 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {gen.langs.map((a) => (
                 <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">

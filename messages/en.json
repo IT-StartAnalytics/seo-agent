@@ -113,6 +113,7 @@
     "cancelled": "Cancelled",
     "colEvent": "Event",
     "colStatus": "Status",
+    "colIndex": "Index",
     "colMeta": "H1 / Meta Title",
     "colLangs": "Langs",
     "colWhen": "When",
