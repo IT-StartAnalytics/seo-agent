@@ -76,7 +76,13 @@ export default function SourceChangeBlock({
           </svg>
           <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Source changed</span>
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${action === 'regenerated' ? 'bg-green-500/15 text-green-600 dark:text-green-400' : 'bg-foreground/10 text-foreground/60'}`}>
-            {action === 'regenerated' ? 'sent to regenerate' : 'flagged (manual meta kept)'}
+            {action === 'regenerated'
+              ? 'sent to regenerate'
+              : action === 'flagged_time_only'
+              ? 'time change only - not regenerated'
+              : action === 'flagged_manual'
+              ? 'flagged (manual meta kept)'
+              : 'flagged'}
           </span>
         </div>
         <button
