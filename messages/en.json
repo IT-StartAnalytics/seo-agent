@@ -9,7 +9,8 @@
     "signIn": "Sign in",
     "signOut": "Sign out",
     "events": "Events",
-    "attractions": "Attractions"
+    "attractions": "Attractions",
+    "categories": "Categories"
   },
   "Hero": {
     "badge": "SEO content workspace",
@@ -138,6 +139,44 @@
     "subtitle": "Manage SEO meta tags for PlatinumList events and attractions — review, regenerate and track indexation.",
     "eventsTile": "Browse the full events catalog. Review, regenerate and approve SEO meta tags.",
     "attractionsTile": "Browse attractions. Review, regenerate and approve their SEO meta tags.",
+    "categoriesTile": "Browse PlatinumList event-type categories and their SEO titles and meta tags.",
     "open": "Open"
+  }
+  ,
+  "Categories": {
+    "title": "Category meta tags",
+    "subtitle": "PlatinumList event-type categories. Search by name or ID and open a category to see its SEO titles and meta tags.",
+    "dbError": "Could not read data from the database.",
+    "empty": "Nothing matches the current filter.",
+    "total": "Total",
+    "count": "Shown",
+    "searchPlaceholder": "Search by category name or ID…",
+    "filterAll": "All",
+    "filterEvent": "Event categories",
+    "filterAttraction": "Attractions",
+    "colCategory": "Category",
+    "colType": "Type",
+    "colEvents": "Events (active/total)",
+    "colMeta": "Meta",
+    "typeEvent": "Event category",
+    "typeAttraction": "Attraction",
+    "active": "Active",
+    "inactive": "Inactive",
+    "open": "Open",
+    "openPage": "Open page",
+    "back": "Back to categories",
+    "notFound": "No category found for ID",
+    "source": "Source data",
+    "cities": "Cities",
+    "events": "Events",
+    "activeLower": "active",
+    "totalLower": "total",
+    "eventNames": "Event names",
+    "metaTags": "Meta tags",
+    "metaTitle": "Meta Title",
+    "metaDescription": "Meta Description",
+    "contentText": "Content",
+    "noMeta": "No meta tags generated for this category yet.",
+    "showMore": "Show more"
   }
 }

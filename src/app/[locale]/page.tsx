@@ -26,6 +26,17 @@ function FerrisIcon() {
   );
 }
 
+function GridIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
 function Arrow() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="transition-transform group-hover:translate-x-1">
@@ -86,7 +97,7 @@ export default function Home({params}: {params: Promise<{locale: string}>}) {
             <p className="mt-3 text-foreground/60">{t('subtitle')}</p>
           </div>
 
-          <div className="mx-auto mt-12 grid max-w-3xl gap-6 sm:grid-cols-2">
+          <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <Tile
               href="/events"
               title={nav('events')}
@@ -102,6 +113,14 @@ export default function Home({params}: {params: Promise<{locale: string}>}) {
               open={t('open')}
               icon={<FerrisIcon />}
               grad="from-violet-500 to-fuchsia-500"
+            />
+            <Tile
+              href="/categories"
+              title={nav('categories')}
+              desc={t('categoriesTile')}
+              open={t('open')}
+              icon={<GridIcon />}
+              grad="from-emerald-500 to-teal-500"
             />
           </div>
         </div>
