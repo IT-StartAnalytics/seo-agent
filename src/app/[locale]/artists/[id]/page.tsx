@@ -111,6 +111,16 @@ export default async function ArtistDetailPage({
                 {/* Meta tags */}
                 <div>
                   <div className="mb-2 text-xs font-semibold text-foreground">{t('metaTags')}</div>
+                  {/* H1 — the artist page H1 is the artist name */}
+                  {data.name && (
+                    <div className="mb-4 rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+                      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground/50">
+                        <span>{t('h1')}</span>
+                        <CopyButton text={data.name} />
+                      </div>
+                      <p className="text-sm text-foreground/85 break-words">{data.name}</p>
+                    </div>
+                  )}
                   {hasMeta ? (
                     <div className="grid gap-4 sm:grid-cols-2">
                       {data.meta.map((m) => (
