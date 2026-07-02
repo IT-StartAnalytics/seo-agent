@@ -44,6 +44,15 @@ export default async function Header() {
                 </svg>
                 {t('categories')}
               </Link>
+              <Link href="/venues" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 21V7l8-4 8 4v14" />
+                  <path d="M4 21h16" />
+                  <path d="M9 21v-5h6v5" />
+                  <path d="M9 11h.01M15 11h.01" />
+                </svg>
+                {t('venues')}
+              </Link>
             </>
           )}
           <ThemeToggle />

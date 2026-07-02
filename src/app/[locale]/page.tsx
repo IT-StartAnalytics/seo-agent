@@ -26,6 +26,17 @@ function FerrisIcon() {
   );
 }
 
+function VenueIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 21V7l8-4 8 4v14" />
+      <path d="M4 21h16" />
+      <path d="M9 21v-5h6v5" />
+      <path d="M9 11h.01M15 11h.01" />
+    </svg>
+  );
+}
+
 function GridIcon() {
   return (
     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -121,6 +132,14 @@ export default function Home({params}: {params: Promise<{locale: string}>}) {
               open={t('open')}
               icon={<GridIcon />}
               grad="from-emerald-500 to-teal-500"
+            />
+            <Tile
+              href="/venues"
+              title={nav('venues')}
+              desc={t('venuesTile')}
+              open={t('open')}
+              icon={<VenueIcon />}
+              grad="from-amber-500 to-orange-500"
             />
           </div>
         </div>

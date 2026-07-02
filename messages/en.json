@@ -10,7 +10,8 @@
     "signOut": "Sign out",
     "events": "Events",
     "attractions": "Attractions",
-    "categories": "Categories"
+    "categories": "Categories",
+    "venues": "Venues"
   },
   "Hero": {
     "badge": "SEO content workspace",
@@ -140,6 +141,7 @@
     "eventsTile": "Browse the full events catalog. Review, regenerate and approve SEO meta tags.",
     "attractionsTile": "Browse attractions. Review, regenerate and approve their SEO meta tags.",
     "categoriesTile": "Browse PlatinumList event-type categories and their SEO titles and meta tags.",
+    "venuesTile": "Browse published PlatinumList venues and their SEO titles and meta tags.",
     "open": "Open"
   }
   ,
@@ -178,6 +180,42 @@
     "metaDescription": "Meta Description",
     "contentText": "Content",
     "noMeta": "No meta tags generated for this category yet.",
+    "showMore": "Show more"
+  }
+  ,
+  "Venues": {
+    "title": "Venue meta tags",
+    "subtitle": "Published PlatinumList venues. Search by name, ID or city and open a venue to see its SEO titles and meta tags.",
+    "dbError": "Could not read data from the database.",
+    "empty": "Nothing matches the current filter.",
+    "total": "Total",
+    "count": "Shown",
+    "searchPlaceholder": "Search by venue name, ID or city…",
+    "filterAll": "All",
+    "filterUpcoming": "With upcoming events",
+    "filterMeta": "With meta",
+    "colVenue": "Venue",
+    "colLocation": "Location",
+    "colEvents": "Events (upcoming/total)",
+    "colMeta": "Meta",
+    "open": "Open",
+    "openPage": "Open page",
+    "back": "Back to venues",
+    "notFound": "No venue found for ID",
+    "hasMeta": "Meta present",
+    "noMetaShort": "No meta",
+    "source": "Source data",
+    "city": "City",
+    "events": "Events",
+    "upcomingLower": "upcoming",
+    "totalLower": "total",
+    "lastEvent": "Last event",
+    "metaTags": "Meta tags",
+    "metaTitle": "Meta Title",
+    "metaDescription": "Meta Description",
+    "info": "Info",
+    "howToGetThere": "How to get there",
+    "noMeta": "No meta tags generated for this venue yet.",
     "showMore": "Show more"
   }
 }
