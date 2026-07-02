@@ -11,7 +11,8 @@
     "events": "Events",
     "attractions": "Attractions",
     "categories": "Categories",
-    "venues": "Venues"
+    "venues": "Venues",
+    "artists": "Artists"
   },
   "Hero": {
     "badge": "SEO content workspace",
@@ -142,6 +143,7 @@
     "attractionsTile": "Browse attractions. Review, regenerate and approve their SEO meta tags.",
     "categoriesTile": "Browse PlatinumList event-type categories and their SEO titles and meta tags.",
     "venuesTile": "Browse published PlatinumList venues and their SEO titles and meta tags.",
+    "artistsTile": "Browse PlatinumList artists and their SEO titles, keywords and bios.",
     "open": "Open"
   }
   ,
@@ -216,6 +218,39 @@
     "info": "Info",
     "howToGetThere": "How to get there",
     "noMeta": "No meta tags generated for this venue yet.",
+    "showMore": "Show more"
+  }
+  ,
+  "Artists": {
+    "title": "Artist meta tags",
+    "subtitle": "PlatinumList artists. Search by name or ID and open an artist to see its SEO title, keywords and bio.",
+    "dbError": "Could not read data from the database.",
+    "empty": "Nothing matches the current filter.",
+    "total": "Total",
+    "count": "Shown",
+    "searchPlaceholder": "Search by artist name or ID…",
+    "filterAll": "All",
+    "filterEvents": "With events",
+    "filterMeta": "With meta",
+    "colArtist": "Artist",
+    "colEvents": "Events",
+    "colTickets": "Tickets",
+    "colMeta": "Meta",
+    "open": "Open",
+    "openPage": "Open page",
+    "back": "Back to artists",
+    "notFound": "No artist found for ID",
+    "hasMeta": "Meta present",
+    "noMetaShort": "No meta",
+    "source": "Source data",
+    "events": "Events",
+    "eventsLower": "events",
+    "tickets": "Tickets",
+    "metaTags": "Meta tags",
+    "metaTitle": "Meta Title",
+    "metaKeywords": "Meta Keywords",
+    "bio": "Biography",
+    "noMeta": "No meta tags for this artist yet.",
     "showMore": "Show more"
   }
 }

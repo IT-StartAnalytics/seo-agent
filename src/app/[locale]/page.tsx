@@ -26,6 +26,16 @@ function FerrisIcon() {
   );
 }
 
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 18V5l10-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="16" cy="16" r="3" />
+    </svg>
+  );
+}
+
 function VenueIcon() {
   return (
     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -140,6 +150,14 @@ export default function Home({params}: {params: Promise<{locale: string}>}) {
               open={t('open')}
               icon={<VenueIcon />}
               grad="from-amber-500 to-orange-500"
+            />
+            <Tile
+              href="/artists"
+              title={nav('artists')}
+              desc={t('artistsTile')}
+              open={t('open')}
+              icon={<MicIcon />}
+              grad="from-rose-500 to-pink-500"
             />
           </div>
         </div>
