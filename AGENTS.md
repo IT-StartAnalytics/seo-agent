@@ -7,6 +7,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- BEGIN:seo-agent-project -->
 # SEO Agent — how the agent must operate here (READ FIRST)
 
+> **LATEST STATE:** read **SEO_AGENT_HANDOFF.md** first — it captures everything built after this
+> guide (email OTP login, manual regenerate + prompt library, catalog queue filter, and the full
+> **Source Monitor**: `/api/monitor/list|change|resolve`, Neon `monitor_baseline`/`monitor_changes`,
+> card before→after block, catalog "Source changed" filter). n8n workflow is now v9.4.
+
+
 This repo is the **SEO Agent** dashboard. Live: https://seo-agent-platinum.vercel.app/
 Before doing anything, read the full project guide further below (and `SEO_AGENT_GUIDE.md`).
 
