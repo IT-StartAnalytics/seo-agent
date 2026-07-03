@@ -24,7 +24,7 @@ export type SourceChanges = {
 export type ChangeRow = {
   event_id: string;
   changes: SourceChanges;
-  action: string; // 'regenerated' | 'flagged'
+  action: string; // 'regenerated' | 'flagged_manual' | 'flagged_time_only'
   resolved: boolean;
   detected_at: string;
 };
@@ -127,7 +127,8 @@ export async function getUnresolvedChangeIds(): Promise<string[]> {
     await ensureTables();
     const sql = await getSql();
     const rows = (await sql`
-      select distinct event_id from monitor_changes where resolved = false
+      select distinct event_id from monitor_changes
+      where resolved = false and action <> 'flagged_time_only'
     `) as {event_id: string}[];
     return rows.map((r) => String(r.event_id));
   } catch {
@@ -143,7 +144,7 @@ export async function getLatestUnresolvedChange(eventId: string): Promise<Change
     const rows = (await sql`
       select event_id, changes, action, resolved, detected_at
       from monitor_changes
-      where event_id = ${eventId} and resolved = false
+      where event_id = ${eventId} and resolved = false and action <> 'flagged_time_only'
       order by detected_at desc limit 1
     `) as ChangeRow[];
     const r = rows[0];
