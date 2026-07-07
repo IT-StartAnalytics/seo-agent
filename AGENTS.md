@@ -11,6 +11,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 > guide (email OTP login, manual regenerate + prompt library, catalog queue filter, and the full
 > **Source Monitor**: `/api/monitor/list|change|resolve`, Neon `monitor_baseline`/`monitor_changes`,
 > card before→after block, catalog "Source changed" filter). n8n workflow is now v9.4.
+> **Part 2 additions (newest) — see handoff section 8:** events list per-language indexation column;
+> three new READ-ONLY sections **Categories / Venues / Artists** (city-aware category URLs); Source
+> Monitor now hides marker+card block for time-only Dates changes; data-gaps doc for the DB team.
 
 
 This repo is the **SEO Agent** dashboard. Live: https://seo-agent-platinum.vercel.app/

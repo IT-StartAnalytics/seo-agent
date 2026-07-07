@@ -10,8 +10,18 @@ Folder: `D:\Claude\SEO Agent - PlatinumList` · GitHub token: `token.txt` (repo 
 ---
 
 ## 0. How to start in the new sandbox
+This project has run across several sandboxes: **"SEO Agent website setup" -> "SEO Agent project"
+-> "SEO Agent project Part 2" -> (now) "SEO Agent project Part 3"**. The source of truth is NOT the
+sandbox but the mounted folder `D:\Claude\SEO Agent - PlatinumList` + the GitHub repo; read the docs
+there.
+
 Open a new session with the same folder and say:
-> «Продолжаем проект SEO Agent, прочитай AGENTS.md и SEO_AGENT_HANDOFF.md, работай по описанному методу. Пиши на русском.»
+> «Продолжаем проект SEO Agent (часть 3). Открой папку D:\Claude\SEO Agent - PlatinumList,
+> прочитай AGENTS.md, SEO_AGENT_HANDOFF.md и SEO_AGENT_GUIDE.md, работай по описанному методу.
+> Пиши на русском.»
+
+First actions in the new sandbox: read AGENTS.md + this file + SEO_AGENT_GUIDE.md; `git clone`/rsync
+the repo into `~/build/seo-agent` and `npm install`; confirm `git rev-parse HEAD` matches the live repo.
 
 Working method (from AGENTS.md, do exactly this):
 1. Clarify scope, create a task list.
@@ -156,3 +166,71 @@ committed to the repo.)
   if needed.
 - Older open UI polish (from AGENTS.md TODO): surface `invalid_fields` on Publish; "has draft"
   marker in the list.
+
+
+---
+
+## 8. Part 2 additions — new sections & fixes (LATEST STATE, read this)
+
+Built in the "SEO Agent project Part 2" sandbox, all live and pushed to `main`
+(latest commit around `9fd56b6`). This is the newest layer on top of everything above.
+
+### Events list — per-language indexation column
+- `getCatalog()` (`src/lib/events.ts`) now also returns `indexed:{en,ar,ru,fr}` per event, read from
+  the SAME `seo_event_indexation` view it already queried for `is_attraction` (just added the
+  `is_no_index/ar_no_index/ru_no_index/fr_no_index` flags -> no extra DB load).
+- New **"Index"** column in the events list (`EventsBrowser` + `EventRow`): compact EN/AR/RU/FR chips,
+  green = indexed, red/strikethrough = no-index. Same indexed logic as the event card.
+
+### Three NEW read-only sections (list + detail, mirror Events; no n8n, no edit/publish)
+Each: nav link in `Header`, tile on the home page, list with search + quick filters + EN/AR
+"meta present" chips, detail with meta per language (only langs that have content). Data pulled
+connection-light (cached REST, service key) via a dedicated lib file — existing code untouched.
+- **Categories** -> `content_categories` (124 rows). Files: `src/lib/categories.ts`,
+  `src/lib/categoryUrl.ts`, `components/CategoriesBrowser.tsx`, `components/CategoryOpen.tsx`,
+  `app/[locale]/categories/{page.tsx,[id]/page.tsx}`. Shows meta_title/meta_description (EN ~120/124,
+  AR empty), is_attraction badge/filter ("Event category"/"Attraction category"), event counts.
+  - **City-aware URLs**: the DB `url` is a short slug on the bare host and does NOT resolve; real pages
+    live on per-city subdomains. `categoryUrl.ts` builds `https://{citySlug}.platinumlist.net{path}`
+    (citySlug = lowercase, spaces->'-'), default city **Dubai** (else first `linked_cities`). Detail has
+    a city selector; list link uses the default city.
+  - **Nested URL gap:** nested categories (`/attraction/experiences/kids-play-areas`,
+    `/sport/football-screenings`) need a parent path that is NOT in our data. A `full_path` consumption
+    path was built then **REMOVED** (data unavailable) — requested from the DB team instead.
+- **Venues** -> `pl_venues` (9382 total; we show only PUBLISHED, `is_published=1`, ~2083). Files:
+  `src/lib/venues.ts`, `components/VenuesBrowser.tsx`, `app/[locale]/venues/...`. Fields EN/AR:
+  meta_title, meta_description, info, how_to_get_there. Venue `url` is normalized (prepend `https://`,
+  fix the SPACE in multi-word city subdomains, e.g. "abu dhabi"->"abu-dhabi"). Only ~122 have meta.
+- **Artists** -> `pl_artists` (4209, all shown). Files: `src/lib/artists.ts`,
+  `components/ArtistsBrowser.tsx`, `app/[locale]/artists/...`. Fields EN/AR (TR columns exist but empty):
+  meta_title, meta_keywords, artist_bio. **No meta_description column exists in pl_artists.** The card
+  shows **H1 = artist name** (the live artist-page H1 is the name). `url` is global (https, no city).
+
+### Source Monitor tweak
+- The "Source changed" catalog marker AND the card before->after block are now HIDDEN for time-only
+  Dates changes. `src/lib/monitor.ts` `getUnresolvedChangeIds()` and `getLatestUnresolvedChange()` now
+  filter `action <> 'flagged_time_only'`. They surface ONLY on Venue/City/calendar-DATE change.
+  (Auto-gen was already skipped for time-only on the n8n side.)
+
+### Data-gaps deliverable for the DB team (on the mount, NOT committed)
+- `SEO_DATA_GAPS_REQUESTS.md` + `SEO_Data_Gaps_Requests.pdf`: one doc with a per-table matrix
+  (H1 / Meta Title / Meta Description / Description x EN/AR/RU/FR/EL, Yes/Empty/No) for
+  content_categories, pl_venues, pl_artists. What to add: **H1 everywhere; RU/FR/EL everywhere;
+  artist meta_description; category full_path (canonical nested path).**
+
+### Source-table language reality (important for future work)
+- `content_categories` & `pl_venues`: EN/AR columns ONLY. `pl_artists`: EN/AR/TR (TR empty). None have
+  RU/FR/EL, none have an H1 column, `pl_artists` has no meta_description. These are exactly the gaps the
+  data-gaps doc asks the DB team to fill.
+- Artist/venue CATEGORY pages (`/artist/arabic`, `/venue/park`) are NOT in the DB at all
+  (`content_categories` holds event/attraction categories only). `URL List V2` table exists but is EMPTY.
+- The `artists` and `venues` (non-`pl_`) tables have a richer multilang meta schema (EN/AR/RU/FR/EL) but
+  are essentially empty — not used.
+
+### Likely next steps for Part 3
+- Wait for the DB team to add the requested columns (H1, RU/FR/EL, artist meta_description, category
+  full_path); then surface them in the new sections (and re-enable full_path for correct nested URLs).
+- Optionally add edit/publish for Categories/Venues/Artists (currently read-only) — would need n8n
+  webhooks per entity, like Events.
+- Consider showing venue `title_info` and a venue/artist image in the cards (data exists).
+
