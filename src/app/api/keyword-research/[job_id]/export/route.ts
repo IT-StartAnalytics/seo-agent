@@ -30,8 +30,7 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
     'Notes'
   ];
   ws.addRow(cols);
-  const hdr = ws.getRow(1);
-  hdr.eachCell((c) => {
+  ws.getRow(1).eachCell((c) => {
     c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF1F4E4E'}};
     c.font = {name: 'Arial', bold: true, color: {argb: 'FFFFFFFF'}, size: 11};
     c.alignment = {vertical: 'top', wrapText: true};
@@ -60,33 +59,51 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
   }
   ws.views = [{state: 'frozen', ySplit: 1}];
 
-  // Method block
+  // Bottom sections: Analysis, Recommendations, Method (mirror the app panels).
   const geo = job.target_geo?.city ? `${job.target_geo.city}, ${job.target_geo.country}` : job.target_geo?.country || '';
   const m = job.method || {};
-  const rec = (job.analysis && job.analysis.recommendations) || {};
+  const an = job.analysis || {};
+  const rec = (an && an.recommendations) || {};
   const asList = (v: unknown): string[] => (Array.isArray(v) ? (v as unknown[]).map(String) : []);
+  const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 
-  const method: string[] = [];
-  method.push(`Attraction: ${job.attraction_name}. Page: ${job.attraction_url}`);
-  method.push(`Target demand market: ${geo}. Search language: ${(job.languages || []).join(', ').toUpperCase()}.`);
-  if (asList(m.seeds).length) method.push(`Seeds: ${asList(m.seeds).join('; ')}.`);
-  if (asList(m.sources).length) method.push(`Data sources: ${asList(m.sources).join(', ')}.`);
-  if (asList(m.global_markets).length) method.push(`Global volume = sum of feeder markets: ${asList(m.global_markets).join(', ')}.`);
-  if (typeof m.caveats === 'string' && m.caveats) method.push(String(m.caveats));
-  method.push('Difficulty (1-10) = DataForSEO Keyword Difficulty rescaled to 1..10 (1 = easiest). Raw KD kept in Notes.');
-  if (rec.meta_title) method.push(`Recommended Meta Title: ${rec.meta_title}`);
-  if (rec.h1) method.push(`Recommended H1: ${rec.h1}`);
+  const section = (title: string, lines: string[]) => {
+    const kept = lines.filter(Boolean);
+    if (!kept.length) return;
+    ws.addRow([]);
+    const h = ws.addRow([title]);
+    h.getCell(1).font = {name: 'Arial', bold: true, size: 11};
+    for (const line of kept) {
+      const r = ws.addRow([line]);
+      ws.mergeCells(r.number, 1, r.number, 8);
+      const c = r.getCell(1);
+      c.font = {name: 'Arial', size: 9};
+      c.alignment = {vertical: 'top', wrapText: true};
+    }
+  };
+
+  section('Analysis', [
+    str(an.problems) && `Problems / search behaviour: ${str(an.problems)}`,
+    str(an.competitor_coverage) && `Competitor coverage: ${str(an.competitor_coverage)}`,
+    str(an.content_gaps) && `Content gaps: ${str(an.content_gaps)}`
+  ].filter(Boolean) as string[]);
+
   const faqs = asList(rec.faqs);
-  if (faqs.length) method.push(`FAQ (price-free, for the page): ${faqs.join(' ')}`);
+  section('Recommendations', [
+    str(rec.meta_title) && `Meta Title: ${str(rec.meta_title)}`,
+    str(rec.h1) && `H1: ${str(rec.h1)}`,
+    ...(faqs.length ? ['FAQ (price-free, for the page):', ...faqs.map((q) => `- ${q}`)] : [])
+  ].filter(Boolean) as string[]);
 
-  ws.addRow([]);
-  const mHead = ws.addRow(['Method']);
-  mHead.getCell(1).font = {name: 'Arial', bold: true, size: 11};
-  for (const line of method) {
-    const r = ws.addRow([line]);
-    r.getCell(1).font = {name: 'Arial', size: 9, italic: true};
-    r.getCell(1).alignment = {vertical: 'top', wrapText: true};
-  }
+  section('Method', [
+    `Attraction: ${job.attraction_name}. Page: ${job.attraction_url}`,
+    `Target demand market: ${geo}. Search language: ${(job.languages || []).join(', ').toUpperCase()}.`,
+    asList(m.seeds).length ? `Seeds: ${asList(m.seeds).join('; ')}.` : '',
+    asList(m.sources).length ? `Data sources: ${asList(m.sources).join(', ')}.` : '',
+    asList(m.global_markets).length ? `Global volume = sum of feeder markets: ${asList(m.global_markets).join(', ')}.` : '',
+    str(m.caveats),
+    'Difficulty (1-10) = DataForSEO Keyword Difficulty rescaled to 1..10 (1 = easiest). Raw KD kept in Notes.'
+  ]);
 
   const buf = await wb.xlsx.writeBuffer();
   const slug = (job.attraction_name || 'attraction').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
