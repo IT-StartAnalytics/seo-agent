@@ -2,7 +2,7 @@
 
 import {useCallback, useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {Link} from '@/i18n/navigation';
+import {Link, useRouter} from '@/i18n/navigation';
 
 type Row = {
   keyword: string;
@@ -51,6 +51,22 @@ export default function KeywordJob({initial}: {initial: JobData}) {
   const [analysis, setAnalysis] = useState<Analysis | null>(initial.analysis);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const router = useRouter();
+
+  async function remove() {
+    if (!window.confirm(t('deleteConfirm'))) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/keyword-research/${initial.id}`, {method: 'DELETE'});
+      if (res.ok) {
+        router.push('/keywords');
+        return;
+      }
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const poll = useCallback(async () => {
     try {
@@ -194,9 +210,14 @@ export default function KeywordJob({initial}: {initial: JobData}) {
             {error === 'n8n webhook not configured' || error === 'not_configured' ? t('notConfigured') : t('failedHint')}
           </p>
           {error && <p className="mt-2 text-xs text-foreground/40">{error}</p>}
-          <Link href="/keywords/new" className="mt-4 inline-block rounded-full bg-foreground text-background px-4 py-1.5 text-sm font-medium">
-            {t('rerun')}
-          </Link>
+          <div className="mt-4 flex items-center gap-3">
+            <Link href={`/keywords/new?from=${initial.id}`} className="inline-block rounded-full bg-foreground text-background px-4 py-1.5 text-sm font-medium">
+              {t('rerun')}
+            </Link>
+            <button onClick={remove} disabled={deleting} className="text-sm font-medium text-rose-500 hover:text-rose-600 disabled:opacity-40">
+              {deleting ? t('deleting') : t('delete')}
+            </button>
+          </div>
         </div>
       )}
 
@@ -228,9 +249,12 @@ export default function KeywordJob({initial}: {initial: JobData}) {
                   {t('approve')}
                 </button>
               )}
-              <Link href="/keywords/new" className="rounded-full bg-foreground text-background px-4 py-1.5 text-sm font-medium">
+              <Link href={`/keywords/new?from=${initial.id}`} className="rounded-full bg-foreground text-background px-4 py-1.5 text-sm font-medium">
                 {t('rerun')}
               </Link>
+              <button onClick={remove} disabled={deleting} className="rounded-full border border-rose-300/50 px-4 py-1.5 text-sm font-medium text-rose-500 hover:bg-rose-500/5 disabled:opacity-40">
+                {deleting ? t('deleting') : t('delete')}
+              </button>
             </div>
           </div>
 

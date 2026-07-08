@@ -6,18 +6,29 @@ import {useRouter, Link} from '@/i18n/navigation';
 
 const LANGS = ['en', 'ar', 'ru', 'fr'] as const;
 
-export default function KeywordIntake() {
+export type IntakeInitial = {
+  attraction_url?: string;
+  attraction_name?: string;
+  country?: string;
+  city?: string;
+  languages?: string[];
+  scope_excludes?: string;
+  differentiators?: string;
+  location_is_demand_market?: boolean;
+};
+
+export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const t = useTranslations('KeywordResearch');
   const router = useRouter();
 
-  const [url, setUrl] = useState('');
-  const [name, setName] = useState('');
-  const [country, setCountry] = useState('');
-  const [city, setCity] = useState('');
-  const [langs, setLangs] = useState<string[]>(['en']);
-  const [locIsDemand, setLocIsDemand] = useState(false);
-  const [excludes, setExcludes] = useState('');
-  const [diff, setDiff] = useState('');
+  const [url, setUrl] = useState(initial?.attraction_url ?? '');
+  const [name, setName] = useState(initial?.attraction_name ?? '');
+  const [country, setCountry] = useState(initial?.country ?? '');
+  const [city, setCity] = useState(initial?.city ?? '');
+  const [langs, setLangs] = useState<string[]>(initial?.languages?.length ? initial.languages : ['en']);
+  const [locIsDemand, setLocIsDemand] = useState(initial?.location_is_demand_market ?? false);
+  const [excludes, setExcludes] = useState(initial?.scope_excludes ?? '');
+  const [diff, setDiff] = useState(initial?.differentiators ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 

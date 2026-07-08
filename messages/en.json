@@ -329,6 +329,9 @@
     "recH1": "H1",
     "recFaqs": "FAQ",
     "methodTitle": "Method",
-    "noResults": "No keywords in the result."
+    "noResults": "No keywords in the result.",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "deleteConfirm": "Delete this research? This cannot be undone."
   }
 }

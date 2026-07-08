@@ -2,6 +2,7 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import {Link} from '@/i18n/navigation';
 import {listJobs} from '@/lib/keywordResearch';
+import KeywordDeleteButton from '@/components/KeywordDeleteButton';
 
 const CHIP: Record<string, string> = {
   queued: 'bg-slate-500/10 text-slate-500',
@@ -70,7 +71,10 @@ export default async function KeywordsList({params}: {params: Promise<{locale: s
                         </td>
                         <td className="px-4 py-3 text-foreground/60">{new Date(j.created_at).toLocaleDateString()}</td>
                         <td className="px-4 py-3 text-right">
-                          <Link href={`/keywords/${j.id}`} className="text-sm font-medium text-indigo-500">{t('open')}</Link>
+                          <div className="flex items-center justify-end gap-4">
+                            <Link href={`/keywords/${j.id}`} className="text-sm font-medium text-indigo-500">{t('open')}</Link>
+                            <KeywordDeleteButton jobId={j.id} />
+                          </div>
                         </td>
                       </tr>
                     );

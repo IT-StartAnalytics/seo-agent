@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {patchJob, getJob, type KeywordRow, type KeywordAnalysis} from '@/lib/keywordResearch';
+import {patchJob, getJob, deleteJob, type KeywordRow, type KeywordAnalysis} from '@/lib/keywordResearch';
 
 export async function PATCH(req: NextRequest, {params}: {params: Promise<{job_id: string}>}) {
   const {job_id} = await params;
@@ -21,4 +21,15 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{job_id
   }
   const job = await getJob(job_id);
   return NextResponse.json({ok: true, job});
+}
+
+export async function DELETE(req: NextRequest, {params}: {params: Promise<{job_id: string}>}) {
+  const {job_id} = await params;
+  if (!job_id) return NextResponse.json({ok: false, error: 'job_id required'}, {status: 400});
+  try {
+    await deleteJob(job_id);
+  } catch {
+    return NextResponse.json({ok: false, error: 'db_error'}, {status: 500});
+  }
+  return NextResponse.json({ok: true});
 }

@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
   const city = typeof body?.target_geo?.city === 'string' ? body.target_geo.city.trim() : '';
   const languages = Array.isArray(body?.languages) ? body.languages.map(String).map((s: string) => s.trim()).filter(Boolean) : [];
   const attraction_id = body?.attraction_id != null ? String(body.attraction_id) : null;
+  const scope_excludes = typeof body?.scope_excludes === 'string' && body.scope_excludes.trim() ? body.scope_excludes.trim() : null;
+  const differentiators = typeof body?.differentiators === 'string' && body.differentiators.trim() ? body.differentiators.trim() : null;
+  const location_is_demand_market = body?.location_is_demand_market === true;
 
   if (!attraction_url) return NextResponse.json({ok: false, error: 'attraction_url required'}, {status: 400});
   if (!attraction_name) return NextResponse.json({ok: false, error: 'attraction_name required'}, {status: 400});
@@ -31,7 +34,10 @@ export async function POST(req: NextRequest) {
 
   let id: string;
   try {
-    id = await createJob({attraction_url, attraction_name, target_geo, languages, attraction_id});
+    id = await createJob({
+      attraction_url, attraction_name, target_geo, languages, attraction_id,
+      scope_excludes, differentiators, location_is_demand_market
+    });
   } catch {
     return NextResponse.json({ok: false, error: 'db_error'}, {status: 500});
   }
@@ -54,9 +60,9 @@ export async function POST(req: NextRequest) {
         target_geo,
         languages,
         attraction_id,
-        scope_excludes: body?.scope_excludes ?? null,
-        differentiators: body?.differentiators ?? null,
-        location_is_demand_market: body?.location_is_demand_market ?? null
+        scope_excludes,
+        differentiators,
+        location_is_demand_market
       }),
       cache: 'no-store'
     });

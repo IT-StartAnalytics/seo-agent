@@ -33,6 +33,9 @@ export type KeywordJob = {
   attraction_name: string;
   target_geo: GeoTarget;
   languages: string[];
+  scope_excludes: string | null;
+  differentiators: string | null;
+  location_is_demand_market: boolean | null;
   status: JobStatus;
   results: KeywordRow[] | null;
   analysis: KeywordAnalysis | null;
@@ -49,6 +52,9 @@ export type NewJobInput = {
   attraction_name: string;
   target_geo: GeoTarget;
   languages: string[];
+  scope_excludes?: string | null;
+  differentiators?: string | null;
+  location_is_demand_market?: boolean | null;
   attraction_id?: string | null;
   created_by?: string | null;
 };
@@ -71,6 +77,9 @@ async function ensureTable() {
       target_geo       jsonb not null,
       languages        jsonb not null,
       status           text not null,
+      scope_excludes   text,
+      differentiators  text,
+      location_is_demand_market boolean,
       results          jsonb,
       analysis         jsonb,
       method           jsonb,
@@ -82,6 +91,10 @@ async function ensureTable() {
     )
   `;
   await sql`create index if not exists keyword_jobs_created_idx on keyword_jobs (created_at desc)`;
+  // Additive columns for existing tables (no-op if already present).
+  await sql`alter table keyword_jobs add column if not exists scope_excludes text`;
+  await sql`alter table keyword_jobs add column if not exists differentiators text`;
+  await sql`alter table keyword_jobs add column if not exists location_is_demand_market boolean`;
   ensured = true;
 }
 
@@ -100,11 +113,13 @@ export async function createJob(input: NewJobInput): Promise<string> {
   const id = newId();
   await sql`
     insert into keyword_jobs
-      (id, attraction_id, attraction_url, attraction_name, target_geo, languages, status, created_by)
+      (id, attraction_id, attraction_url, attraction_name, target_geo, languages, status,
+       scope_excludes, differentiators, location_is_demand_market, created_by)
     values (
       ${id}, ${input.attraction_id ?? null}, ${input.attraction_url}, ${input.attraction_name},
       ${JSON.stringify(input.target_geo)}::jsonb, ${JSON.stringify(input.languages)}::jsonb,
-      'queued', ${input.created_by ?? null}
+      'queued', ${input.scope_excludes ?? null}, ${input.differentiators ?? null},
+      ${input.location_is_demand_market ?? null}, ${input.created_by ?? null}
     )
   `;
   return id;
@@ -117,6 +132,12 @@ export async function setStatus(id: string, status: JobStatus, error?: string | 
     update keyword_jobs set status = ${status}, error = ${error ?? null}, updated_at = now()
     where id = ${id}
   `;
+}
+
+export async function deleteJob(id: string): Promise<void> {
+  await ensureTable();
+  const sql = await getSql();
+  await sql`delete from keyword_jobs where id = ${id}`;
 }
 
 // Callback from n8n: store the finished list + analysis, flip status.
