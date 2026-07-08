@@ -13,6 +13,15 @@ function TagIcon() {
     </svg>
   );
 }
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M20 20l-4.8-4.8" />
+    </svg>
+  );
+}
+
 function Arrow() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="transition-transform group-hover:translate-x-1">
@@ -77,6 +86,21 @@ export default function Home({params}: {params: Promise<{locale: string}>}) {
                 {t('openCatalog')} <Arrow />
               </Link>
             </div>
+
+            <Link
+              href="/keywords"
+              className="group relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-card p-7 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 opacity-10 blur-2xl" />
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-sm">
+                <SearchIcon />
+              </div>
+              <h2 className="mt-5 text-xl font-semibold tracking-tight">{t('keywordsAreaTitle')}</h2>
+              <p className="mt-1.5 text-sm text-foreground/60">{t('keywordsAreaDesc')}</p>
+              <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600">
+                {t('openKeywords')} <Arrow />
+              </span>
+            </Link>
           </div>
         </div>
       </main>

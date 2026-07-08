@@ -19,6 +19,18 @@ export default async function Header() {
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           {authed && <CatalogNav />}
+          {authed && (
+            <Link
+              href="/keywords"
+              className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="M20 20l-4.8-4.8" />
+              </svg>
+              {t('keywords')}
+            </Link>
+          )}
           <ThemeToggle />
           {authed && (
             <form action="/api/auth/logout" method="post">
