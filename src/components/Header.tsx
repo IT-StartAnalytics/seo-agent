@@ -3,6 +3,7 @@ import {cookies} from 'next/headers';
 import {Link} from '@/i18n/navigation';
 import {AUTH_COOKIE, verifySessionToken} from '@/lib/auth';
 import ThemeToggle from './ThemeToggle';
+import CatalogNav from './CatalogNav';
 import Logo from './Logo';
 
 export default async function Header() {
@@ -16,53 +17,8 @@ export default async function Header() {
         <Link href="/" className="flex items-center">
           <Logo />
         </Link>
-        <nav className="flex items-center gap-6 text-sm">
-          {authed && (
-            <>
-              <Link href="/events" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V9a2 2 0 0 0 0 4v1.5A1.5 1.5 0 0 1 18.5 16h-13A1.5 1.5 0 0 1 4 14.5V13a2 2 0 0 0 0-4z" />
-                  <path d="M14 6v10" strokeDasharray="1 2.2" />
-                </svg>
-                {t('events')}
-              </Link>
-              <Link href="/attractions" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="10" r="7.2" />
-                  <circle cx="12" cy="10" r="1.7" />
-                  <path d="M12 2.8v5.5M12 11.7v5.5M4.8 10h5.5M13.7 10h5.5M6.9 4.9l3.9 3.9M13.2 11.2l3.9 3.9M17.1 4.9l-3.9 3.9M10.8 11.2l-3.9 3.9" />
-                  <path d="M8.5 20.6h7M12 17.2v3.4" />
-                </svg>
-                {t('attractions')}
-              </Link>
-              <Link href="/categories" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h5A1.5 1.5 0 0 1 11 5.5v3A1.5 1.5 0 0 1 9.5 10h-5A1.5 1.5 0 0 1 3 8.5z" />
-                  <path d="M13 5.5A1.5 1.5 0 0 1 14.5 4h5A1.5 1.5 0 0 1 21 5.5v3A1.5 1.5 0 0 1 19.5 10h-5A1.5 1.5 0 0 1 13 8.5z" />
-                  <path d="M3 15.5A1.5 1.5 0 0 1 4.5 14h5A1.5 1.5 0 0 1 11 15.5v3A1.5 1.5 0 0 1 9.5 20h-5A1.5 1.5 0 0 1 3 18.5z" />
-                  <path d="M13 15.5A1.5 1.5 0 0 1 14.5 14h5A1.5 1.5 0 0 1 21 15.5v3A1.5 1.5 0 0 1 19.5 20h-5A1.5 1.5 0 0 1 13 18.5z" />
-                </svg>
-                {t('categories')}
-              </Link>
-              <Link href="/venues" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 21V7l8-4 8 4v14" />
-                  <path d="M4 21h16" />
-                  <path d="M9 21v-5h6v5" />
-                  <path d="M9 11h.01M15 11h.01" />
-                </svg>
-                {t('venues')}
-              </Link>
-              <Link href="/artists" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M9 18V5l10-2v13" />
-                  <circle cx="6" cy="18" r="3" />
-                  <circle cx="16" cy="16" r="3" />
-                </svg>
-                {t('artists')}
-              </Link>
-            </>
-          )}
+        <nav className="flex items-center gap-4 text-sm">
+          {authed && <CatalogNav />}
           <ThemeToggle />
           {authed && (
             <form action="/api/auth/logout" method="post">

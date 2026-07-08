@@ -12,7 +12,9 @@
     "attractions": "Attractions",
     "categories": "Categories",
     "venues": "Venues",
-    "artists": "Artists"
+    "artists": "Artists",
+    "catalog": "Catalog",
+    "browseAll": "Browse all sections"
   },
   "Hero": {
     "badge": "SEO content workspace",
@@ -144,9 +146,11 @@
     "categoriesTile": "Browse PlatinumList event-type categories and their SEO titles and meta tags.",
     "venuesTile": "Browse published PlatinumList venues and their SEO titles and meta tags.",
     "artistsTile": "Browse PlatinumList artists and their SEO titles, keywords and bios.",
-    "open": "Open"
-  }
-  ,
+    "open": "Open",
+    "catalogAreaTitle": "Catalog",
+    "catalogAreaDesc": "Browse and manage SEO meta tags across all PlatinumList content — events, attractions, categories, venues and artists.",
+    "openCatalog": "Open Catalog"
+  },
   "Categories": {
     "title": "Category meta tags",
     "subtitle": "PlatinumList event-type categories. Search by name or ID and open a category to see its SEO titles and meta tags.",
@@ -183,8 +187,7 @@
     "contentText": "Content",
     "noMeta": "No meta tags generated for this category yet.",
     "showMore": "Show more"
-  }
-  ,
+  },
   "Venues": {
     "title": "Venue meta tags",
     "subtitle": "Published PlatinumList venues. Search by name, ID or city and open a venue to see its SEO titles and meta tags.",
@@ -219,8 +222,7 @@
     "howToGetThere": "How to get there",
     "noMeta": "No meta tags generated for this venue yet.",
     "showMore": "Show more"
-  }
-  ,
+  },
   "Artists": {
     "title": "Artist meta tags",
     "subtitle": "PlatinumList artists. Search by name or ID and open an artist to see its SEO title, keywords and bio.",
@@ -253,5 +255,9 @@
     "bio": "Biography",
     "noMeta": "No meta tags for this artist yet.",
     "showMore": "Show more"
+  },
+  "CatalogHub": {
+    "title": "Catalog",
+    "subtitle": "Browse and manage SEO meta tags across all PlatinumList content — events, attractions, categories, venues and artists."
   }
 }
