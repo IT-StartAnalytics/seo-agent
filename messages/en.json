@@ -13,7 +13,7 @@
     "categories": "Categories",
     "venues": "Venues",
     "artists": "Artists",
-    "catalog": "Catalog",
+    "catalog": "SEO Metadata",
     "browseAll": "Browse all sections"
   },
   "Hero": {
@@ -147,9 +147,9 @@
     "venuesTile": "Browse published PlatinumList venues and their SEO titles and meta tags.",
     "artistsTile": "Browse PlatinumList artists and their SEO titles, keywords and bios.",
     "open": "Open",
-    "catalogAreaTitle": "Catalog",
+    "catalogAreaTitle": "SEO Metadata Manager",
     "catalogAreaDesc": "Browse and manage SEO meta tags across all PlatinumList content — events, attractions, categories, venues and artists.",
-    "openCatalog": "Open Catalog"
+    "openCatalog": "Open manager"
   },
   "Categories": {
     "title": "Category meta tags",
@@ -257,7 +257,7 @@
     "showMore": "Show more"
   },
   "CatalogHub": {
-    "title": "Catalog",
+    "title": "SEO Metadata Manager",
     "subtitle": "Browse and manage SEO meta tags across all PlatinumList content — events, attractions, categories, venues and artists."
   }
 }

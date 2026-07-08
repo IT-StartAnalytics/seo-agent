@@ -5,13 +5,11 @@ import Header from '@/components/Header';
 import Logo from '@/components/Logo';
 import {Link} from '@/i18n/navigation';
 
-function GridIcon() {
+function TagIcon() {
   return (
     <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
-      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
-      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
-      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+      <path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z" />
+      <circle cx="7.5" cy="7.5" r="1.3" />
     </svg>
   );
 }
@@ -55,7 +53,7 @@ export default function Home({params}: {params: Promise<{locale: string}>}) {
             <div className="group relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-card p-7 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
               <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 opacity-10 blur-2xl" />
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-sm">
-                <GridIcon />
+                <TagIcon />
               </div>
               <h2 className="mt-5 text-xl font-semibold tracking-tight">{t('catalogAreaTitle')}</h2>
               <p className="mt-1.5 text-sm text-foreground/60">{t('catalogAreaDesc')}</p>
