@@ -307,7 +307,7 @@
     "approve": "Approve",
     "approved": "Approved",
     "unapprove": "Reopen",
-    "export": "Export CSV",
+    "export": "Export Excel",
     "rerun": "New research",
     "save": "Save changes",
     "saving": "Saving…",
@@ -332,6 +332,7 @@
     "noResults": "No keywords in the result.",
     "delete": "Delete",
     "deleting": "Deleting…",
-    "deleteConfirm": "Delete this research? This cannot be undone."
+    "deleteConfirm": "Delete this research? This cannot be undone.",
+    "exporting": "Exporting…"
   }
 }

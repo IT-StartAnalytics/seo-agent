@@ -52,6 +52,7 @@ export default function KeywordJob({initial}: {initial: JobData}) {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const router = useRouter();
 
   async function remove() {
@@ -118,37 +119,25 @@ export default function KeywordJob({initial}: {initial: JobData}) {
     }
   }
 
-  function exportCsv() {
-    const cols = [
-      'Keyword',
-      'Local Vol (target market)',
-      'Global Vol (key markets)',
-      'Difficulty (1-10)',
-      'Search Intent',
-      'Priority',
-      'Page Type',
-      'Notes'
-    ];
-    const esc = (v: unknown) => {
-      const s = v == null ? '' : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-    const lines = [cols.join(',')];
-    rows
-      .filter((r) => r.include !== false)
-      .forEach((r) =>
-        lines.push(
-          [r.keyword, r.local_vol ?? '', r.global_vol ?? '', r.difficulty ?? '', r.intent, r.priority, r.page_type, r.notes ?? '']
-            .map(esc)
-            .join(',')
-        )
-      );
-    const blob = new Blob([lines.join('\n')], {type: 'text/csv;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `keywords-${initial.attraction_name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  async function exportXlsx() {
+    setExporting(true);
+    try {
+      const kept = rows.filter((r) => r.include !== false);
+      const res = await fetch(`/api/keyword-research/${initial.id}/export`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({rows: kept})
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `keywords-${initial.attraction_name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } finally {
+      setExporting(false);
+    }
   }
 
   const market = initial.target_geo.city
@@ -237,8 +226,8 @@ export default function KeywordJob({initial}: {initial: JobData}) {
               >
                 {saving ? t('saving') : t('save')}
               </button>
-              <button onClick={exportCsv} className="rounded-full border border-black/10 dark:border-white/10 px-4 py-1.5 text-sm font-medium">
-                {t('export')}
+              <button onClick={exportXlsx} disabled={exporting} className="rounded-full border border-black/10 dark:border-white/10 px-4 py-1.5 text-sm font-medium disabled:opacity-40">
+                {exporting ? t('exporting') : t('export')}
               </button>
               {approved ? (
                 <button onClick={() => save(false)} className="rounded-full border border-black/10 dark:border-white/10 px-4 py-1.5 text-sm font-medium">
