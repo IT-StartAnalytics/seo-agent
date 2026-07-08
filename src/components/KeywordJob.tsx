@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 
@@ -51,7 +51,6 @@ export default function KeywordJob({initial}: {initial: JobData}) {
   const [analysis, setAnalysis] = useState<Analysis | null>(initial.analysis);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const poll = useCallback(async () => {
     try {
@@ -70,12 +69,9 @@ export default function KeywordJob({initial}: {initial: JobData}) {
   }, [initial.id]);
 
   useEffect(() => {
-    if (status === 'queued' || status === 'running') {
-      timer.current = setTimeout(poll, 3000);
-      return () => {
-        if (timer.current) clearTimeout(timer.current);
-      };
-    }
+    if (status !== 'queued' && status !== 'running') return;
+    const iv = setInterval(poll, 3000);
+    return () => clearInterval(iv);
   }, [status, poll]);
 
   function edit(i: number, patch: Partial<Row>) {
