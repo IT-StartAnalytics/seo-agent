@@ -49,6 +49,7 @@ export default function KeywordJob({initial}: {initial: JobData}) {
     (initial.results ?? []).map((r) => ({...r, include: r.include !== false}))
   );
   const [analysis, setAnalysis] = useState<Analysis | null>(initial.analysis);
+  const [method, setMethod] = useState<Record<string, unknown> | null>(initial.method);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -79,6 +80,7 @@ export default function KeywordJob({initial}: {initial: JobData}) {
         setApproved(!!d.approved);
         if (Array.isArray(d.results)) setRows(d.results.map((r: Row) => ({...r, include: r.include !== false})));
         setAnalysis(d.analysis ?? null);
+        setMethod(d.method ?? null);
       }
     } catch {
       /* keep polling */
@@ -329,6 +331,37 @@ export default function KeywordJob({initial}: {initial: JobData}) {
                   </div>
                 ) : null}
               </div>
+            </div>
+          )}
+
+          {method && (
+            <div className="mt-6 rounded-xl border border-black/10 dark:border-white/10 bg-card p-5">
+              <h2 className="text-sm font-semibold uppercase text-foreground/60">{t('methodTitle')}</h2>
+              <ul className="mt-3 space-y-1.5 text-sm text-foreground/70">
+                <li>
+                  <span className="text-foreground/50">Attraction: </span>
+                  {initial.attraction_name}{' '}
+                  <a href={initial.attraction_url} target="_blank" rel="noreferrer" className="text-indigo-500 hover:underline">
+                    {initial.attraction_url}
+                  </a>
+                </li>
+                <li>
+                  <span className="text-foreground/50">Target market: </span>
+                  {market} · {initial.languages.join(', ').toUpperCase()}
+                </li>
+                {Array.isArray(method.seeds) && (method.seeds as string[]).length ? (
+                  <li><span className="text-foreground/50">Seeds: </span>{(method.seeds as string[]).join('; ')}</li>
+                ) : null}
+                {Array.isArray(method.sources) && (method.sources as string[]).length ? (
+                  <li><span className="text-foreground/50">Data sources: </span>{(method.sources as string[]).join(', ')}</li>
+                ) : null}
+                {Array.isArray(method.global_markets) && (method.global_markets as string[]).length ? (
+                  <li><span className="text-foreground/50">Global = sum of feeder markets: </span>{(method.global_markets as string[]).join(', ')}</li>
+                ) : null}
+                {typeof method.caveats === 'string' && method.caveats ? (
+                  <li className="text-foreground/50">{method.caveats as string}</li>
+                ) : null}
+              </ul>
             </div>
           )}
         </>
