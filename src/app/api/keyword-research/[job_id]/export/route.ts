@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
   const cols = [
     'Keyword',
     'Local Vol (target market)',
-    'Global Vol',
+    'Global Vol (worldwide)',
     'Difficulty (1-10)',
     'Search Intent',
     'Priority',
@@ -68,26 +68,33 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
   const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 
   // Pages actually fetched during the research (ticket page + official site).
-  const pagesRead: string[] = Array.isArray(m.pages_read)
+  type Line = string | {text: string; link: string};
+  const pagesRead: Line[] = Array.isArray(m.pages_read)
     ? (m.pages_read as unknown[])
         .map((p) => (p && typeof p === 'object' ? (p as Record<string, unknown>) : {}))
         .filter((p) => typeof p.url === 'string' && p.url)
-        .map((p) => `${String(p.url)} (${str(p.role) || 'page'}${p.read === false ? ', could not be read' : ''})`)
+        .map((p) => ({
+          text: `Page read: ${String(p.url)} (${str(p.role) || 'page'}${p.read === false ? ', could not be read' : ''})`,
+          link: String(p.url)
+        }))
     : job.attraction_url
-      ? [`${job.attraction_url} (ticket page)`]
+      ? [{text: `Page read: ${job.attraction_url} (ticket page)`, link: job.attraction_url}]
       : [];
 
-  const section = (title: string, lines: string[]) => {
-    const kept = lines.filter(Boolean);
+  // The skill requires a single flat table: no merged cells, and full clickable URLs.
+  const section = (title: string, lines: Line[]) => {
+    const kept = lines.filter((l) => (typeof l === 'string' ? !!l : !!l.text));
     if (!kept.length) return;
     ws.addRow([]);
     const h = ws.addRow([title]);
     h.getCell(1).font = {name: 'Arial', bold: true, size: 11};
     for (const line of kept) {
-      const r = ws.addRow([line]);
-      ws.mergeCells(r.number, 1, r.number, 8);
+      const isLink = typeof line !== 'string';
+      const r = ws.addRow([isLink ? {text: line.text, hyperlink: line.link} : line]);
       const c = r.getCell(1);
-      c.font = {name: 'Arial', size: 9};
+      c.font = isLink
+        ? {name: 'Arial', size: 9, color: {argb: 'FF1155CC'}, underline: true}
+        : {name: 'Arial', size: 9};
       c.alignment = {vertical: 'top', wrapText: true};
     }
   };
@@ -96,21 +103,22 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
     str(an.problems) && `Problems / search behaviour: ${str(an.problems)}`,
     str(an.competitor_coverage) && `Competitor coverage: ${str(an.competitor_coverage)}`,
     str(an.content_gaps) && `Content gaps: ${str(an.content_gaps)}`
-  ].filter(Boolean) as string[]);
+  ].filter(Boolean) as Line[]);
 
   const faqs = asList(rec.faqs);
   section('Recommendations', [
     str(rec.meta_title) && `Meta Title: ${str(rec.meta_title)}`,
     str(rec.h1) && `H1: ${str(rec.h1)}`,
     ...(faqs.length ? ['FAQ (price-free, for the page):', ...faqs.map((q) => `- ${q}`)] : [])
-  ].filter(Boolean) as string[]);
+  ].filter(Boolean) as Line[]);
 
   section('Method', [
-    `Attraction: ${job.attraction_name}. Page: ${job.attraction_url}`,
+    `Attraction: ${job.attraction_name}`,
+    ...(job.attraction_url ? [{text: `Ticket page: ${job.attraction_url}`, link: job.attraction_url}] : []),
     `Target demand market: ${geo}. Search language: ${(job.languages || []).join(', ').toUpperCase()}.`,
     asList(m.seeds).length ? `Seeds: ${asList(m.seeds).join('; ')}.` : '',
     asList(m.sources).length ? `Data sources: ${asList(m.sources).join(', ')}.` : '',
-    pagesRead.length ? `Pages read: ${pagesRead.join('; ')}.` : '',
+    ...pagesRead,
     asList(m.global_markets).length ? `Global volume: ${asList(m.global_markets).join(', ')}.` : '',
     str(m.caveats),
     'Difficulty (1-10) = DataForSEO Keyword Difficulty rescaled to 1..10 (1 = easiest). Raw KD kept in Notes.'
