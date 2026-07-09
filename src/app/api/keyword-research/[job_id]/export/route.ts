@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
   const cols = [
     'Keyword',
     'Local Vol (target market)',
-    'Global Vol (key markets)',
+    'Global Vol',
     'Difficulty (1-10)',
     'Search Intent',
     'Priority',
