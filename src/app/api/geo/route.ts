@@ -1,6 +1,10 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {getCountries, getLanguages, searchLocations} from '@/lib/geo';
 
+// The first (uncached) countries fetch pulls a very large DataForSEO list through n8n.
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
   const kind = sp.get('kind') || '';
