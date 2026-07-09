@@ -61,7 +61,14 @@ export default async function KeywordsList({params}: {params: Promise<{locale: s
                     const geo = j.target_geo?.city ? `${j.target_geo.city}, ${j.target_geo.country}` : j.target_geo?.country;
                     return (
                       <tr key={j.id} className="border-t border-black/5 dark:border-white/10 hover:bg-foreground/[0.03]">
-                        <td className="px-4 py-3 font-medium">{j.attraction_name}</td>
+                        <td className="px-4 py-3 font-medium">
+                          <Link
+                            href={`/keywords/${j.id}`}
+                            className="text-foreground hover:text-indigo-500 hover:underline"
+                          >
+                            {j.attraction_name}
+                          </Link>
+                        </td>
                         <td className="px-4 py-3 text-foreground/70">{geo}</td>
                         <td className="px-4 py-3 text-foreground/70 uppercase">{(j.languages || []).join(', ')}</td>
                         <td className="px-4 py-3">
@@ -71,10 +78,7 @@ export default async function KeywordsList({params}: {params: Promise<{locale: s
                         </td>
                         <td className="px-4 py-3 text-foreground/60">{new Date(j.created_at).toLocaleDateString()}</td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-4">
-                            <Link href={`/keywords/${j.id}`} className="text-sm font-medium text-indigo-500">{t('open')}</Link>
-                            <KeywordDeleteButton jobId={j.id} />
-                          </div>
+                          <KeywordDeleteButton jobId={j.id} />
                         </td>
                       </tr>
                     );
