@@ -75,6 +75,8 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const [countryName, setCountryName] = useState(initial?.country ?? '');
   const [countryIso, setCountryIso] = useState(initial?.country_iso ?? '');
   const [countryCode, setCountryCode] = useState<number | null>(initial?.country_location_code ?? null);
+  const [countryQuery, setCountryQuery] = useState(initial?.country ?? '');
+  const [countryOpen, setCountryOpen] = useState(false);
 
   const [cityQuery, setCityQuery] = useState(initial?.city ?? '');
   const [cityResults, setCityResults] = useState<GeoItem[]>([]);
@@ -92,6 +94,7 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const cityBox = useRef<HTMLDivElement>(null);
+  const countryBox = useRef<HTMLDivElement>(null);
 
   // Reference lists (served from the app cache; empty when the n8n df-geo webhook is not wired yet).
   useEffect(() => {
@@ -130,6 +133,7 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   useEffect(() => {
     function onDown(e: MouseEvent) {
       if (cityBox.current && !cityBox.current.contains(e.target as Node)) setCityOpen(false);
+      if (countryBox.current && !countryBox.current.contains(e.target as Node)) setCountryOpen(false);
     }
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
@@ -137,7 +141,15 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
 
   const hasCountries = countries.length > 0;
   const langList = languages.length ? languages : FALLBACK_LANGS;
-  const valid = url.trim() && name.trim() && countryName.trim() && lang;
+
+  const countryMatches = (() => {
+    const q = countryQuery.trim().toLowerCase();
+    if (!q) return countries.slice(0, 30);
+    const starts = countries.filter((c) => c.name.toLowerCase().startsWith(q) || c.iso.toLowerCase() === q);
+    const contains = countries.filter((c) => !starts.includes(c) && c.name.toLowerCase().includes(q));
+    return [...starts, ...contains].slice(0, 30);
+  })();
+  const valid = url.trim() && name.trim() && (hasCountries ? Boolean(countryIso) : countryName.trim()) && lang;
 
   async function selectCountry(iso: string) {
     const item = countries.find((c) => c.iso === iso);
@@ -152,6 +164,8 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
     }
     setCountryIso(item.iso);
     setCountryName(item.name);
+    setCountryQuery(item.name);
+    setCountryOpen(false);
     // Resolve the canonical DataForSEO country row (name + location_code) for this ISO.
     try {
       const r = await fetch(`/api/geo?kind=country-meta&country=${item.iso}`);
@@ -225,14 +239,41 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
           <div>
             <label className={label}>{t('fCountry')}<Hint text={t('tCountry')} /></label>
             {hasCountries ? (
-              <select className={input} value={countryIso} onChange={(e) => selectCountry(e.target.value)}>
-                <option value="">{t('fCountryPh')}</option>
-                {countries.map((c) => (
-                  <option key={c.iso} value={c.iso}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div ref={countryBox} className="relative">
+                <input
+                  className={input}
+                  value={countryQuery}
+                  onChange={(e) => {
+                    setCountryQuery(e.target.value);
+                    setCountryOpen(true);
+                    // typing invalidates the previous pick: the ISO drives the city lookup
+                    setCountryIso('');
+                    setCountryName('');
+                    setCountryCode(null);
+                    setCityQuery('');
+                    setPicked(null);
+                    setCityResults([]);
+                  }}
+                  onFocus={() => setCountryOpen(true)}
+                  placeholder={t('fCountryPh')}
+                />
+                {countryOpen && countryMatches.length > 0 && (
+                  <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-black/10 dark:border-white/10 bg-card shadow-lg">
+                    {countryMatches.map((c) => (
+                      <li key={c.iso}>
+                        <button
+                          type="button"
+                          onClick={() => selectCountry(c.iso)}
+                          className="flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-foreground/5"
+                        >
+                          <span className="font-medium">{c.name}</span>
+                          <span className="text-foreground/40">{c.iso}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             ) : (
               <input className={input} value={countryName} onChange={(e) => setCountryName(e.target.value)} placeholder={t('fCountryPh')} />
             )}

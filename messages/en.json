@@ -283,7 +283,7 @@
     "fName": "Attraction name",
     "fNamePh": "e.g. Museum of the Future",
     "fCountry": "Target market (country)",
-    "fCountryPh": "Select a country",
+    "fCountryPh": "Type to search a country",
     "fCity": "City (optional)",
     "fCityPh": "Type a city (optional)",
     "fLangs": "Search language",
