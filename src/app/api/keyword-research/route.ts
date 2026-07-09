@@ -19,7 +19,9 @@ export async function POST(req: NextRequest) {
   const attraction_name = typeof body?.attraction_name === 'string' ? body.attraction_name.trim() : '';
   const tg = body?.target_geo || {};
   const country = typeof tg.country === 'string' ? tg.country.trim() : '';
-  const city = typeof tg.city === 'string' ? tg.city.trim() : '';
+  const cityRaw = typeof tg.city === 'string' ? tg.city.trim() : '';
+  // Guard: a "city" equal to the country is not a city (stale data / browser autofill).
+  const city = cityRaw && cityRaw.toLowerCase() !== (typeof tg.country === 'string' ? tg.country.trim().toLowerCase() : '') ? cityRaw : '';
   const country_iso = typeof tg.country_iso === 'string' ? tg.country_iso.trim().toUpperCase() : null;
   const num = (v: unknown) => (v != null && !Number.isNaN(Number(v)) ? Number(v) : null);
   const country_location_code = num(tg.country_location_code);
