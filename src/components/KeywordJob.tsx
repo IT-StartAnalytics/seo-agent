@@ -356,7 +356,7 @@ export default function KeywordJob({initial}: {initial: JobData}) {
                   <li><span className="text-foreground/50">Data sources: </span>{(method.sources as string[]).join(', ')}</li>
                 ) : null}
                 {Array.isArray(method.global_markets) && (method.global_markets as string[]).length ? (
-                  <li><span className="text-foreground/50">Global = sum of feeder markets: </span>{(method.global_markets as string[]).join(', ')}</li>
+                  <li><span className="text-foreground/50">Global volume: </span>{(method.global_markets as string[]).join(', ')}</li>
                 ) : null}
                 {typeof method.caveats === 'string' && method.caveats ? (
                   <li className="text-foreground/50">{method.caveats as string}</li>

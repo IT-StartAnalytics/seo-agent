@@ -100,7 +100,7 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
     `Target demand market: ${geo}. Search language: ${(job.languages || []).join(', ').toUpperCase()}.`,
     asList(m.seeds).length ? `Seeds: ${asList(m.seeds).join('; ')}.` : '',
     asList(m.sources).length ? `Data sources: ${asList(m.sources).join(', ')}.` : '',
-    asList(m.global_markets).length ? `Global volume = sum of feeder markets: ${asList(m.global_markets).join(', ')}.` : '',
+    asList(m.global_markets).length ? `Global volume: ${asList(m.global_markets).join(', ')}.` : '',
     str(m.caveats),
     'Difficulty (1-10) = DataForSEO Keyword Difficulty rescaled to 1..10 (1 = easiest). Raw KD kept in Notes.'
   ]);
