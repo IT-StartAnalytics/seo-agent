@@ -11,6 +11,10 @@ export type GeoItem = {
 
 export type LangItem = {language_code: string; language_name: string};
 
+// Countries come from a static ISO list (see ./countries): the full DataForSEO locations
+// list is ~95k rows and blows up n8n memory. Per-country lists are small and safe.
+export {COUNTRIES} from './countries';
+
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 async function getSql() {
@@ -103,8 +107,17 @@ async function cached(key: string, body: Record<string, unknown>): Promise<unkno
   return fresh;
 }
 
-export async function getCountries(): Promise<GeoItem[]> {
-  return (await cached('countries', {kind: 'countries'})) as GeoItem[];
+export async function getCountries(): Promise<{iso: string; name: string}[]> {
+  const {COUNTRIES} = await import('./countries');
+  return COUNTRIES;
+}
+
+// The country's own DataForSEO row (canonical name + location_code), taken from its cached
+// per-country list. Returns null when the list does not include the country row.
+export async function getCountryMeta(countryIso: string): Promise<GeoItem | null> {
+  const all = await getLocations(countryIso);
+  const row = all.find((i) => i.location_type === 'Country');
+  return row ?? null;
 }
 
 export async function getLanguages(): Promise<LangItem[]> {
@@ -120,7 +133,7 @@ export async function getLocations(countryIso: string): Promise<GeoItem[]> {
 
 // Server-side typeahead over the cached list (the browser never receives the whole country).
 export async function searchLocations(countryIso: string, q: string, limit = 50): Promise<GeoItem[]> {
-  const all = await getLocations(countryIso);
+  const all = (await getLocations(countryIso)).filter((i) => i.location_type !== 'Country');
   const needle = String(q || '').trim().toLowerCase();
   if (!needle) return all.slice(0, limit);
   const starts: GeoItem[] = [];

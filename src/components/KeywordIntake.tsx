@@ -39,7 +39,7 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const [url, setUrl] = useState(initial?.attraction_url ?? '');
   const [name, setName] = useState(initial?.attraction_name ?? '');
 
-  const [countries, setCountries] = useState<GeoItem[]>([]);
+  const [countries, setCountries] = useState<{iso: string; name: string}[]>([]);
   const [languages, setLanguages] = useState<LangItem[]>([]);
   const [countryName, setCountryName] = useState(initial?.country ?? '');
   const [countryIso, setCountryIso] = useState(initial?.country_iso ?? '');
@@ -108,15 +108,28 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const langList = languages.length ? languages : FALLBACK_LANGS;
   const valid = url.trim() && name.trim() && countryName.trim() && lang;
 
-  function selectCountry(code: string) {
-    const item = countries.find((c) => String(c.location_code) === code);
-    if (!item) return;
-    setCountryName(item.location_name);
-    setCountryIso(item.country_iso_code ?? '');
-    setCountryCode(item.location_code);
+  async function selectCountry(iso: string) {
+    const item = countries.find((c) => c.iso === iso);
     setCityQuery('');
     setPicked(null);
     setCityResults([]);
+    setCountryCode(null);
+    if (!item) {
+      setCountryIso('');
+      setCountryName('');
+      return;
+    }
+    setCountryIso(item.iso);
+    setCountryName(item.name);
+    // Resolve the canonical DataForSEO country row (name + location_code) for this ISO.
+    try {
+      const r = await fetch(`/api/geo?kind=country-meta&country=${item.iso}`);
+      const d = await r.json();
+      if (d?.item?.location_name) setCountryName(d.item.location_name);
+      if (d?.item?.location_code) setCountryCode(d.item.location_code);
+    } catch {
+      /* keep the static name; n8n falls back to location_name */
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -181,15 +194,11 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
           <div>
             <label className={label}>{t('fCountry')}</label>
             {hasCountries ? (
-              <select
-                className={input}
-                value={countryCode != null ? String(countryCode) : ''}
-                onChange={(e) => selectCountry(e.target.value)}
-              >
+              <select className={input} value={countryIso} onChange={(e) => selectCountry(e.target.value)}>
                 <option value="">{t('fCountryPh')}</option>
                 {countries.map((c) => (
-                  <option key={c.location_code} value={c.location_code}>
-                    {c.location_name}
+                  <option key={c.iso} value={c.iso}>
+                    {c.name}
                   </option>
                 ))}
               </select>
