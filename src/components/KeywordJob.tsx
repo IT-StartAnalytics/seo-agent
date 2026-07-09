@@ -147,6 +147,24 @@ export default function KeywordJob({initial}: {initial: JobData}) {
     : initial.target_geo.country;
   const kept = rows.filter((r) => r.include !== false).length;
 
+  // Pages actually fetched during the research (ticket page + official site).
+  type PageRead = {url: string; role: string; read?: boolean};
+  const pagesRead: PageRead[] = (() => {
+    const raw = method?.pages_read;
+    if (Array.isArray(raw)) {
+      return (raw as unknown[])
+        .map((p) => (p && typeof p === 'object' ? (p as Record<string, unknown>) : {}))
+        .filter((p) => typeof p.url === 'string' && p.url)
+        .map((p) => ({
+          url: String(p.url),
+          role: typeof p.role === 'string' && p.role ? p.role : 'page',
+          read: p.read === false ? false : true
+        }));
+    }
+    // Older jobs: only the ticket page was recorded.
+    return initial.attraction_url ? [{url: initial.attraction_url, role: 'ticket page', read: true}] : [];
+  })();
+
   const statusChip = (() => {
     const map: Record<string, string> = {
       queued: 'bg-slate-500/10 text-slate-500',
@@ -357,6 +375,22 @@ export default function KeywordJob({initial}: {initial: JobData}) {
                 ) : null}
                 {Array.isArray(method.global_markets) && (method.global_markets as string[]).length ? (
                   <li><span className="text-foreground/50">Global volume: </span>{(method.global_markets as string[]).join(', ')}</li>
+                ) : null}
+                {pagesRead.length ? (
+                  <li>
+                    <span className="text-foreground/50">Pages read: </span>
+                    {pagesRead.map((p, i) => (
+                      <span key={`${p.url}-${i}`}>
+                        {i > 0 ? ' · ' : ''}
+                        <a href={p.url} target="_blank" rel="noreferrer" className="text-indigo-500 hover:underline">
+                          {p.url}
+                        </a>
+                        <span className="text-foreground/50">
+                          {' '}({p.role}{p.read === false ? ', could not be read' : ''})
+                        </span>
+                      </span>
+                    ))}
+                  </li>
                 ) : null}
                 {typeof method.caveats === 'string' && method.caveats ? (
                   <li className="text-foreground/50">{method.caveats as string}</li>

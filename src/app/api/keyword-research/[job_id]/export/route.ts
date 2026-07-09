@@ -67,6 +67,16 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
   const asList = (v: unknown): string[] => (Array.isArray(v) ? (v as unknown[]).map(String) : []);
   const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 
+  // Pages actually fetched during the research (ticket page + official site).
+  const pagesRead: string[] = Array.isArray(m.pages_read)
+    ? (m.pages_read as unknown[])
+        .map((p) => (p && typeof p === 'object' ? (p as Record<string, unknown>) : {}))
+        .filter((p) => typeof p.url === 'string' && p.url)
+        .map((p) => `${String(p.url)} (${str(p.role) || 'page'}${p.read === false ? ', could not be read' : ''})`)
+    : job.attraction_url
+      ? [`${job.attraction_url} (ticket page)`]
+      : [];
+
   const section = (title: string, lines: string[]) => {
     const kept = lines.filter(Boolean);
     if (!kept.length) return;
@@ -100,6 +110,7 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{job_id:
     `Target demand market: ${geo}. Search language: ${(job.languages || []).join(', ').toUpperCase()}.`,
     asList(m.seeds).length ? `Seeds: ${asList(m.seeds).join('; ')}.` : '',
     asList(m.sources).length ? `Data sources: ${asList(m.sources).join(', ')}.` : '',
+    pagesRead.length ? `Pages read: ${pagesRead.join('; ')}.` : '',
     asList(m.global_markets).length ? `Global volume: ${asList(m.global_markets).join(', ')}.` : '',
     str(m.caveats),
     'Difficulty (1-10) = DataForSEO Keyword Difficulty rescaled to 1..10 (1 = easiest). Raw KD kept in Notes.'
