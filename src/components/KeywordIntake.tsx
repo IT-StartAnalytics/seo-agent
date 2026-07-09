@@ -95,6 +95,8 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const [err, setErr] = useState('');
   const cityBox = useRef<HTMLDivElement>(null);
   const countryBox = useRef<HTMLDivElement>(null);
+  const pickedRef = useRef<GeoItem | null>(picked);
+  const countryIsoRef = useRef(countryIso);
 
   // Reference lists (served from the app cache; empty when the n8n df-geo webhook is not wired yet).
   useEffect(() => {
@@ -131,9 +133,21 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   }, [countryIso, cityQuery]);
 
   useEffect(() => {
+    pickedRef.current = picked;
+    countryIsoRef.current = countryIso;
+  }, [picked, countryIso]);
+
+  useEffect(() => {
     function onDown(e: MouseEvent) {
-      if (cityBox.current && !cityBox.current.contains(e.target as Node)) setCityOpen(false);
-      if (countryBox.current && !countryBox.current.contains(e.target as Node)) setCountryOpen(false);
+      // Text that was never confirmed against the DataForSEO list is discarded.
+      if (cityBox.current && !cityBox.current.contains(e.target as Node)) {
+        setCityOpen(false);
+        if (!pickedRef.current) setCityQuery('');
+      }
+      if (countryBox.current && !countryBox.current.contains(e.target as Node)) {
+        setCountryOpen(false);
+        if (!countryIsoRef.current) setCountryQuery('');
+      }
     }
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
@@ -193,7 +207,7 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
             country: countryName.trim(),
             country_iso: countryIso || null,
             country_location_code: countryCode,
-            city: picked ? shortName(picked.location_name) : cityQuery.trim() || null,
+            city: picked ? shortName(picked.location_name) : hasCountries ? null : cityQuery.trim() || null,
             location_code: picked?.location_code ?? countryCode ?? null,
             location_name: picked?.location_name ?? countryName.trim() ?? null
           },
@@ -228,11 +242,11 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
       <div className="mt-8 space-y-5">
         <div>
           <label className={label}>{t('fUrl')}<Hint text={t('tUrl')} /></label>
-          <input className={input} value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t('fUrlPh')} />
+          <input className={input} name="kw-url" autoComplete="off" value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t('fUrlPh')} />
         </div>
         <div>
           <label className={label}>{t('fName')}<Hint text={t('tName')} /></label>
-          <input className={input} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('fNamePh')} />
+          <input className={input} name="kw-name" autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('fNamePh')} />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
@@ -242,6 +256,9 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
               <div ref={countryBox} className="relative">
                 <input
                   className={input}
+                  name="kw-country"
+                  autoComplete="off"
+                  spellCheck={false}
                   value={countryQuery}
                   onChange={(e) => {
                     setCountryQuery(e.target.value);
@@ -275,7 +292,7 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
                 )}
               </div>
             ) : (
-              <input className={input} value={countryName} onChange={(e) => setCountryName(e.target.value)} placeholder={t('fCountryPh')} />
+              <input className={input} name="kw-country-text" autoComplete="off" value={countryName} onChange={(e) => setCountryName(e.target.value)} placeholder={t('fCountryPh')} />
             )}
           </div>
 
@@ -283,6 +300,9 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
             <label className={label}>{t('fCity')}<Hint text={t('tCity')} /></label>
             <input
               className={input}
+              name="kw-city"
+              autoComplete="off"
+              spellCheck={false}
               value={cityQuery}
               disabled={hasCountries && !countryIso}
               onChange={(e) => {
@@ -338,11 +358,11 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
 
         <div>
           <label className={label}>{t('fExcludes')}<Hint text={t('tExcludes')} /></label>
-          <input className={input} value={excludes} onChange={(e) => setExcludes(e.target.value)} placeholder={t('fExcludesPh')} />
+          <input className={input} name="kw-excludes" autoComplete="off" value={excludes} onChange={(e) => setExcludes(e.target.value)} placeholder={t('fExcludesPh')} />
         </div>
         <div>
           <label className={label}>{t('fDiff')}<Hint text={t('tDiff')} /></label>
-          <input className={input} value={diff} onChange={(e) => setDiff(e.target.value)} placeholder={t('fDiffPh')} />
+          <input className={input} name="kw-diff" autoComplete="off" value={diff} onChange={(e) => setDiff(e.target.value)} placeholder={t('fDiffPh')} />
         </div>
       </div>
 
