@@ -1,21 +1,36 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useRouter, Link} from '@/i18n/navigation';
 
-const LANGS = ['en', 'ar', 'ru', 'fr'] as const;
+const FALLBACK_LANGS = [
+  {language_code: 'en', language_name: 'English'},
+  {language_code: 'ar', language_name: 'Arabic'},
+  {language_code: 'ru', language_name: 'Russian'},
+  {language_code: 'fr', language_name: 'French'}
+];
+
+type GeoItem = {location_code: number; location_name: string; location_type?: string | null; country_iso_code?: string | null};
+type LangItem = {language_code: string; language_name: string};
 
 export type IntakeInitial = {
   attraction_url?: string;
   attraction_name?: string;
   country?: string;
+  country_iso?: string | null;
+  country_location_code?: number | null;
   city?: string;
+  location_code?: number | null;
+  location_name?: string | null;
   languages?: string[];
   scope_excludes?: string;
   differentiators?: string;
   location_is_demand_market?: boolean;
 };
+
+// "Dubai,Dubai,United Arab Emirates" -> "Dubai"
+const shortName = (full: string) => String(full || '').split(',')[0].trim();
 
 export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const t = useTranslations('KeywordResearch');
@@ -23,20 +38,86 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
 
   const [url, setUrl] = useState(initial?.attraction_url ?? '');
   const [name, setName] = useState(initial?.attraction_name ?? '');
-  const [country, setCountry] = useState(initial?.country ?? '');
-  const [city, setCity] = useState(initial?.city ?? '');
-  const [langs, setLangs] = useState<string[]>(initial?.languages?.length ? initial.languages : ['en']);
+
+  const [countries, setCountries] = useState<GeoItem[]>([]);
+  const [languages, setLanguages] = useState<LangItem[]>([]);
+  const [countryName, setCountryName] = useState(initial?.country ?? '');
+  const [countryIso, setCountryIso] = useState(initial?.country_iso ?? '');
+  const [countryCode, setCountryCode] = useState<number | null>(initial?.country_location_code ?? null);
+
+  const [cityQuery, setCityQuery] = useState(initial?.city ?? '');
+  const [cityResults, setCityResults] = useState<GeoItem[]>([]);
+  const [cityOpen, setCityOpen] = useState(false);
+  const [picked, setPicked] = useState<GeoItem | null>(
+    initial?.location_code && initial?.location_name
+      ? {location_code: initial.location_code, location_name: initial.location_name}
+      : null
+  );
+
+  const [lang, setLang] = useState(initial?.languages?.[0] ?? 'en');
   const [locIsDemand, setLocIsDemand] = useState(initial?.location_is_demand_market ?? false);
   const [excludes, setExcludes] = useState(initial?.scope_excludes ?? '');
   const [diff, setDiff] = useState(initial?.differentiators ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const cityBox = useRef<HTMLDivElement>(null);
 
-  function toggleLang(l: string) {
-    setLangs((cur) => (cur.includes(l) ? cur.filter((x) => x !== l) : [...cur, l]));
+  // Reference lists (served from the app cache; empty when the n8n df-geo webhook is not wired yet).
+  useEffect(() => {
+    (async () => {
+      try {
+        const [c, l] = await Promise.all([
+          fetch('/api/geo?kind=countries').then((r) => r.json()).catch(() => ({})),
+          fetch('/api/geo?kind=languages').then((r) => r.json()).catch(() => ({}))
+        ]);
+        if (Array.isArray(c?.items)) setCountries(c.items);
+        if (Array.isArray(l?.items) && l.items.length) setLanguages(l.items);
+      } catch {
+        /* fall back to free text */
+      }
+    })();
+  }, []);
+
+  // City typeahead (server-side search over the cached country list).
+  useEffect(() => {
+    if (!countryIso || !cityQuery.trim()) {
+      setCityResults([]);
+      return;
+    }
+    const h = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/geo?kind=locations&country=${countryIso}&q=${encodeURIComponent(cityQuery.trim())}`);
+        const d = await r.json();
+        setCityResults(Array.isArray(d?.items) ? d.items.slice(0, 20) : []);
+      } catch {
+        setCityResults([]);
+      }
+    }, 250);
+    return () => clearTimeout(h);
+  }, [countryIso, cityQuery]);
+
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (cityBox.current && !cityBox.current.contains(e.target as Node)) setCityOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, []);
+
+  const hasCountries = countries.length > 0;
+  const langList = languages.length ? languages : FALLBACK_LANGS;
+  const valid = url.trim() && name.trim() && countryName.trim() && lang;
+
+  function selectCountry(code: string) {
+    const item = countries.find((c) => String(c.location_code) === code);
+    if (!item) return;
+    setCountryName(item.location_name);
+    setCountryIso(item.country_iso_code ?? '');
+    setCountryCode(item.location_code);
+    setCityQuery('');
+    setPicked(null);
+    setCityResults([]);
   }
-
-  const valid = url.trim() && name.trim() && country.trim() && langs.length > 0;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,8 +131,15 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
         body: JSON.stringify({
           attraction_url: url.trim(),
           attraction_name: name.trim(),
-          target_geo: {country: country.trim(), city: city.trim() || null},
-          languages: langs,
+          target_geo: {
+            country: countryName.trim(),
+            country_iso: countryIso || null,
+            country_location_code: countryCode,
+            city: picked ? shortName(picked.location_name) : cityQuery.trim() || null,
+            location_code: picked?.location_code ?? countryCode ?? null,
+            location_name: picked?.location_name ?? countryName.trim() ?? null
+          },
+          languages: [lang],
           location_is_demand_market: locIsDemand,
           scope_excludes: excludes.trim() || null,
           differentiators: diff.trim() || null
@@ -88,35 +176,75 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
           <label className={label}>{t('fName')}</label>
           <input className={input} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('fNamePh')} />
         </div>
+
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label className={label}>{t('fCountry')}</label>
-            <input className={input} value={country} onChange={(e) => setCountry(e.target.value)} placeholder={t('fCountryPh')} />
+            {hasCountries ? (
+              <select
+                className={input}
+                value={countryCode != null ? String(countryCode) : ''}
+                onChange={(e) => selectCountry(e.target.value)}
+              >
+                <option value="">{t('fCountryPh')}</option>
+                {countries.map((c) => (
+                  <option key={c.location_code} value={c.location_code}>
+                    {c.location_name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input className={input} value={countryName} onChange={(e) => setCountryName(e.target.value)} placeholder={t('fCountryPh')} />
+            )}
           </div>
-          <div>
+
+          <div ref={cityBox} className="relative">
             <label className={label}>{t('fCity')}</label>
-            <input className={input} value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('fCityPh')} />
+            <input
+              className={input}
+              value={cityQuery}
+              disabled={hasCountries && !countryIso}
+              onChange={(e) => {
+                setCityQuery(e.target.value);
+                setPicked(null);
+                setCityOpen(true);
+              }}
+              onFocus={() => setCityOpen(true)}
+              placeholder={t('fCityPh')}
+            />
+            {cityOpen && cityResults.length > 0 && (
+              <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-black/10 dark:border-white/10 bg-card shadow-lg">
+                {cityResults.map((r) => (
+                  <li key={r.location_code}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPicked(r);
+                        setCityQuery(shortName(r.location_name));
+                        setCityOpen(false);
+                      }}
+                      className="block w-full px-3 py-2 text-left text-xs hover:bg-foreground/5"
+                    >
+                      <span className="font-medium">{shortName(r.location_name)}</span>{' '}
+                      <span className="text-foreground/50">{r.location_name}</span>
+                      {r.location_type ? <span className="ml-1 text-foreground/40">· {r.location_type}</span> : null}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 
         <div>
           <label className={label}>{t('fLangs')}</label>
-          <div className="flex flex-wrap gap-2">
-            {LANGS.map((l) => (
-              <button
-                type="button"
-                key={l}
-                onClick={() => toggleLang(l)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium uppercase ${
-                  langs.includes(l)
-                    ? 'border-indigo-400 bg-indigo-500/10 text-indigo-500'
-                    : 'border-black/10 dark:border-white/10 text-foreground/60'
-                }`}
-              >
-                {l}
-              </button>
+          <select className={input} value={lang} onChange={(e) => setLang(e.target.value)}>
+            {langList.map((l) => (
+              <option key={l.language_code} value={l.language_code}>
+                {l.language_name} ({l.language_code})
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
         <label className="flex items-center gap-2 text-sm text-foreground/80">

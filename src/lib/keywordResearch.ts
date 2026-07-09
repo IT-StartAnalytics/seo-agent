@@ -2,7 +2,14 @@
 // One table, lazy-created on first use (no manual migration), jsonb for the list + analysis so
 // Gate B edits are a single overwrite. See SEO_AGENT_KEYWORD_RESEARCH_SPEC.md.
 
-export type GeoTarget = {country: string; city?: string | null};
+export type GeoTarget = {
+  country: string;
+  city?: string | null;
+  country_iso?: string | null;
+  country_location_code?: number | null;
+  location_code?: number | null;   // city if picked, else the country code
+  location_name?: string | null;   // full hierarchical name from DataForSEO
+};
 
 export type KeywordRow = {
   keyword: string;

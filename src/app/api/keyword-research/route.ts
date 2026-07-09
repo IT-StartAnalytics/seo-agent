@@ -17,8 +17,14 @@ export async function POST(req: NextRequest) {
 
   const attraction_url = typeof body?.attraction_url === 'string' ? body.attraction_url.trim() : '';
   const attraction_name = typeof body?.attraction_name === 'string' ? body.attraction_name.trim() : '';
-  const country = typeof body?.target_geo?.country === 'string' ? body.target_geo.country.trim() : '';
-  const city = typeof body?.target_geo?.city === 'string' ? body.target_geo.city.trim() : '';
+  const tg = body?.target_geo || {};
+  const country = typeof tg.country === 'string' ? tg.country.trim() : '';
+  const city = typeof tg.city === 'string' ? tg.city.trim() : '';
+  const country_iso = typeof tg.country_iso === 'string' ? tg.country_iso.trim().toUpperCase() : null;
+  const num = (v: unknown) => (v != null && !Number.isNaN(Number(v)) ? Number(v) : null);
+  const country_location_code = num(tg.country_location_code);
+  const location_code = num(tg.location_code) ?? country_location_code;
+  const location_name = typeof tg.location_name === 'string' && tg.location_name.trim() ? tg.location_name.trim() : null;
   const languages = Array.isArray(body?.languages) ? body.languages.map(String).map((s: string) => s.trim()).filter(Boolean) : [];
   const attraction_id = body?.attraction_id != null ? String(body.attraction_id) : null;
   const scope_excludes = typeof body?.scope_excludes === 'string' && body.scope_excludes.trim() ? body.scope_excludes.trim() : null;
@@ -30,7 +36,14 @@ export async function POST(req: NextRequest) {
   if (!country) return NextResponse.json({ok: false, error: 'target country required'}, {status: 400});
   if (!languages.length) return NextResponse.json({ok: false, error: 'languages required'}, {status: 400});
 
-  const target_geo: GeoTarget = {country, city: city || null};
+  const target_geo: GeoTarget = {
+    country,
+    city: city || null,
+    country_iso,
+    country_location_code,
+    location_code,
+    location_name
+  };
 
   let id: string;
   try {
