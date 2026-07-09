@@ -333,6 +333,14 @@
     "delete": "Delete",
     "deleting": "Deleting…",
     "deleteConfirm": "Delete this research? This cannot be undone.",
-    "exporting": "Exporting…"
+    "exporting": "Exporting…",
+    "tUrl": "The page you are optimizing. The pipeline reads this page (JavaScript-rendered) for facts: title, description, H1 and keywords, which feed the analysis and FAQ. Use the canonical ticket page URL.",
+    "tName": "Builds the brand phrase and the seed keywords. Enter the clean name without extra words like \"Tickets\" (e.g. \"Wild Wadi Waterpark\"). Only keywords containing the brand phrase survive the filter, so a wrong name means a wrong list.",
+    "tCountry": "The market of DEMAND (where the searchers are), not necessarily where the attraction sits. Drives Local Vol, and it is the geo used for keyword ideas and difficulty (those are country level only).",
+    "tCity": "Narrows Local Vol and the live SERP check to one city. Keyword ideas and difficulty stay at country level (DataForSEO does not accept a city there). Leave empty to measure the whole country.",
+    "tLang": "The search language to research. Only this language is analysed. Keywords are never auto-translated into the local language of the attraction.",
+    "tLocIsDemand": "Tick when the attraction sits inside the target market (local, resident demand): \"near me\", directions, parking and opening-hours terms get a higher priority. Untick for inbound demand from abroad: ticket and trip-planning terms rank higher and local terms drop to Low. Affects Priority, Notes and Analysis, not which keywords are collected.",
+    "tExcludes": "Comma-separated. Any keyword containing one of these strings is dropped. Use it for same-name noise, for example \"ranchi\" (a different Wild Wadi in India) or \"by owner\".",
+    "tDiff": "Free text: price, skip-the-line, official seller, audio guide, family. Feeds the analyst prompt and influences Priority, Notes, Analysis and the Meta Title / H1 / FAQ recommendations. It does not change which keywords are collected."
   }
 }

@@ -32,6 +32,37 @@ export type IntakeInitial = {
 // "Dubai,Dubai,United Arab Emirates" -> "Dubai"
 const shortName = (full: string) => String(full || '').split(',')[0].trim();
 
+// Small info icon with a hover tooltip explaining what the field does.
+function Hint({text}: {text: string}) {
+  return (
+    <span className="group relative ml-1.5 inline-flex align-middle">
+      <svg
+        viewBox="0 0 24 24"
+        width="14"
+        height="14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="cursor-help text-foreground/40 hover:text-foreground/70"
+      >
+        <circle cx="12" cy="12" r="9.5" />
+        <path d="M12 16.5v-5" />
+        <path d="M12 7.8h.01" />
+      </svg>
+      <span className="sr-only">{text}</span>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 top-6 z-30 hidden w-72 max-w-[18rem] -translate-x-1/2 rounded-lg border border-black/10 dark:border-white/10 bg-card p-3 text-xs font-normal leading-relaxed text-foreground/80 shadow-lg group-hover:block"
+      >
+        {text}
+      </span>
+    </span>
+  );
+}
+
 export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
   const t = useTranslations('KeywordResearch');
   const router = useRouter();
@@ -182,17 +213,17 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
 
       <div className="mt-8 space-y-5">
         <div>
-          <label className={label}>{t('fUrl')}</label>
+          <label className={label}>{t('fUrl')}<Hint text={t('tUrl')} /></label>
           <input className={input} value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t('fUrlPh')} />
         </div>
         <div>
-          <label className={label}>{t('fName')}</label>
+          <label className={label}>{t('fName')}<Hint text={t('tName')} /></label>
           <input className={input} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('fNamePh')} />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label className={label}>{t('fCountry')}</label>
+            <label className={label}>{t('fCountry')}<Hint text={t('tCountry')} /></label>
             {hasCountries ? (
               <select className={input} value={countryIso} onChange={(e) => selectCountry(e.target.value)}>
                 <option value="">{t('fCountryPh')}</option>
@@ -208,7 +239,7 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
           </div>
 
           <div ref={cityBox} className="relative">
-            <label className={label}>{t('fCity')}</label>
+            <label className={label}>{t('fCity')}<Hint text={t('tCity')} /></label>
             <input
               className={input}
               value={cityQuery}
@@ -246,7 +277,7 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
         </div>
 
         <div>
-          <label className={label}>{t('fLangs')}</label>
+          <label className={label}>{t('fLangs')}<Hint text={t('tLang')} /></label>
           <select className={input} value={lang} onChange={(e) => setLang(e.target.value)}>
             {langList.map((l) => (
               <option key={l.language_code} value={l.language_code}>
@@ -256,17 +287,20 @@ export default function KeywordIntake({initial}: {initial?: IntakeInitial}) {
           </select>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-foreground/80">
-          <input type="checkbox" checked={locIsDemand} onChange={(e) => setLocIsDemand(e.target.checked)} />
-          {t('fLocIsDemand')}
-        </label>
+        <div className="flex items-center gap-1">
+          <label className="flex items-center gap-2 text-sm text-foreground/80">
+            <input type="checkbox" checked={locIsDemand} onChange={(e) => setLocIsDemand(e.target.checked)} />
+            {t('fLocIsDemand')}
+          </label>
+          <Hint text={t('tLocIsDemand')} />
+        </div>
 
         <div>
-          <label className={label}>{t('fExcludes')}</label>
+          <label className={label}>{t('fExcludes')}<Hint text={t('tExcludes')} /></label>
           <input className={input} value={excludes} onChange={(e) => setExcludes(e.target.value)} placeholder={t('fExcludesPh')} />
         </div>
         <div>
-          <label className={label}>{t('fDiff')}</label>
+          <label className={label}>{t('fDiff')}<Hint text={t('tDiff')} /></label>
           <input className={input} value={diff} onChange={(e) => setDiff(e.target.value)} placeholder={t('fDiffPh')} />
         </div>
       </div>
