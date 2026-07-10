@@ -234,3 +234,95 @@ connection-light (cached REST, service key) via a dedicated lib file — existin
   webhooks per entity, like Events.
 - Consider showing venue `title_info` and a venue/artist image in the cards (data exists).
 
+
+---
+
+## 9. Part 3 outcome + sandbox lineage (read for Part 3.1)
+
+Sandbox lineage: "SEO Agent website setup" -> "SEO Agent project" -> "Part 2" -> "Part 3"
+-> (now) **"Part 3.1"**. Source of truth is the mounted folder + the GitHub repo, not any sandbox.
+Part 3 was closed WITHOUT app-code changes: `main` is unchanged at `94cecc1`.
+
+What Part 3 produced (all persisted here, no code change):
+- **Backup / restore point** at `94cecc1`: GitHub tag `backup-20260707` + branch `backup/20260707`;
+  local source zip `backups/seo-agent-src-backup-20260707.zip`; steps in `backups/RESTORE-20260707.txt`.
+- **Sandbox build workaround** for a Turbopack/native-SWC `Bus error (core dumped)` that crashes
+  `next build` under sandbox CPU emulation. Fix = build via webpack + the WASM SWC binding. Full
+  recipe in **`SANDBOX_BUILD_NOTES.md`**; ready-to-run helper **`build-local.sh`** (repo root/mount).
+  This is sandbox-only; the real Vercel deploy build uses native SWC and needs none of it.
+
+Open (carried into Part 3.1):
+- Nav restructure idea (not started): group the existing catalog sections
+  (Events / Attractions / Categories / Venues / Artists) under one global area, and add a second
+  global area for a research/planning tool. Names + layout NOT finalized; revisit with the user.
+- Everything from section 8 (Part 2) still applies.
+
+## 10. Part 3.1 outcome (read for Part 4)
+
+Sandbox lineage: "SEO Agent website setup" -> "SEO Agent project" -> "Part 2" -> "Part 3"
+-> "Part 3.1" -> (now) **"Part 4"**. Source of truth is the mounted folder + the GitHub repo.
+"Part 3" can be deleted: its outcome is fully captured in section 9.
+
+### What Part 3.1 built
+
+**Nav restructure.** Events / Attractions / Categories / Venues / Artists are grouped under one
+global area named **SEO Metadata Manager** (tag icon). A second global area, **Keyword Research**,
+sits next to it.
+
+**Keyword Research (new tool).** Architecture is Option B: the app orchestrates, n8n does DataForSEO
+and the LLM. DataForSEO credentials live ONLY in n8n, never in Vercel.
+Flow: form -> Neon `keyword_jobs` -> n8n webhook (`/webhook/seo-agent/keyword-research`) ->
+async pipeline -> callback to `/api/keyword-research/result` -> draft -> edit -> approve -> .xlsx.
+
+App files added: `src/lib/keywordResearch.ts`, `src/lib/geo.ts`, `src/lib/countries.ts`,
+`src/app/api/keyword-research/*`, `src/app/api/geo/route.ts`,
+`src/components/KeywordIntake.tsx`, `KeywordJob.tsx`, `KeywordDeleteButton.tsx`,
+`src/app/[locale]/keywords/*`. Dependency added: `exceljs`.
+
+Second n8n webhook in the SAME workflow: `/webhook/seo-agent/df-geo` -> DataForSEO reference
+endpoints (`google_ads/locations/$country`, `/languages`), cached 30 days in Neon `dfs_geo_cache`.
+
+**Latest commits on `main`:** `f9aa635` (xlsx: no merged cells, clickable URLs,
+`Global Vol (worldwide)`), `d7662c8`, `293e0f6`, `3cef03f`.
+
+### Hard-won facts (do not rediscover these)
+
+- The n8n Code node sandbox has **no global `URL`**. `new URL(...)` throws ReferenceError; any
+  `try/catch` around it turns the bug into a silent empty result. Parse URLs with string ops.
+- Google Ads **groups close variants**: `children's city tickets` returns blank while
+  `childrens city` returns 12100. A blank Local Vol is grouping, not zero.
+- DataForSEO **Labs indexes one spelling, Google Ads prices another**. Substring filters
+  (`%children%`) sidestep apostrophes entirely.
+- `keyword_ideas` expands by the **category of each seed**, not by substring. The FULL attraction
+  name is the strong seed; a truncated brand core returns junk (`wild wadi maintenance`, `... jobs`).
+- Global Vol: a Google Ads call with **no location** returns true worldwide volume. The skill's
+  feeder-market sum was a workaround for the MCP wrapper only.
+- n8n `pairedItem` breaks on 1->N fanout and N->1 fan-in: use `pairedItem: 0` and `.first()`.
+- Always keep `method.flow_build` in `Assemble Payload` and bump it. It is the only reliable way
+  to tell whether the deployed workflow is the one you just edited.
+
+### Open items carried into Part 4
+
+1. **LLM node is unreliable.** `LLM: Classify + Analyze` sometimes returns nothing; the report then
+   ships rule-based fallbacks and says so in Method (`N of M keywords were skipped`).
+   Proposed structural fix (not yet done): split into `LLM: Classify` (keywords, batched 25) and
+   `LLM: Analyze` (analysis + FAQ). One giant JSON is the fragile part.
+2. **Two n8n patches written, not yet applied**: `N8N_KEYWORD_RESEARCH_FIX_RECALL.md`,
+   `N8N_KEYWORD_RESEARCH_FIX_WORLDWIDE.md`, `N8N_KEYWORD_RESEARCH_FIX_BRAND_SHORT.md`
+   (the last one fixes `planet tickets` style noise and adds a `grid_rejected` guard).
+3. **Skill conformance gaps**: no persistent memory of rejected keywords
+   ("never re-propose a rejected keyword"); Gate A does not confirm the intake back.
+4. **Security**: `N8N_WEBHOOK_SECRET` was pasted into a chat and must be rotated
+   (Vercel env + both IF nodes + the Callback header).
+5. **Reliability**: the workflow has no error branch, so a Code-node crash leaves the job stuck in
+   `Researching...` instead of `failed`.
+6. **Routing**: `N8N_KEYWORD_RESEARCH_URL` / `N8N_DF_GEO_URL` currently point at the `superseo`
+   n8n instance. Decide whether to move back to `platinumlist`.
+7. **Cost**: DataForSEO runs in `live` mode everywhere. `task` (Standard) mode was deferred.
+
+### Spec-file hygiene
+
+`N8N_KEYWORD_RESEARCH_FIX_*.md` accumulated ~20 files, most superseded. The CURRENT ones are:
+`N8N_KEYWORD_RESEARCH_SKILL_CONFORMANCE.md`, `..._FIX_RECALL.md`, `..._FIX_WORLDWIDE.md`,
+`..._FIX_BRAND_SHORT.md`, `..._FIX_FALLBACK_AND_OFFICIAL.md`.
+`..._FIX_BRAND_CORE_FULL.md` is explicitly cancelled. Everything else is history.
