@@ -166,7 +166,7 @@ export default async function EventDetailPage({
                   </div>
 
                   {(data.history.length > 0 || (data.live?.langs.length ?? 0) > 0) && (
-                    <MetaTabs versions={combinedHistory} indexed={data.indexed} eventId={data.event_id} live={data.live} savedEdits={savedEdits} />
+                    <MetaTabs versions={combinedHistory} indexed={data.indexed} eventId={data.event_id} eventUrl={data.source.url ?? ''} live={data.live} savedEdits={savedEdits} />
                   )}
 
                   {ovLangs.length > 0 && (

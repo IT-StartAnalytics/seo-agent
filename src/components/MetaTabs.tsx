@@ -51,12 +51,14 @@ export default function MetaTabs({
   versions,
   indexed: indexedInit,
   eventId,
+  eventUrl,
   live: liveInit,
   savedEdits
 }: {
   versions: MetaVersion[];
   indexed?: Record<string, boolean> | null;
   eventId?: string;
+  eventUrl?: string;
   live: Live;
   savedEdits?: Record<string, {h1: string | null; meta_title: string | null; meta_description: string | null}>;
 }) {
@@ -154,7 +156,7 @@ export default function MetaTabs({
 
       {tab === 'gen' ? (
         cur ? (
-          <MetaHistory version={cur} indexed={indexed} />
+          <MetaHistory version={cur} indexed={indexed} eventId={eventId} eventUrl={eventUrl} />
         ) : (
           <p className="text-sm text-foreground/55">{t('noGeneratedMeta')}</p>
         )

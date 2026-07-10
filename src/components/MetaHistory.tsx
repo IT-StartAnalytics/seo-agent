@@ -3,6 +3,7 @@
 import {useTranslations} from 'next-intl';
 import type {MetaVersion} from '@/lib/events';
 import CopyButton from './CopyButton';
+import SendArtistsButton from './SendArtistsButton';
 
 const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
 
@@ -45,7 +46,17 @@ function ReadField({
   );
 }
 
-export default function MetaHistory({version, indexed}: {version: MetaVersion; indexed?: Record<string, boolean> | null}) {
+export default function MetaHistory({
+  version,
+  indexed,
+  eventId,
+  eventUrl
+}: {
+  version: MetaVersion;
+  indexed?: Record<string, boolean> | null;
+  eventId?: string;
+  eventUrl?: string;
+}) {
   const t = useTranslations('Events');
   const v = version;
 
@@ -91,9 +102,10 @@ export default function MetaHistory({version, indexed}: {version: MetaVersion; i
           )}
           {v.performers.length > 0 && (
             <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <div className="text-xs uppercase tracking-wide text-foreground">{t('performers')}</div>
                 <CopyButton text={v.performers.join('\n')} />
+                <SendArtistsButton eventId={eventId} eventUrl={eventUrl} performers={v.performers} />
               </div>
               <div className="mt-1 text-sm text-foreground/85">{v.performers.join(', ')}</div>
             </div>
