@@ -14,9 +14,21 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-10 bg-card/80 backdrop-blur border-b border-black/10 dark:border-white/10">
       <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center">
-          <Logo />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center">
+            <Logo />
+          </Link>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-3 py-1 text-xs font-medium ring-1 ring-emerald-500/30"
+            title="I'm here"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z" />
+              <circle cx="12" cy="11" r="2" />
+            </svg>
+            I&apos;m here
+          </span>
+        </div>
         <nav className="flex items-center gap-4 text-sm">
           {authed && <CatalogNav />}
           {authed && (
