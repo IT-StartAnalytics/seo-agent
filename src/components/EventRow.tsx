@@ -4,6 +4,7 @@ import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import CopyButton from './CopyButton';
+import SendArtistsButton from './SendArtistsButton';
 import type {CatalogEvent, EventGenerated} from '@/lib/events';
 
 function statusGroup(status: string | null): string {
@@ -232,9 +233,10 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
               )}
               {gen.performers.length > 0 && (
                 <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <div className="text-xs uppercase tracking-wide text-foreground">{t('performers')}</div>
                     <CopyButton text={gen.performers.join('\n')} />
+                    <SendArtistsButton eventId={e.event_id} eventUrl={e.url ?? ''} performers={gen.performers} />
                   </div>
                   <div className="mt-1.5 text-sm text-foreground/85">{gen.performers.join(', ')}</div>
                 </div>

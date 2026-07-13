@@ -59,13 +59,13 @@ export default function SendArtistsButton({
       disabled={disabled}
       title="Send these performers to the artists sheet for volume analysis"
       className={[
-        'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] transition-colors',
+        'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium transition-colors',
         'disabled:opacity-40 disabled:cursor-not-allowed',
         state === 'sent'
-          ? 'text-green-600 dark:text-green-400'
+          ? 'bg-emerald-600 text-white'
           : state === 'error'
-            ? 'text-rose-600 dark:text-rose-400'
-            : 'text-foreground/50 hover:text-foreground hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25'
+            : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25'
       ].join(' ')}
     >
       <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
