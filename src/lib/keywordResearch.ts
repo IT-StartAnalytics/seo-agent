@@ -165,9 +165,9 @@ export async function saveResult(
     update keyword_jobs set
       status   = ${status},
       error    = ${data.error ?? null},
-      results  = ${data.results != null ? JSON.stringify(data.results) : null}::jsonb,
-      analysis = ${data.analysis != null ? JSON.stringify(data.analysis) : null}::jsonb,
-      method   = ${data.method != null ? JSON.stringify(data.method) : null}::jsonb,
+      results  = coalesce(${data.results != null ? JSON.stringify(data.results) : null}::jsonb, results),
+      analysis = coalesce(${data.analysis != null ? JSON.stringify(data.analysis) : null}::jsonb, analysis),
+      method   = coalesce(${data.method != null ? JSON.stringify(data.method) : null}::jsonb, method),
       updated_at = now()
     where id = ${id}
   `;
