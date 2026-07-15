@@ -446,6 +446,7 @@ export type CatalogEvent = {
   city: string | null;
   country: string | null;
   status: string | null;
+  is_title_protected: boolean | null;
   is_attraction: boolean;
   is_new: boolean;
   is_generated: boolean;
@@ -456,7 +457,7 @@ export type CatalogEvent = {
 };
 
 export async function getCatalog(): Promise<CatalogEvent[]> {
-  const cols = 'event_id,event_name_en,city,country,status,all_categories,url';
+  const cols = 'event_id,event_name_en,city,country,status,all_categories,url,is_title_protected';
   // Supabase caps responses at ~1000 rows; page through the catalog.
   const offsets = [0, 1000, 2000];
   const [pages, streamRows, reviews, attrPages] = await Promise.all([
@@ -505,6 +506,7 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       city: cs(r, 'city'),
       country: cs(r, 'country'),
       status: s(r, 'status'),
+      is_title_protected: r.is_title_protected == null ? null : Boolean(r.is_title_protected),
       is_attraction: attrMap.has(String(r.event_id)) ? attrMap.get(String(r.event_id))! : cats.includes('attraction'),
       is_new: newSet.has(String(r.event_id)),
       is_generated: genMap.has(String(r.event_id)),

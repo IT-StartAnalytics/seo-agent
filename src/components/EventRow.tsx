@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import CopyButton from './CopyButton';
 import SendArtistsButton from './SendArtistsButton';
-import type {CatalogEvent, EventGenerated} from '@/lib/events';
+import {h1Lock, type CatalogEvent, type EventGenerated} from '@/lib/events';
 
 function statusGroup(status: string | null): string {
   const s = (status ?? '').toLowerCase();
@@ -79,6 +79,7 @@ function IndexBadges({idx}: {idx: CatalogEvent['indexed']}) {
 export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: EventGenerated | null; changed?: boolean}) {
   const t = useTranslations('Events');
   const [open, setOpen] = useState(false);
+  const lock = h1Lock(e);
   const [review, setReview] = useState<'approved' | null>(e.review === 'approved' ? 'approved' : null);
   const [savingReview, setSavingReview] = useState(false);
 
@@ -152,6 +153,22 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
             {changed && (
               <span title="Source data (Venue/City/Dates) changed" className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium">
                 Source changed
+              </span>
+            )}
+            {lock.locked && (
+              <span
+                title={
+                  lock.reason === 'protected'
+                    ? 'H1 stays exactly as the admin event name: the title is protected (is_title_protected). The generator will not rewrite it.'
+                    : 'H1 stays exactly as the admin event name: Manama / Bahrain city rule. The generator will not rewrite it.'
+                }
+                className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 px-2 py-0.5 text-xs font-medium"
+              >
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                H1 locked
               </span>
             )}
             {gen && (
