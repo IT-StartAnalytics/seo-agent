@@ -4,7 +4,7 @@ import ReviewButtons from '@/components/ReviewButtons';
 import CopyButton from '@/components/CopyButton';
 import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
-import {getEventById, type EventDetail} from '@/lib/events';
+import {getEventById, h1Lock, type EventDetail} from '@/lib/events';
 import {getMetaEdits, getPublishHistory} from '@/lib/metaEdits';
 import {getLatestUnresolvedChange} from '@/lib/monitor';
 import SourceChangeBlock from '@/components/SourceChangeBlock';
@@ -88,6 +88,7 @@ export default async function EventDetailPage({
   }
 
   const g = data?.generated;
+  const lock = h1Lock(data?.source ?? null);
   const savedEdits = data && data.found ? await getMetaEdits(id).catch(() => ({})) : {};
   const manualHistory = data && data.found ? await getPublishHistory(id).catch(() => []) : [];
   const sourceChange = data && data.found ? await getLatestUnresolvedChange(id).catch(() => null) : null;
@@ -125,6 +126,26 @@ export default async function EventDetailPage({
                     }`}
                   >
                     {g ? t('generated') : t('notGenerated')}
+                  </span>
+                  <span
+                    title={
+                      lock.locked
+                        ? lock.reason === 'protected'
+                          ? t('h1LockedProtected')
+                          : t('h1LockedGeo')
+                        : t('h1EditableHint')
+                    }
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
+                      lock.locked
+                        ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                    }`}
+                  >
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="3" y="11" width="18" height="11" rx="2" />
+                      {lock.locked ? <path d="M7 11V7a5 5 0 0 1 10 0v4" /> : <path d="M7 11V7a5 5 0 0 1 9.9-1" />}
+                    </svg>
+                    {lock.locked ? t('h1Locked') : t('h1Editable')}
                   </span>
                   <ReviewButtons eventId={data.event_id} initial={data.review} />
                 </div>

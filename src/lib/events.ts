@@ -225,6 +225,23 @@ export async function getNewEvents(): Promise<NewEvent[]> {
   }));
 }
 
+// H1 edit rule, mirrored from the n8n writer prompt (node "Analyze Description - EN (final)"):
+//   H1 is frozen when Edit Permission = "NEVER TOUCH THE EVENT TITLE" (i.e. is_title_protected),
+//   OR the City is Manama / Bahrain. Otherwise the generator may rewrite H1.
+// The prompt only ever sees the CITY field (never country), so this checks city only - matching
+// the flow exactly. Keep the two in sync: if the prompt rule changes, change it here too.
+export type H1Lock = {locked: boolean; reason: 'protected' | 'geo' | null};
+
+export function h1Lock(
+  source: {city: string | null; is_title_protected: boolean | null} | null
+): H1Lock {
+  if (!source) return {locked: false, reason: null};
+  if (source.is_title_protected === true) return {locked: true, reason: 'protected'};
+  const city = String(source.city ?? '').toLowerCase();
+  if (city.includes('manama') || city.includes('bahrain')) return {locked: true, reason: 'geo'};
+  return {locked: false, reason: null};
+}
+
 export async function getEventById(id: string): Promise<EventDetail> {
   const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
   const lookupCols =

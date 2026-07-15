@@ -137,7 +137,12 @@
     "liveUpdated": "Updated",
     "noGeneratedMeta": "No generated meta yet.",
     "noLiveMeta": "No live meta in the synced data.",
-    "liveHint": "Live data is synced from the site periodically (about hourly), so recent admin edits may appear here with a delay."
+    "liveHint": "Live data is synced from the site periodically (about hourly), so recent admin edits may appear here with a delay.",
+    "h1Locked": "H1 locked",
+    "h1Editable": "H1 editable",
+    "h1LockedProtected": "H1 is kept exactly as the admin event name: the title is protected (is_title_protected). The generator will not rewrite it.",
+    "h1LockedGeo": "H1 is kept exactly as the admin event name: Manama / Bahrain city rule. The generator will not rewrite it.",
+    "h1EditableHint": "The generator may rewrite H1. It uses the admin event name and adds the city only when the title has no venue or city yet."
   },
   "Home": {
     "title": "SEO Agent",
