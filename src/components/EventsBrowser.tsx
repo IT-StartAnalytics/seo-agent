@@ -143,8 +143,16 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
 
   // Counts for the cards
   const counts = useMemo(() => {
-    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0, generated: 0, not_generated: 0, review_pending: 0, approved: 0, rejected: 0};
+    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0, generated: 0, not_generated: 0, review_pending: 0, approved: 0, rejected: 0, ni_en: 0, ni_ar: 0, ni_ru: 0, ni_fr: 0};
     for (const e of events) {
+      // indexed === null means the event is absent from seo_event_indexation, i.e. UNKNOWN.
+      // Unknown must never be counted as no-index, otherwise the filter invents restrictions.
+      if (e.indexed) {
+        if (!e.indexed.en) c.ni_en++;
+        if (!e.indexed.ar) c.ni_ar++;
+        if (!e.indexed.ru) c.ni_ru++;
+        if (!e.indexed.fr) c.ni_fr++;
+      }
       if (e.is_new) c.new++;
       if (e.is_attraction) c.attractions++;
       if (e.is_generated) c.generated++;
@@ -185,6 +193,14 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
     ...(changedCount > 0 ? [{key: 'source_changed', label: 'Source changed', value: changedCount}] : [])
   ];
   const statusOptions = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
+  // Group 3: indexation. Only the no-index side is offered - that is the case worth hunting for.
+  // Always shown, including a zero count: a disappearing option reads as a bug, not as "none".
+  const indexOptions = [
+    {key: 'ni_en', label: t('noIndexEn'), value: counts.ni_en ?? 0},
+    {key: 'ni_ar', label: t('noIndexAr'), value: counts.ni_ar ?? 0},
+    {key: 'ni_ru', label: t('noIndexRu'), value: counts.ni_ru ?? 0},
+    {key: 'ni_fr', label: t('noIndexFr'), value: counts.ni_fr ?? 0}
+  ];
 
   const matchesKey = (e: CatalogEvent, key: string) => {
     if (key === 'new') return e.is_new;
@@ -196,18 +212,28 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
     if (key === 'review_pending') return e.is_generated && !e.review;
     if (key === 'queue') return queueSet.has(e.event_id);
     if (key === 'source_changed') return changedSet.has(e.event_id);
+    if (key.startsWith('ni_')) {
+      if (!e.indexed) return false; // unknown indexation is not a restriction
+      return !e.indexed[key.slice(3) as 'en' | 'ar' | 'ru' | 'fr'];
+    }
     return statusGroup(e.status) === key;
   };
   // Filter groups: AND across groups, OR within a group.
   // e.g. (Not generated) [proc] AND (On sale) [status] -> only events matching both.
   const STATUS_KEYS = new Set(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
-  const groupOf = (key: string): string => (STATUS_KEYS.has(key) ? 'status' : 'proc');
+  const groupOf = (key: string): string =>
+    key.startsWith('ni_') ? 'index' : STATUS_KEYS.has(key) ? 'status' : 'proc';
   const matchesActive = (e: CatalogEvent) => {
     if (selected.size === 0) return true; // "all"
     const byGroup: Record<string, string[]> = {};
     for (const key of selected) (byGroup[groupOf(key)] ||= []).push(key);
     for (const g of Object.keys(byGroup)) {
-      if (!byGroup[g].some((k) => matchesKey(e, k))) return false;
+      // The index group is AND on purpose: picking EN + RU means "both versions are blocked",
+      // which is the combination the user asked for. Every other group stays OR.
+      const ok = g === 'index'
+        ? byGroup[g].every((k) => matchesKey(e, k))
+        : byGroup[g].some((k) => matchesKey(e, k));
+      if (!ok) return false;
     }
     return true;
   };
@@ -307,6 +333,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
         {statusOptions.length > 0 && (
           <FilterDropdown label={t('groupStatus')} options={statusOptions} selected={selected} onApply={applyFilter} applyLabel={t('apply')} clearLabel={t('reset')} />
         )}
+        <FilterDropdown label={t('groupIndex')} options={indexOptions} selected={selected} onApply={applyFilter} applyLabel={t('apply')} clearLabel={t('reset')} />
         {selected.size > 0 && (
           <button
             onClick={() => {
