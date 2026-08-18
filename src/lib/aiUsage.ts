@@ -127,8 +127,11 @@ export async function getEventCost(eventId: string): Promise<EventCost | null> {
   try {
     await ensureTable();
     const sql = await getSql();
+    // "Last generation" = the single most recent call of EACH kind for this event, within its
+    // latest execution. distinct on (kind) prevents summing several generations that share one
+    // execution_id (auto-gen processes a batch, or the event was queued more than once).
     const rows = (await sql`
-      select kind, model, cost_usd, tokens_in, tokens_out, tokens_cached, created_at, execution_id
+      select distinct on (kind) kind, model, cost_usd, tokens_in, tokens_out, tokens_cached, created_at
       from ai_usage
       where event_id = ${eventId}
         and execution_id = (
@@ -136,21 +139,26 @@ export async function getEventCost(eventId: string): Promise<EventCost | null> {
           where event_id = ${eventId}
           order by created_at desc limit 1
         )
-      order by created_at asc
+      order by kind, created_at desc
     `) as Record<string, unknown>[];
     if (!rows.length) return null;
-    const lines = rows.map((r) => ({
-      kind: String(r.kind),
-      model: String(r.model),
-      cost: Number(r.cost_usd) || 0,
-      tokens_in: Number(r.tokens_in) || 0,
-      tokens_out: Number(r.tokens_out) || 0,
-      tokens_cached: Number(r.tokens_cached) || 0
-    }));
+    const order: Record<string, number> = {writer: 0, translate: 1, image: 2, roles: 3};
+    const lines = rows
+      .map((r) => ({
+        kind: String(r.kind),
+        model: String(r.model),
+        cost: Number(r.cost_usd) || 0,
+        tokens_in: Number(r.tokens_in) || 0,
+        tokens_out: Number(r.tokens_out) || 0,
+        tokens_cached: Number(r.tokens_cached) || 0,
+        at: r.created_at ? String(r.created_at) : ''
+      }))
+      .sort((a, b) => (order[a.kind] ?? 9) - (order[b.kind] ?? 9));
+    const latest = lines.reduce((mx, l) => (l.at > mx ? l.at : mx), '');
     return {
       total: lines.reduce((s, l) => s + l.cost, 0),
-      lines,
-      at: rows[rows.length - 1]?.created_at ? String(rows[rows.length - 1].created_at) : null
+      lines: lines.map(({at, ...rest}) => rest),
+      at: latest || null
     };
   } catch {
     return null;
