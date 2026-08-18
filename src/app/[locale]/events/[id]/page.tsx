@@ -7,6 +7,7 @@ import {Link} from '@/i18n/navigation';
 import {getEventById, h1Lock, type EventDetail} from '@/lib/events';
 import {getMetaEdits, getPublishHistory} from '@/lib/metaEdits';
 import {getLatestUnresolvedChange} from '@/lib/monitor';
+import {getEventCost} from '@/lib/aiUsage';
 import SourceChangeBlock from '@/components/SourceChangeBlock';
 import type {MetaVersion} from '@/lib/events';
 
@@ -92,6 +93,7 @@ export default async function EventDetailPage({
   const savedEdits = data && data.found ? await getMetaEdits(id).catch(() => ({})) : {};
   const manualHistory = data && data.found ? await getPublishHistory(id).catch(() => []) : [];
   const sourceChange = data && data.found ? await getLatestUnresolvedChange(id).catch(() => null) : null;
+  const runCost = data && data.found ? await getEventCost(id).catch(() => null) : null;
   const combinedHistory = data ? mergeHistory(data.history, manualHistory) : [];
   const overviews = data?.source?.overviews ?? {en: null, ar: null, ru: null, fr: null};
   const ovLangs = OV_LANGS.filter((l) => overviews[l]);
@@ -185,6 +187,25 @@ export default async function EventDetailPage({
                     <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
                     <Row label="URL" value={data.source.url} href={data.source.url} copy />
                   </div>
+
+                  {runCost && runCost.total > 0 && (
+                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-foreground/60">AI cost (last generation)</span>
+                        <span className="text-sm font-semibold tabular-nums">
+                          {runCost.total < 0.01 ? '$' + runCost.total.toFixed(5) : '$' + runCost.total.toFixed(4)}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-foreground/60">
+                        {runCost.lines.map((l, i) => (
+                          <span key={i} className="tabular-nums">
+                            {l.kind} ({l.model}): {l.cost < 0.01 ? '$' + l.cost.toFixed(5) : '$' + l.cost.toFixed(4)}
+                            {l.tokens_cached > 0 && <span className="text-emerald-600 dark:text-emerald-400"> · cached {l.tokens_cached.toLocaleString('en-US')}</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {(data.history.length > 0 || (data.live?.langs.length ?? 0) > 0) && (
                     <MetaTabs versions={combinedHistory} indexed={data.indexed} eventId={data.event_id} eventUrl={data.source.url ?? ''} live={data.live} savedEdits={savedEdits} />

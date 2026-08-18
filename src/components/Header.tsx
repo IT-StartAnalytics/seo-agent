@@ -31,6 +31,18 @@ export default async function Header() {
               {t('keywords')}
             </Link>
           )}
+          {authed && (
+            <Link
+              href="/costs"
+              className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 1v22" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              {t('costs')}
+            </Link>
+          )}
           <ThemeToggle />
           {authed && (
             <form action="/api/auth/logout" method="post">
