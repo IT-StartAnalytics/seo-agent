@@ -5,7 +5,37 @@ import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import CopyButton from './CopyButton';
 import SendArtistsButton from './SendArtistsButton';
-import {h1Lock, type CatalogEvent, type EventGenerated} from '@/lib/events';
+import {h1Lock, type CatalogEvent, type EventGenerated, type PublishState} from '@/lib/events';
+
+// Whether the generated meta actually reached the live site. `partial` (API "saved with errors")
+// and `failed` both mean NOT live — PlatinumList rejects the whole-event save, so our meta is
+// not applied. See computePublishState in lib/events.
+function publishBadge(
+  state: PublishState,
+  problems: string[]
+): {label: string; cls: string; title: string} | null {
+  if (state === 'on_site')
+    return {
+      label: 'On site',
+      cls: 'bg-green-500/15 text-green-600 dark:text-green-400',
+      title: 'Meta tags are live on the site.'
+    };
+  if (state === 'failed')
+    return {
+      label: 'Not on site',
+      cls: 'bg-red-500/15 text-red-600 dark:text-red-400',
+      title: 'Publishing to the site failed — the generated meta tags are not live.'
+    };
+  if (state === 'partial')
+    return {
+      label: 'Not on site',
+      cls: 'bg-red-500/15 text-red-600 dark:text-red-400',
+      title:
+        'PlatinumList returned "saved with errors" and rejected the update — the generated meta tags are not live.' +
+        (problems.length ? ' Reason: ' + problems.join('; ') : '')
+    };
+  return null; // unknown — keep the raw status pill
+}
 
 function statusGroup(status: string | null): string {
   const s = (status ?? '').toLowerCase();
@@ -80,6 +110,8 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
   const t = useTranslations('Events');
   const [open, setOpen] = useState(false);
   const lock = h1Lock(e);
+  const pb = gen ? publishBadge(gen.publish_state, gen.publish_problems) : null;
+  const notLive = gen ? gen.publish_state === 'partial' || gen.publish_state === 'failed' : false;
   const [review, setReview] = useState<'approved' | null>(e.review === 'approved' ? 'approved' : null);
   const [savingReview, setSavingReview] = useState(false);
 
@@ -155,6 +187,19 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
                 Source changed
               </span>
             )}
+            {notLive && (
+              <span
+                title={pb?.title ?? 'The generated meta tags are not live on the site.'}
+                className="inline-flex items-center gap-1 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 px-2 py-0.5 text-xs font-medium"
+              >
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                Not on site
+              </span>
+            )}
             {lock.locked && (
               <span
                 title={
@@ -187,12 +232,18 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
           </div>
         </td>
 
-        {/* Status (generation) */}
+        {/* Status (generation + whether it reached the live site) */}
         <td className="px-3 py-3 whitespace-nowrap">
           {gen ? (
-            <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium capitalize">
-              {(gen.status ?? '').replace(/_/g, ' ') || t('generated')}
-            </span>
+            pb ? (
+              <span title={pb.title} className={`rounded-full ${pb.cls} px-2 py-0.5 text-xs font-medium`}>
+                {pb.label}
+              </span>
+            ) : (
+              <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium capitalize">
+                {(gen.status ?? '').replace(/_/g, ' ') || t('generated')}
+              </span>
+            )
           ) : (
             <span className="text-xs text-foreground/35">{t('notGenerated')}</span>
           )}

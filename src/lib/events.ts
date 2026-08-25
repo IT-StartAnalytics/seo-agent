@@ -29,10 +29,77 @@ export type GeneratedMeta = {
   event_types: string[] | null;
   performers: string[] | null;
   generated_langs: string[] | null;
+  api_status_code: number | null;
+  publish_state: PublishState;
+  publish_problems: string[];
   h1: Record<Lang, string | null>;
   meta_title: Record<Lang, string | null>;
   meta_description: Record<Lang, string | null>;
 };
+
+// ---- Did our meta actually reach the live site? --------------------------------------------
+// The PlatinumList PATCH validates the WHOLE event on save. When the event has pre-existing
+// invalid fields (missing Greek `el` translation, empty `overview`, a non-integer `event-type`),
+// the API answers 207 / code 300 "saved with errors" and our EN/AR/RU/FR meta does NOT persist
+// (verified on live events). So `partial` means "not reliably live", not a benign partial save.
+export type PublishState = 'on_site' | 'partial' | 'failed' | 'unknown';
+
+export function computePublishState(status: string | null, apiCode: number | null): PublishState {
+  const st = (status ?? '').toLowerCase();
+  if (st === 'published' || st === 'manual') return 'on_site';
+  if (st === 'partial') return 'partial';
+  if (st === 'publish_failed' || st === 'ai_failed' || st === 'sheet_save_failed') return 'failed';
+  if (apiCode != null && (apiCode < 200 || apiCode >= 300)) return apiCode === 207 ? 'partial' : 'failed';
+  return st ? 'unknown' : 'unknown';
+}
+
+// Normalize the API invalid_fields blob (n8n stores JSON.stringify(...) in a jsonb column, so it
+// can arrive as an object or a once/twice-encoded string) into a plain object.
+function parseInvalidFields(raw: unknown): Record<string, Record<string, unknown>> | null {
+  let obj: unknown = raw;
+  for (let i = 0; i < 2 && typeof obj === 'string'; i++) {
+    try {
+      obj = JSON.parse(obj);
+    } catch {
+      return null;
+    }
+  }
+  return obj && typeof obj === 'object' ? (obj as Record<string, Record<string, unknown>>) : null;
+}
+
+// Short, human-readable reasons the save was rejected — for the event card.
+export function parsePublishProblems(raw: unknown): string[] {
+  const inv = parseInvalidFields(raw);
+  if (!inv) return [];
+  const CORE = ['en', 'ar', 'ru', 'fr'];
+  const out: string[] = [];
+  const ours: [string, string][] = [
+    ['name', 'H1'],
+    ['meta_title', 'Meta Title'],
+    ['meta_description', 'Meta Description']
+  ];
+  for (const [field, label] of ours) {
+    const langs = inv[field] ? Object.keys(inv[field]) : [];
+    const core = langs.filter((l) => CORE.includes(l));
+    if (core.length) out.push(`${label} rejected for ${core.map((l) => l.toUpperCase()).join(', ')}`);
+  }
+  const anyEl = ['name', 'meta_title', 'meta_description'].some((f) => inv[f] && Object.keys(inv[f]).includes('el'));
+  if (anyEl) out.push('Greek (el) translation required by the site');
+  if (inv.overview) out.push('event overview is empty on PlatinumList');
+  if (inv['event-type']) out.push('event-type must be a number');
+  return out;
+}
+
+// True when one of OUR meta fields (H1 / title / description) failed for a core language —
+// i.e. a genuine failure of the content we manage, not an unrelated field.
+export function ourMetaRejected(raw: unknown): boolean {
+  const inv = parseInvalidFields(raw);
+  if (!inv) return false;
+  const CORE = ['en', 'ar', 'ru', 'fr'];
+  return ['name', 'meta_title', 'meta_description'].some(
+    (f) => inv[f] && Object.keys(inv[f]).some((l) => CORE.includes(l))
+  );
+}
 
 export type MetaVersion = {
   date: string | null;
@@ -195,6 +262,7 @@ function citySubdomain(city: string | null): string | null {
 }
 
 function shapeGenerated(r: Row): GeneratedMeta {
+  const apiCode = r.api_status_code == null ? null : Number(r.api_status_code);
   return {
     status: s(r, 'status'),
     published: r.published == null ? null : Boolean(r.published),
@@ -202,6 +270,9 @@ function shapeGenerated(r: Row): GeneratedMeta {
     event_types: arr(r, 'event_types'),
     performers: arr(r, 'performers'),
     generated_langs: arr(r, 'generated_langs'),
+    api_status_code: apiCode,
+    publish_state: computePublishState(s(r, 'status'), apiCode),
+    publish_problems: parsePublishProblems(r.api_invalid_fields),
     h1: {en: cs(r, 'h1_en'), ru: cs(r, 'h1_ru'), ar: cs(r, 'h1_ar'), fr: cs(r, 'h1_fr')},
     meta_title: {en: cs(r, 'meta_title_en'), ru: cs(r, 'meta_title_ru'), ar: cs(r, 'meta_title_ar'), fr: cs(r, 'meta_title_fr')},
     meta_description: {en: cs(r, 'meta_desc_en'), ru: cs(r, 'meta_desc_ru'), ar: cs(r, 'meta_desc_ar'), fr: cs(r, 'meta_desc_fr')}
@@ -251,6 +322,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'promo_mob_img,promo_img';
   const runsCols =
     'event_id,status,published,finished_at,event_types,performers,generated_langs,' +
+    'api_status_code,api_invalid_fields,' +
     'h1_en,meta_title_en,meta_desc_en,h1_ru,meta_title_ru,meta_desc_ru,' +
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
@@ -529,6 +601,8 @@ export type EventGenerated = {
   unpublished_langs: string[];
   api_status_code: number | null;
   api_status_msg: string | null;
+  publish_state: PublishState;
+  publish_problems: string[];
   langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[];
   event_types: string[];
   performers: string[];
@@ -537,7 +611,7 @@ export type EventGenerated = {
 const GEN_COLS = [
   'status', 'finished_at', 'event_types', 'performers',
   'generated_langs', 'published_langs', 'unpublished_langs',
-  'api_status_code', 'api_status_msg',
+  'api_status_code', 'api_status_msg', 'api_invalid_fields',
   'h1_en', 'meta_title_en', 'meta_desc_en',
   'h1_ar', 'meta_title_ar', 'meta_desc_ar',
   'h1_ru', 'meta_title_ru', 'meta_desc_ru',
@@ -551,14 +625,17 @@ function shapeGenRow(r: Row): EventGenerated {
     meta_title: cs(r, `meta_title_${l}`),
     meta_description: cs(r, `meta_desc_${l}`)
   })).filter((x) => x.h1 || x.meta_title || x.meta_description);
+  const apiCode = r.api_status_code == null ? null : Number(r.api_status_code);
   return {
     status: s(r, 'status'),
     finished_at: s(r, 'finished_at'),
     generated_langs: arr(r, 'generated_langs') ?? [],
     published_langs: arr(r, 'published_langs') ?? [],
     unpublished_langs: arr(r, 'unpublished_langs') ?? [],
-    api_status_code: r.api_status_code == null ? null : Number(r.api_status_code),
+    api_status_code: apiCode,
     api_status_msg: s(r, 'api_status_msg'),
+    publish_state: computePublishState(s(r, 'status'), apiCode),
+    publish_problems: parsePublishProblems(r.api_invalid_fields),
     langs,
     event_types: arr(r, 'event_types') ?? [],
     performers: arr(r, 'performers') ?? []
@@ -593,6 +670,8 @@ function shapeManualGen(
     unpublished_langs: [],
     api_status_code: null,
     api_status_msg: null,
+    publish_state: 'on_site',
+    publish_problems: [],
     langs,
     event_types: run?.event_types ?? [],
     performers: run?.performers ?? []
