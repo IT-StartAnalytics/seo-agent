@@ -129,22 +129,6 @@ export default async function EventDetailPage({
                   >
                     {g ? t('generated') : t('notGenerated')}
                   </span>
-                  {g && (g.publish_state === 'on_site' || g.publish_state === 'partial' || g.publish_state === 'failed') && (
-                    <span
-                      title={
-                        g.publish_state === 'on_site'
-                          ? 'Meta tags are live on the site.'
-                          : 'The generated meta tags are NOT live on the site.'
-                      }
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
-                        g.publish_state === 'on_site'
-                          ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-                          : 'bg-red-500/15 text-red-600 dark:text-red-400'
-                      }`}
-                    >
-                      {g.publish_state === 'on_site' ? 'On site' : 'Not on site'}
-                    </span>
-                  )}
                   <span
                     title={
                       lock.locked
@@ -179,38 +163,6 @@ export default async function EventDetailPage({
                 Manual regenerate
               </Link>
             </div>
-
-            {g && (g.publish_state === 'partial' || g.publish_state === 'failed') && (
-              <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-red-600 dark:text-red-400">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                  Meta tags are not live on the site
-                </div>
-                <p className="mt-2 text-sm text-foreground/80">
-                  {g.publish_state === 'partial'
-                    ? 'PlatinumList returned "saved with errors"'
-                    : 'Publishing to PlatinumList failed'}
-                  {g.api_status_code != null ? ` (HTTP ${g.api_status_code})` : ''} and rejected the update, so the
-                  generated meta tags below did not actually apply on the live page.
-                </p>
-                {g.publish_problems.length > 0 && (
-                  <ul className="mt-2 list-disc pl-5 text-sm text-foreground/75 space-y-0.5">
-                    {g.publish_problems.map((p, i) => (
-                      <li key={i}>{p}</li>
-                    ))}
-                  </ul>
-                )}
-                <p className="mt-2 text-xs text-foreground/55">
-                  The API validates the whole event on save: unrelated invalid fields (Greek/el translation, empty
-                  overview, event-type) block the save even though the generated EN/AR/RU/FR meta is correct. This
-                  needs a fix on the event/PlatinumList side.
-                </p>
-              </div>
-            )}
 
             {sourceChange && (
               <SourceChangeBlock
