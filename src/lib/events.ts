@@ -617,6 +617,36 @@ export async function getEventGenerated(id: string): Promise<EventGenerated | nu
   return run ?? null;
 }
 
+// ---- Lazy per-event indexation (for the list, loaded per visible page) --------------------
+// The catalog only bulk-loads index for a capped window of seo_event_indexation, so events past
+// it (high event_id) show no index in the list. The browser fills the gap by asking for exactly
+// the event_ids it shows. Keyed by event_id -> {en,ar,ru,fr} (true = indexed, false = no-index).
+export type EventIndex = {en: boolean; ar: boolean; ru: boolean; fr: boolean};
+
+export async function getEventIndexBatch(ids: string[]): Promise<Record<string, EventIndex>> {
+  const clean = ids.map((x) => String(x).replace(/[^a-zA-Z0-9_-]/g, '')).filter(Boolean);
+  if (!clean.length) return {};
+  const out: Record<string, EventIndex> = {};
+  // PostgREST caps URL length; page the ids in chunks so any page size is safe.
+  const CHUNK = 200;
+  for (let i = 0; i < clean.length; i += CHUNK) {
+    const chunk = clean.slice(i, i + CHUNK);
+    const rows = await sb(
+      `seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index&event_id=in.(${chunk.join(',')})`,
+      60
+    ).catch(() => [] as Row[]);
+    for (const r of rows) {
+      out[String(r.event_id)] = {
+        en: !r.is_no_index,
+        ar: !r.ar_no_index,
+        ru: !r.ru_no_index,
+        fr: !r.fr_no_index
+      };
+    }
+  }
+  return out;
+}
+
 export async function getEventGeneratedBatch(
   ids: string[]
 ): Promise<Record<string, EventGenerated>> {

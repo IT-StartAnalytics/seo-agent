@@ -3,7 +3,7 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useRouter} from '@/i18n/navigation';
-import type {CatalogEvent, EventGenerated} from '@/lib/events';
+import type {CatalogEvent, EventGenerated, EventIndex} from '@/lib/events';
 import EventRow from './EventRow';
 
 function statusGroup(status: string | null): string {
@@ -127,6 +127,11 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
   const [visible, setVisible] = useState(PAGE);
   const [sortKey, setSortKey] = useState<'event' | 'date' | null>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  // Indexation loaded per event_id from /api/event-index. The catalog bulk-loads index only for a
+  // capped window, so events past it arrive with indexed === null; we fill those here (visible
+  // page first, the rest in the background so the no-index filter/counts stay complete).
+  const [indexMap, setIndexMap] = useState<Record<string, EventIndex>>({});
+  const idxOf = (e: CatalogEvent): EventIndex | null => e.indexed ?? indexMap[e.event_id] ?? null;
 
   const groupLabel = (g: string) => {
     const map: Record<string, string> = {
@@ -147,11 +152,12 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
     for (const e of events) {
       // indexed === null means the event is absent from seo_event_indexation, i.e. UNKNOWN.
       // Unknown must never be counted as no-index, otherwise the filter invents restrictions.
-      if (e.indexed) {
-        if (!e.indexed.en) c.ni_en++;
-        if (!e.indexed.ar) c.ni_ar++;
-        if (!e.indexed.ru) c.ni_ru++;
-        if (!e.indexed.fr) c.ni_fr++;
+      const ix = idxOf(e);
+      if (ix) {
+        if (!ix.en) c.ni_en++;
+        if (!ix.ar) c.ni_ar++;
+        if (!ix.ru) c.ni_ru++;
+        if (!ix.fr) c.ni_fr++;
       }
       if (e.is_new) c.new++;
       if (e.is_attraction) c.attractions++;
@@ -164,7 +170,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
       c[g] = (c[g] ?? 0) + 1;
     }
     return c;
-  }, [events]);
+  }, [events, indexMap]);
 
   const cardLabel = (k: string) =>
     k === 'all'
@@ -213,8 +219,9 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
     if (key === 'queue') return queueSet.has(e.event_id);
     if (key === 'source_changed') return changedSet.has(e.event_id);
     if (key.startsWith('ni_')) {
-      if (!e.indexed) return false; // unknown indexation is not a restriction
-      return !e.indexed[key.slice(3) as 'en' | 'ar' | 'ru' | 'fr'];
+      const ix = idxOf(e);
+      if (!ix) return false; // unknown indexation is not a restriction
+      return !ix[key.slice(3) as 'en' | 'ar' | 'ru' | 'fr'];
     }
     return statusGroup(e.status) === key;
   };
@@ -245,7 +252,8 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
       if (q && !(e.event_id.includes(q) || (e.name ?? '').toLowerCase().includes(q))) return false;
       return true;
     });
-  }, [events, selected, query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events, selected, query, indexMap]);
 
   const sorted = useMemo(() => {
     if (!sortKey) return filtered;
@@ -293,6 +301,69 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shownKey]);
+
+  // Indexation for the CURRENTLY SHOWN page: fetch only events whose index the catalog didn't
+  // bulk-load (indexed === null) and that we haven't fetched yet. This fills the Index column
+  // page by page as the user pages through.
+  useEffect(() => {
+    const need = shown
+      .filter((e) => e.indexed == null && indexMap[e.event_id] === undefined)
+      .map((e) => e.event_id);
+    if (need.length === 0) return;
+    let cancelled = false;
+    fetch('/api/event-index', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ids: need})
+    })
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((map: Record<string, EventIndex>) => {
+        if (cancelled) return;
+        setIndexMap((prev) => {
+          const next = {...prev};
+          for (const id of need) if (map[id]) next[id] = map[id];
+          return next;
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownKey]);
+
+  // Background fill for the rest of the gap events, so the no-index filter and its counts stay
+  // complete across the whole catalog (not just the pages viewed). Deferred so it never competes
+  // with the first paint; the visible page is already handled by the effect above.
+  useEffect(() => {
+    const gaps = events.filter((e) => e.indexed == null).map((e) => e.event_id);
+    if (gaps.length === 0) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      const need = gaps.filter((id) => indexMap[id] === undefined);
+      if (need.length === 0) return;
+      fetch('/api/event-index', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ids: need})
+      })
+        .then((r) => (r.ok ? r.json() : {}))
+        .then((map: Record<string, EventIndex>) => {
+          if (cancelled) return;
+          setIndexMap((prev) => {
+            const next = {...prev};
+            for (const id of need) if (map[id]) next[id] = map[id];
+            return next;
+          });
+        })
+        .catch(() => {});
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events]);
 
   function openById() {
     const id = query.trim().replace(/[^a-zA-Z0-9_-]/g, '');
@@ -399,7 +470,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
                 </td>
               </tr>
             ) : (
-              shown.map((e) => <EventRow key={e.event_id} e={e} gen={summaries[e.event_id] ?? null} changed={changedSet.has(e.event_id)} />)
+              shown.map((e) => <EventRow key={e.event_id} e={e} gen={summaries[e.event_id] ?? null} changed={changedSet.has(e.event_id)} idx={idxOf(e)} />)
             )}
           </tbody>
         </table>

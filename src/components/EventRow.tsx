@@ -76,7 +76,7 @@ function IndexBadges({idx}: {idx: CatalogEvent['indexed']}) {
   );
 }
 
-export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: EventGenerated | null; changed?: boolean}) {
+export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: EventGenerated | null; changed?: boolean; idx?: CatalogEvent['indexed']}) {
   const t = useTranslations('Events');
   const [open, setOpen] = useState(false);
   const lock = h1Lock(e);
@@ -200,7 +200,7 @@ export default function EventRow({e, gen, changed}: {e: CatalogEvent; gen: Event
 
         {/* Indexation per language */}
         <td className="px-3 py-3 align-middle">
-          <IndexBadges idx={e.indexed} />
+          <IndexBadges idx={idx ?? e.indexed} />
         </td>
 
 
