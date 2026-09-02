@@ -7,17 +7,9 @@ import CopyButton from './CopyButton';
 import SendArtistsButton from './SendArtistsButton';
 import {h1Lock, type CatalogEvent, type EventGenerated} from '@/lib/events';
 
-function statusGroup(status: string | null): string {
-  const s = (status ?? '').toLowerCase();
-  if (!s) return 'unknown';
-  if (s.startsWith('on_sale') || s === 'on sale') return 'on_sale';
-  if (s === 'coming_soon' || s === 'pre_register') return 'coming';
-  if (s === 'event_ended' || /ended|past|expired/.test(s)) return 'ended';
-  if (s === 'sold_out') return 'sold_out';
-  if (s === 'cancelled' || s === 'declined') return 'cancelled';
-  if (s === 'pending' || s === 'approved') return 'moderation';
-  return s;
-}
+// Statuses that mean the event is NOT ready for SEO generation yet (still in moderation /
+// disabled / no status). Highlighted red in the list so half-baked events are obvious.
+const NOT_READY_STATUS = /^(pending|inactive)$/i;
 
 function Field({label, value, rtl, limit}: {label: string; value: string | null; rtl?: boolean; limit?: number}) {
   if (!value) return null;
@@ -98,18 +90,8 @@ export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: 
     if (res.ok) setReview(next);
   }
 
-  const statusLabel = (k: string) =>
-    (
-      {
-        on_sale: t('onSale'),
-        coming: t('comingSoon'),
-        ended: t('ended'),
-        sold_out: t('soldOut'),
-        cancelled: t('cancelled'),
-        moderation: t('moderation'),
-        unknown: t('statusUnknown')
-      } as Record<string, string>
-    )[k] ?? k.replace(/_/g, ' ');
+  const rawStatus = (e.status ?? '').trim();
+  const statusNotReady = rawStatus === '' || NOT_READY_STATUS.test(rawStatus);
 
   // Prefer the latest version's time (gen.finished_at = manual publish time when a
   // manual edit is the newest by chronology), falling back to the catalog gen date.
@@ -147,9 +129,6 @@ export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: 
             )}
           </div>
           <div className="mt-1.5 flex items-center gap-1 flex-wrap">
-            <span className="rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-2 py-0.5 text-xs capitalize">
-              {statusLabel(statusGroup(e.status))}
-            </span>
             {changed && (
               <span title="Source data (Venue/City/Dates) changed" className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium">
                 Source changed
@@ -185,6 +164,20 @@ export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: 
               </button>
             )}
           </div>
+        </td>
+
+        {/* Event status (raw value from PlatinumList) */}
+        <td className="px-3 py-3 whitespace-nowrap">
+          <span
+            title={rawStatus || 'no status'}
+            className={`inline-block max-w-[140px] truncate align-middle rounded-full px-2 py-0.5 text-xs font-medium ${
+              statusNotReady
+                ? 'bg-red-500/15 text-red-600 dark:text-red-400'
+                : 'bg-black/[0.05] dark:bg-white/[0.08] text-foreground/80'
+            }`}
+          >
+            {rawStatus || '—'}
+          </span>
         </td>
 
         {/* Status (generation) */}
@@ -224,7 +217,7 @@ export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: 
 
       {open && gen && (
         <tr className="border-b border-black/5 dark:border-white/10 bg-muted">
-          <td colSpan={5} className="px-4 py-4">
+          <td colSpan={6} className="px-4 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {gen.langs.map((a) => (
                 <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">

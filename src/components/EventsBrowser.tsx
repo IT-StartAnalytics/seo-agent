@@ -452,6 +452,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
                 </button>
               </th>
               <th className="w-[150px] px-3 py-2.5 font-medium">{t('colStatus')}</th>
+              <th className="w-[150px] px-3 py-2.5 font-medium">{t('colGeneration')}</th>
               <th className="w-[150px] px-3 py-2.5 font-medium">{t('colIndex')}</th>
               <th className="w-[170px] px-3 py-2.5 font-medium">
                 <button onClick={() => toggleSort('date')} className="inline-flex items-center gap-1 hover:text-foreground">
@@ -465,7 +466,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
           <tbody>
             {shown.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-5 text-foreground/60">
+                <td colSpan={6} className="px-4 py-5 text-foreground/60">
                   {t('empty')}
                 </td>
               </tr>

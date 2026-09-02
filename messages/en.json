@@ -126,6 +126,7 @@
     "cancelled": "Cancelled",
     "colEvent": "Event",
     "colStatus": "Status",
+    "colGeneration": "Generation",
     "colIndex": "Index",
     "colMeta": "H1 / Meta Title",
     "colLangs": "Langs",

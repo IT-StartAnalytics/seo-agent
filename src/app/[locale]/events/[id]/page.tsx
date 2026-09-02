@@ -182,6 +182,7 @@ export default async function EventDetailPage({
                     <Row label={t('venue')} value={data.source.venue || '—'} />
                     <Row label={`${t('venue')} (AR)`} value={data.source.venue_ar} />
                     <Row label={t('city')} value={[data.source.city, data.source.country].filter(Boolean).join(', ') || null} />
+                    <Row label={t('colStatus')} value={data.source.status} />
                     <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />
                     <Row label={t('categories')} value={data.source.categories} />
                     <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
