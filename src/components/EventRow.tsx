@@ -160,7 +160,7 @@ export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: 
                 title={
                   lock.reason === 'protected'
                     ? 'H1 stays exactly as the admin event name: the title is protected (is_title_protected). The generator will not rewrite it.'
-                    : 'H1 stays exactly as the admin event name: Manama / Bahrain city rule. The generator will not rewrite it.'
+                    : 'H1 stays exactly as the admin event name: Manama / Bahrain / Doha city rule. The generator will not rewrite it.'
                 }
                 className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 px-2 py-0.5 text-xs font-medium"
               >
