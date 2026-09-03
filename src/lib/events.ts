@@ -194,6 +194,22 @@ function citySubdomain(city: string | null): string | null {
   return city.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
+// The admin values the writer actually saw AT GENERATION TIME, logged by n8n into
+// seo_agent_runs.source_input as JSON.stringify(...), so it arrives as a possibly double-encoded
+// string. Used to reconstruct "initial (admin)" for events whose new_events_stream row carries no
+// raw_payload snapshot (erdb_reconcile-sourced events lose it).
+function parseSourceInput(raw: unknown): Record<string, unknown> | null {
+  let obj: unknown = raw;
+  for (let i = 0; i < 2 && typeof obj === 'string'; i++) {
+    try {
+      obj = JSON.parse(obj);
+    } catch {
+      return null;
+    }
+  }
+  return obj && typeof obj === 'object' ? (obj as Record<string, unknown>) : null;
+}
+
 function shapeGenerated(r: Row): GeneratedMeta {
   return {
     status: s(r, 'status'),
@@ -251,7 +267,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'all_categories,status,content_hash,is_title_protected,title_protection_reason,' +
     'promo_mob_img,promo_img';
   const runsCols =
-    'event_id,status,published,finished_at,event_types,performers,generated_langs,' +
+    'event_id,status,published,finished_at,event_types,performers,generated_langs,source_input,' +
     'h1_en,meta_title_en,meta_desc_en,h1_ru,meta_title_ru,meta_desc_ru,' +
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
@@ -325,7 +341,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     }
   }
   const langPref = ['en', 'ar', 'ru', 'fr'];
-  const admin =
+  let admin =
     adminLangs.size > 0
       ? Array.from(adminLangs)
           .sort((a, b) => {
@@ -340,6 +356,19 @@ export async function getEventById(id: string): Promise<EventDetail> {
             meta_description: clean(rs(`meta_description_${l}`))
           }))
       : null;
+  // Fallback for events with no raw_payload admin snapshot (erdb_reconcile): reconstruct the
+  // admin title(s) from what the writer saw at generation time (seo_agent_runs.source_input).
+  if ((!admin || admin.length === 0) && rn) {
+    const si = parseSourceInput(rn.source_input);
+    if (si) {
+      const h1en = clean(si.h1_en == null ? null : String(si.h1_en));
+      const h1ar = clean(si.h1_ar == null ? null : String(si.h1_ar));
+      const langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[] = [];
+      if (h1en) langs.push({lang: 'en', h1: h1en, meta_title: null, meta_description: null});
+      if (h1ar) langs.push({lang: 'ar', h1: h1ar, meta_title: null, meta_description: null});
+      if (langs.length) admin = langs;
+    }
+  }
   const review = await getReview(eid);
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
   const isAttraction = ix ? Boolean(ix.is_attraction) : lk ? catsLk.includes('attraction') : st ? Boolean(st.is_attraction) : false;
