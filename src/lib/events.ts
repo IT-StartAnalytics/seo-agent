@@ -210,6 +210,21 @@ function parseSourceInput(raw: unknown): Record<string, unknown> | null {
   return obj && typeof obj === 'object' ? (obj as Record<string, unknown>) : null;
 }
 
+// A seo_agent_runs row written by a MANUAL publish (Edit -> Publish to site), tagged
+// models_used.source = 'manual-publish'. It exists only so Rockstary sees manual publishes; OUR app
+// already surfaces them from Neon meta_publish_history, so we skip these rows to avoid double-showing.
+function isManualPublishRow(r: Row): boolean {
+  let raw: unknown = r.models_used;
+  for (let i = 0; i < 2 && typeof raw === 'string'; i++) {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      return false;
+    }
+  }
+  return !!(raw && typeof raw === 'object' && (raw as Record<string, unknown>).source === 'manual-publish');
+}
+
 function shapeGenerated(r: Row): GeneratedMeta {
   return {
     status: s(r, 'status'),
@@ -267,7 +282,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'all_categories,status,content_hash,is_title_protected,title_protection_reason,' +
     'promo_mob_img,promo_img';
   const runsCols =
-    'event_id,status,published,finished_at,event_types,performers,generated_langs,source_input,' +
+    'event_id,status,published,finished_at,event_types,performers,generated_langs,source_input,models_used,' +
     'h1_en,meta_title_en,meta_desc_en,h1_ru,meta_title_ru,meta_desc_ru,' +
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
@@ -287,7 +302,10 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'h1_fr', 'meta_title_fr', 'meta_desc_fr'
   ];
   const hasContent = (r: Row) => META_KEYS.some((k) => r[k] != null && String(r[k]).trim() !== '');
-  const rn = runs.find(hasContent) ?? null;
+  // Manual-publish rows exist only for Rockstary; the app shows manual publishes from Neon
+  // meta_publish_history, so drop them here to avoid double-showing in the card/history.
+  const agentRuns = runs.filter((r) => !isManualPublishRow(r));
+  const rn = agentRuns.find(hasContent) ?? null;
   const st = stream[0];
   const ix = idx[0];
   const indexed = ix
@@ -373,7 +391,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const catsLk = (lk ? (s(lk, 'all_categories') ?? '') : '').toLowerCase();
   const isAttraction = ix ? Boolean(ix.is_attraction) : lk ? catsLk.includes('attraction') : st ? Boolean(st.is_attraction) : false;
 
-  const runVersions: MetaVersion[] = runs
+  const runVersions: MetaVersion[] = agentRuns
     .map((r) => ({
       date: s(r, 'finished_at'),
       status: s(r, 'status'),
@@ -565,7 +583,7 @@ export type EventGenerated = {
 };
 
 const GEN_COLS = [
-  'status', 'finished_at', 'event_types', 'performers',
+  'status', 'finished_at', 'event_types', 'performers', 'models_used',
   'generated_langs', 'published_langs', 'unpublished_langs',
   'api_status_code', 'api_status_msg',
   'h1_en', 'meta_title_en', 'meta_desc_en',
@@ -632,9 +650,11 @@ function shapeManualGen(
 export async function getEventGenerated(id: string): Promise<EventGenerated | null> {
   const eid = id.replace(/[^a-zA-Z0-9_-]/g, '');
   const runs = await sb(
-    `seo_agent_runs?select=event_id,${GEN_COLS}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=1`
+    `seo_agent_runs?select=event_id,${GEN_COLS}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=5`
   );
-  const run = runs[0] ? shapeGenRow(runs[0]) : undefined;
+  // Skip manual-publish rows (Rockstary-only); the manual publish is merged in from Neon below.
+  const runRow = runs.find((r) => !isManualPublishRow(r));
+  const run = runRow ? shapeGenRow(runRow) : undefined;
   let pub: {created_at: string; langs: MetaEdit[]} | undefined;
   try {
     const {getLatestPublishBatch} = await import('./metaEdits');
@@ -690,6 +710,7 @@ export async function getEventGeneratedBatch(
   for (const r of rows) {
     const id = String(r.event_id);
     if (out[id]) continue; // rows ordered desc -> first seen is latest
+    if (isManualPublishRow(r)) continue; // Rockstary-only rows; manual publish merged from Neon below
     out[id] = shapeGenRow(r);
   }
   // Merge in manual publishes (Neon) and keep whichever is newest by chronology.
