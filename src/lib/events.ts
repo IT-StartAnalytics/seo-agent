@@ -67,6 +67,10 @@ export type EventDetail = {
     title_protection_reason: string | null;
     promo_img: string | null;
     friendly_url: string | null;
+    compare: {
+      mb_ok: boolean;
+      fields: {label: string; supabase: string | null; metabase: string | null}[];
+    } | null;
   } | null;
   indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null;
   live: {updated_at: string | null; langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]} | null;
@@ -413,7 +417,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     history.push({date: null, status: null, source: 'admin', langs: admin, event_types: [], performers: []});
   }
 
-  const src = lk
+  const src: EventDetail['source'] = lk
     ? {
         url: s(lk, 'url'),
         name_en: cs(lk, 'event_name_en'),
@@ -430,32 +434,64 @@ export async function getEventById(id: string): Promise<EventDetail> {
         is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
         title_protection_reason: cs(lk, 'title_protection_reason'),
         promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img'),
-        friendly_url: friendly
+        friendly_url: friendly,
+        compare: null
       }
     : null;
 
-  // Overlay FRESH source fields from Metabase (no ~3h Supabase mirror delay). Best-effort: only
-  // fields Metabase provides are overlaid; is_title_protected / reason / country / status /
-  // friendly_url stay from Supabase (Metabase has no such columns). Empty Metabase value keeps
-  // the Supabase value. If Metabase is disabled or fails, mb is null and nothing changes.
-  if (src && mb) {
-    const fresh = (v: string | null, base: string | null) => {
-      const c = clean(v);
-      return c != null && c !== '' ? c : base;
+  // Snapshot Supabase-origin values, overlay FRESH Metabase values as the primary display, and
+  // expose a Supabase-vs-Metabase comparison for the card. is_title_protected / reason / country /
+  // status / friendly_url always stay from Supabase (Metabase has no such columns). If Metabase is
+  // disabled or fails, mb is null: primary stays Supabase and the Metabase column shows blanks.
+  if (src) {
+    const sbSnap = {
+      venue: src.venue, venue_ar: src.venue_ar, city: src.city,
+      start: src.start, end: src.end, categories: src.categories,
+      name_en: src.name_en, name_ar: src.name_ar, url: src.url,
+      overview_en: src.overviews.en, promo_img: src.promo_img
     };
-    src.url = fresh(mb.url, src.url);
-    src.name_en = fresh(mb.event_name_en, src.name_en);
-    src.name_ar = fresh(mb.event_name_ar, src.name_ar);
-    src.venue = fresh(mb.venue, src.venue);
-    src.venue_ar = fresh(mb.venue_ar, src.venue_ar);
-    src.city = fresh(mb.city, src.city);
-    src.start = fresh(mb.event_start_datetime, src.start);
-    src.end = fresh(mb.event_end_datetime, src.end);
-    src.categories = fresh(mb.all_categories, src.categories);
-    const ovEn = clean(mb.overview_description_en);
-    const dEn = clean(mb.description_en);
-    src.overviews.en = (ovEn && ovEn.length > 3 ? ovEn : dEn || ovEn) || src.overviews.en;
-    src.promo_img = fresh(mb.promo_mob_img, null) || fresh(mb.promo_img, null) || src.promo_img;
+    const ovEn = clean(mb?.overview_description_en ?? null);
+    const dEn = clean(mb?.description_en ?? null);
+    const mbN = mb
+      ? {
+          venue: clean(mb.venue), venue_ar: clean(mb.venue_ar), city: clean(mb.city),
+          start: clean(mb.event_start_datetime), end: clean(mb.event_end_datetime),
+          categories: clean(mb.all_categories), name_en: clean(mb.event_name_en),
+          name_ar: clean(mb.event_name_ar), url: clean(mb.url),
+          overview_en: (ovEn && ovEn.length > 3 ? ovEn : dEn || ovEn),
+          promo_img: clean(mb.promo_mob_img) || clean(mb.promo_img)
+        }
+      : null;
+
+    if (mbN) {
+      const F = (v: string | null, base: string | null) => (v != null && v !== '' ? v : base);
+      src.url = F(mbN.url, src.url);
+      src.name_en = F(mbN.name_en, src.name_en);
+      src.name_ar = F(mbN.name_ar, src.name_ar);
+      src.venue = F(mbN.venue, src.venue);
+      src.venue_ar = F(mbN.venue_ar, src.venue_ar);
+      src.city = F(mbN.city, src.city);
+      src.start = F(mbN.start, src.start);
+      src.end = F(mbN.end, src.end);
+      src.categories = F(mbN.categories, src.categories);
+      src.overviews.en = F(mbN.overview_en, src.overviews.en);
+      src.promo_img = F(mbN.promo_img, null) || src.promo_img;
+    }
+
+    src.compare = {
+      mb_ok: mbN != null,
+      fields: [
+        {label: 'Venue', supabase: sbSnap.venue, metabase: mbN?.venue ?? null},
+        {label: 'Venue (AR)', supabase: sbSnap.venue_ar, metabase: mbN?.venue_ar ?? null},
+        {label: 'City', supabase: sbSnap.city, metabase: mbN?.city ?? null},
+        {label: 'Date from', supabase: sbSnap.start, metabase: mbN?.start ?? null},
+        {label: 'Date to', supabase: sbSnap.end, metabase: mbN?.end ?? null},
+        {label: 'Categories', supabase: sbSnap.categories, metabase: mbN?.categories ?? null},
+        {label: 'Name EN', supabase: sbSnap.name_en, metabase: mbN?.name_en ?? null},
+        {label: 'Name AR', supabase: sbSnap.name_ar, metabase: mbN?.name_ar ?? null},
+        {label: 'URL', supabase: sbSnap.url, metabase: mbN?.url ?? null}
+      ]
+    };
   }
 
   return {
