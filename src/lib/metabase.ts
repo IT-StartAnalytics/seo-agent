@@ -35,7 +35,11 @@ const FIELDS = [
 function cfg() {
   const key = (process.env.METABASE_API_KEY || '').trim();
   if (!key) return null;
-  const base = (process.env.METABASE_URL || 'https://platinumlist.metabaseapp.com').replace(/\/+$/, '');
+  // Ignore a misconfigured METABASE_URL (e.g. a card id pasted into it) and fall back to the
+  // default host, so a bad env value can't produce an unparseable request URL.
+  let base = (process.env.METABASE_URL || '').trim();
+  if (!/^https?:\/\//i.test(base)) base = 'https://platinumlist.metabaseapp.com';
+  base = base.replace(/\/+$/, '');
   const card = (process.env.METABASE_CARD_ID || '38017').trim();
   const tag = (process.env.METABASE_EVENT_ID_TAG || 'event_id').trim();
   const paramId = (process.env.METABASE_EVENT_ID_PARAM_ID || '8cfc2bd3-2653-4545-850c-1776aca3b7b4').trim();
