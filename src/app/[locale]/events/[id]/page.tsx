@@ -200,7 +200,7 @@ export default async function EventDetailPage({
                               : 'bg-red-500/15 text-red-600 dark:text-red-400'
                           }`}
                         >
-                          {data.source.compare.mb_ok ? 'Metabase: live' : 'Metabase: no data'}
+                          {data.source.compare.mb_ok ? 'Metabase: live' : `Metabase: ${data.source.compare.mb_status}`}
                         </span>
                       </div>
                       <div className="mt-3 overflow-x-auto">

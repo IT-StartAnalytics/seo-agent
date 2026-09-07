@@ -46,10 +46,15 @@ export function metabaseEnabled(): boolean {
   return cfg() !== null;
 }
 
-export async function getMetabaseEvent(id: string): Promise<MetabaseEvent | null> {
+// Result wrapper so the UI can show WHY Metabase data is missing (env not set, HTTP error, empty,
+// id mismatch, exception) instead of a silent blank.
+export type MetabaseResult = {status: string; event: MetabaseEvent | null};
+
+export async function getMetabaseEventResult(id: string): Promise<MetabaseResult> {
   const c = cfg();
   const eid = String(id).replace(/[^0-9]/g, '');
-  if (!c || !eid) return null;
+  if (!c) return {status: 'disabled (no METABASE_API_KEY)', event: null};
+  if (!eid) return {status: 'bad id', event: null};
 
   // Same field-filter shape proven in the n8n flow (card 38017).
   const parameters = [
@@ -63,13 +68,13 @@ export async function getMetabaseEvent(id: string): Promise<MetabaseEvent | null
       body: JSON.stringify({parameters}),
       cache: 'no-store'
     });
-    if (!res.ok) return null;
+    if (!res.ok) return {status: `http ${res.status}`, event: null};
     const j = (await res.json().catch(() => null)) as
       | {data?: {cols?: {name: string}[]; rows?: unknown[][]}}
       | null;
     const cols = j?.data?.cols ?? [];
     const rows = j?.data?.rows ?? [];
-    if (!cols.length || !rows.length) return null;
+    if (!cols.length || !rows.length) return {status: 'empty (no rows)', event: null};
 
     const at: Record<string, number> = {};
     cols.forEach((col, i) => {
@@ -85,12 +90,18 @@ export async function getMetabaseEvent(id: string): Promise<MetabaseEvent | null
 
     // Guard against a wrong/blank row: the returned event_id must match the one we asked for.
     const rid = get('event_id');
-    if (rid == null || String(rid).replace(/[^0-9]/g, '') !== eid) return null;
+    if (rid == null || String(rid).replace(/[^0-9]/g, '') !== eid) {
+      return {status: `id mismatch (got ${rid ?? 'null'})`, event: null};
+    }
 
     const out = {event_id: eid} as MetabaseEvent;
     for (const f of FIELDS) (out as Record<string, string | null>)[f] = get(f);
-    return out;
-  } catch {
-    return null;
+    return {status: 'ok', event: out};
+  } catch (e) {
+    return {status: 'error: ' + String((e as Error)?.message || e).slice(0, 80), event: null};
   }
+}
+
+export async function getMetabaseEvent(id: string): Promise<MetabaseEvent | null> {
+  return (await getMetabaseEventResult(id)).event;
 }

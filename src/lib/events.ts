@@ -5,7 +5,7 @@
 
 import {getAllReviews, getReview, type ReviewStatus} from './reviews';
 import type {MetaEdit} from './metaEdits';
-import {getMetabaseEvent} from './metabase';
+import {getMetabaseEventResult} from './metabase';
 
 export type Lang = 'en' | 'ru' | 'ar' | 'fr';
 export const LANGS: Lang[] = ['en', 'ar', 'ru', 'fr'];
@@ -69,6 +69,7 @@ export type EventDetail = {
     friendly_url: string | null;
     compare: {
       mb_ok: boolean;
+      mb_status: string;
       fields: {label: string; supabase: string | null; metabase: string | null}[];
     } | null;
   } | null;
@@ -292,13 +293,14 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
 
-  const [lookup, runs, stream, idx, mb] = await Promise.all([
+  const [lookup, runs, stream, idx, mbRes] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => []),
-    getMetabaseEvent(eid).catch(() => null)
+    getMetabaseEventResult(eid).catch((e) => ({status: 'error: ' + String((e as Error)?.message || e).slice(0, 80), event: null}))
   ]);
+  const mb = mbRes.event;
 
   const lk = lookup[0];
   const META_KEYS = [
@@ -480,6 +482,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
 
     src.compare = {
       mb_ok: mbN != null,
+      mb_status: mbRes.status,
       fields: [
         {label: 'Venue', supabase: sbSnap.venue, metabase: mbN?.venue ?? null},
         {label: 'Venue (AR)', supabase: sbSnap.venue_ar, metabase: mbN?.venue_ar ?? null},
