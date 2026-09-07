@@ -5,6 +5,7 @@
 
 import {getAllReviews, getReview, type ReviewStatus} from './reviews';
 import type {MetaEdit} from './metaEdits';
+import {getMetabaseEvent} from './metabase';
 
 export type Lang = 'en' | 'ru' | 'ar' | 'fr';
 export const LANGS: Lang[] = ['en', 'ar', 'ru', 'fr'];
@@ -287,11 +288,12 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
 
-  const [lookup, runs, stream, idx] = await Promise.all([
+  const [lookup, runs, stream, idx, mb] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => [])
+    sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => []),
+    getMetabaseEvent(eid).catch(() => null)
   ]);
 
   const lk = lookup[0];
@@ -411,6 +413,51 @@ export async function getEventById(id: string): Promise<EventDetail> {
     history.push({date: null, status: null, source: 'admin', langs: admin, event_types: [], performers: []});
   }
 
+  const src = lk
+    ? {
+        url: s(lk, 'url'),
+        name_en: cs(lk, 'event_name_en'),
+        name_ar: cs(lk, 'event_long_name_ar'),
+        venue: cs(lk, 'venue'),
+        venue_ar: cs(lk, 'venue_ar'),
+        city: s(lk, 'city'),
+        country: s(lk, 'country'),
+        start: s(lk, 'event_start_datetime'),
+        end: s(lk, 'event_end_datetime'),
+        overviews: {en: cs(lk, 'overview_description_en'), ar: ovAr, ru: ovRu, fr: ovFr},
+        categories: cs(lk, 'all_categories'),
+        status: s(lk, 'status'),
+        is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
+        title_protection_reason: cs(lk, 'title_protection_reason'),
+        promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img'),
+        friendly_url: friendly
+      }
+    : null;
+
+  // Overlay FRESH source fields from Metabase (no ~3h Supabase mirror delay). Best-effort: only
+  // fields Metabase provides are overlaid; is_title_protected / reason / country / status /
+  // friendly_url stay from Supabase (Metabase has no such columns). Empty Metabase value keeps
+  // the Supabase value. If Metabase is disabled or fails, mb is null and nothing changes.
+  if (src && mb) {
+    const fresh = (v: string | null, base: string | null) => {
+      const c = clean(v);
+      return c != null && c !== '' ? c : base;
+    };
+    src.url = fresh(mb.url, src.url);
+    src.name_en = fresh(mb.event_name_en, src.name_en);
+    src.name_ar = fresh(mb.event_name_ar, src.name_ar);
+    src.venue = fresh(mb.venue, src.venue);
+    src.venue_ar = fresh(mb.venue_ar, src.venue_ar);
+    src.city = fresh(mb.city, src.city);
+    src.start = fresh(mb.event_start_datetime, src.start);
+    src.end = fresh(mb.event_end_datetime, src.end);
+    src.categories = fresh(mb.all_categories, src.categories);
+    const ovEn = clean(mb.overview_description_en);
+    const dEn = clean(mb.description_en);
+    src.overviews.en = (ovEn && ovEn.length > 3 ? ovEn : dEn || ovEn) || src.overviews.en;
+    src.promo_img = fresh(mb.promo_mob_img, null) || fresh(mb.promo_img, null) || src.promo_img;
+  }
+
   return {
     event_id: eid,
     found: Boolean(lk || rn || st),
@@ -419,31 +466,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     indexed,
     live,
     history,
-    source: lk
-      ? {
-          url: s(lk, 'url'),
-          name_en: cs(lk, 'event_name_en'),
-          name_ar: cs(lk, 'event_long_name_ar'),
-          venue: cs(lk, 'venue'),
-          venue_ar: cs(lk, 'venue_ar'),
-          city: s(lk, 'city'),
-          country: s(lk, 'country'),
-          start: s(lk, 'event_start_datetime'),
-          end: s(lk, 'event_end_datetime'),
-          overviews: {
-            en: cs(lk, 'overview_description_en'),
-            ar: ovAr,
-            ru: ovRu,
-            fr: ovFr
-          },
-          categories: cs(lk, 'all_categories'),
-          status: s(lk, 'status'),
-          is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
-          title_protection_reason: cs(lk, 'title_protection_reason'),
-          promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img'),
-          friendly_url: friendly
-        }
-      : null,
+    source: src,
     stream: st
       ? {is_attraction: Boolean(st.is_attraction), seo_done: Boolean(st.seo_done), status: s(st, 'status')}
       : null,
