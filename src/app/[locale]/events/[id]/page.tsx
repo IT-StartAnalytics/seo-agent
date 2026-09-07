@@ -189,56 +189,6 @@ export default async function EventDetailPage({
                     <Row label="URL" value={data.source.url} href={data.source.url} copy />
                   </div>
 
-                  {data.source.compare && (
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span className="text-xs font-semibold text-foreground/60">Source: Supabase (mirror) vs Metabase (live)</span>
-                        <span
-                          className={`text-xs font-medium rounded-full px-2 py-0.5 ${
-                            data.source.compare.mb_ok
-                              ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-                              : 'bg-red-500/15 text-red-600 dark:text-red-400'
-                          }`}
-                        >
-                          {data.source.compare.mb_ok ? 'Metabase: live' : `Metabase: ${data.source.compare.mb_status}`}
-                        </span>
-                      </div>
-                      <div className="mt-3 overflow-x-auto">
-                        <table className="w-full text-sm border-collapse">
-                          <thead>
-                            <tr className="text-left text-xs text-foreground/50">
-                              <th className="py-1 pr-3 font-medium">Field</th>
-                              <th className="py-1 pr-3 font-medium">Supabase (mirror)</th>
-                              <th className="py-1 font-medium">Metabase (live)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {data.source.compare.fields.map((f) => {
-                              const differ = (f.supabase ?? '') !== (f.metabase ?? '');
-                              return (
-                                <tr key={f.label} className="border-t border-black/5 dark:border-white/10 align-top">
-                                  <td className="py-1.5 pr-3 text-foreground/50 whitespace-nowrap">{f.label}</td>
-                                  <td dir="auto" className="py-1.5 pr-3 break-words text-foreground/80">
-                                    {f.supabase || <span className="text-foreground/30">—</span>}
-                                  </td>
-                                  <td
-                                    dir="auto"
-                                    className={`py-1.5 break-words ${differ ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-foreground/80'}`}
-                                  >
-                                    {f.metabase || <span className="text-foreground/30">—</span>}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                      <p className="mt-2 text-xs text-foreground/40">
-                        Amber = Metabase differs from the Supabase mirror. The rows above use the live Metabase value when available.
-                      </p>
-                    </div>
-                  )}
-
                   {runCost && runCost.total > 0 && (
                     <div className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
                       <div className="flex items-center justify-between">

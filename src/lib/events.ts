@@ -5,7 +5,6 @@
 
 import {getAllReviews, getReview, type ReviewStatus} from './reviews';
 import type {MetaEdit} from './metaEdits';
-import {getMetabaseEventResult} from './metabase';
 
 export type Lang = 'en' | 'ru' | 'ar' | 'fr';
 export const LANGS: Lang[] = ['en', 'ar', 'ru', 'fr'];
@@ -67,11 +66,6 @@ export type EventDetail = {
     title_protection_reason: string | null;
     promo_img: string | null;
     friendly_url: string | null;
-    compare: {
-      mb_ok: boolean;
-      mb_status: string;
-      fields: {label: string; supabase: string | null; metabase: string | null}[];
-    } | null;
   } | null;
   indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null;
   live: {updated_at: string | null; langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]} | null;
@@ -293,14 +287,12 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
 
-  const [lookup, runs, stream, idx, mbRes] = await Promise.all([
+  const [lookup, runs, stream, idx] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => []),
-    getMetabaseEventResult(eid).catch((e) => ({status: 'error: ' + String((e as Error)?.message || e).slice(0, 80), event: null}))
+    sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => [])
   ]);
-  const mb = mbRes.event;
 
   const lk = lookup[0];
   const META_KEYS = [
@@ -419,84 +411,6 @@ export async function getEventById(id: string): Promise<EventDetail> {
     history.push({date: null, status: null, source: 'admin', langs: admin, event_types: [], performers: []});
   }
 
-  const src: EventDetail['source'] = lk
-    ? {
-        url: s(lk, 'url'),
-        name_en: cs(lk, 'event_name_en'),
-        name_ar: cs(lk, 'event_long_name_ar'),
-        venue: cs(lk, 'venue'),
-        venue_ar: cs(lk, 'venue_ar'),
-        city: s(lk, 'city'),
-        country: s(lk, 'country'),
-        start: s(lk, 'event_start_datetime'),
-        end: s(lk, 'event_end_datetime'),
-        overviews: {en: cs(lk, 'overview_description_en'), ar: ovAr, ru: ovRu, fr: ovFr},
-        categories: cs(lk, 'all_categories'),
-        status: s(lk, 'status'),
-        is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
-        title_protection_reason: cs(lk, 'title_protection_reason'),
-        promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img'),
-        friendly_url: friendly,
-        compare: null
-      }
-    : null;
-
-  // Snapshot Supabase-origin values, overlay FRESH Metabase values as the primary display, and
-  // expose a Supabase-vs-Metabase comparison for the card. is_title_protected / reason / country /
-  // status / friendly_url always stay from Supabase (Metabase has no such columns). If Metabase is
-  // disabled or fails, mb is null: primary stays Supabase and the Metabase column shows blanks.
-  if (src) {
-    const sbSnap = {
-      venue: src.venue, venue_ar: src.venue_ar, city: src.city,
-      start: src.start, end: src.end, categories: src.categories,
-      name_en: src.name_en, name_ar: src.name_ar, url: src.url,
-      overview_en: src.overviews.en, promo_img: src.promo_img
-    };
-    const ovEn = clean(mb?.overview_description_en ?? null);
-    const dEn = clean(mb?.description_en ?? null);
-    const mbN = mb
-      ? {
-          venue: clean(mb.venue), venue_ar: clean(mb.venue_ar), city: clean(mb.city),
-          start: clean(mb.event_start_datetime), end: clean(mb.event_end_datetime),
-          categories: clean(mb.all_categories), name_en: clean(mb.event_name_en),
-          name_ar: clean(mb.event_name_ar), url: clean(mb.url),
-          overview_en: (ovEn && ovEn.length > 3 ? ovEn : dEn || ovEn),
-          promo_img: clean(mb.promo_mob_img) || clean(mb.promo_img)
-        }
-      : null;
-
-    if (mbN) {
-      const F = (v: string | null, base: string | null) => (v != null && v !== '' ? v : base);
-      src.url = F(mbN.url, src.url);
-      src.name_en = F(mbN.name_en, src.name_en);
-      src.name_ar = F(mbN.name_ar, src.name_ar);
-      src.venue = F(mbN.venue, src.venue);
-      src.venue_ar = F(mbN.venue_ar, src.venue_ar);
-      src.city = F(mbN.city, src.city);
-      src.start = F(mbN.start, src.start);
-      src.end = F(mbN.end, src.end);
-      src.categories = F(mbN.categories, src.categories);
-      src.overviews.en = F(mbN.overview_en, src.overviews.en);
-      src.promo_img = F(mbN.promo_img, null) || src.promo_img;
-    }
-
-    src.compare = {
-      mb_ok: mbN != null,
-      mb_status: mbRes.status,
-      fields: [
-        {label: 'Venue', supabase: sbSnap.venue, metabase: mbN?.venue ?? null},
-        {label: 'Venue (AR)', supabase: sbSnap.venue_ar, metabase: mbN?.venue_ar ?? null},
-        {label: 'City', supabase: sbSnap.city, metabase: mbN?.city ?? null},
-        {label: 'Date from', supabase: sbSnap.start, metabase: mbN?.start ?? null},
-        {label: 'Date to', supabase: sbSnap.end, metabase: mbN?.end ?? null},
-        {label: 'Categories', supabase: sbSnap.categories, metabase: mbN?.categories ?? null},
-        {label: 'Name EN', supabase: sbSnap.name_en, metabase: mbN?.name_en ?? null},
-        {label: 'Name AR', supabase: sbSnap.name_ar, metabase: mbN?.name_ar ?? null},
-        {label: 'URL', supabase: sbSnap.url, metabase: mbN?.url ?? null}
-      ]
-    };
-  }
-
   return {
     event_id: eid,
     found: Boolean(lk || rn || st),
@@ -505,7 +419,31 @@ export async function getEventById(id: string): Promise<EventDetail> {
     indexed,
     live,
     history,
-    source: src,
+    source: lk
+      ? {
+          url: s(lk, 'url'),
+          name_en: cs(lk, 'event_name_en'),
+          name_ar: cs(lk, 'event_long_name_ar'),
+          venue: cs(lk, 'venue'),
+          venue_ar: cs(lk, 'venue_ar'),
+          city: s(lk, 'city'),
+          country: s(lk, 'country'),
+          start: s(lk, 'event_start_datetime'),
+          end: s(lk, 'event_end_datetime'),
+          overviews: {
+            en: cs(lk, 'overview_description_en'),
+            ar: ovAr,
+            ru: ovRu,
+            fr: ovFr
+          },
+          categories: cs(lk, 'all_categories'),
+          status: s(lk, 'status'),
+          is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
+          title_protection_reason: cs(lk, 'title_protection_reason'),
+          promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img'),
+          friendly_url: friendly
+        }
+      : null,
     stream: st
       ? {is_attraction: Boolean(st.is_attraction), seo_done: Boolean(st.seo_done), status: s(st, 'status')}
       : null,
