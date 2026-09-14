@@ -17,21 +17,14 @@ const val = (v: unknown): string => {
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// Render a datetime as a calendar day. Meta only cares about the day, so we drop the time.
-// The live GET API sends dates in LOCAL time WITHOUT a timezone (e.g. "2026-07-11 00:30:00"),
-// so a session near midnight lands on the next calendar day — a 22:30 UTC start reads as 00:30
-// local the following day, and a late show "ends" a few hours after midnight. Both belong to the
-// PREVIOUS day, so for ANY TZ-less value before 06:00 (start OR end) we roll the day back.
-// Values that carry a timezone (baseline is stored as UTC ISO, e.g. "2026-07-10T22:30:00+00:00")
-// are shown by their own day as-is. Parsed from the string directly to avoid TZ reinterpretation.
+// Render a datetime as a calendar day (drop the time). Dates arrive as UTC ISO
+// ("2026-10-09T20:59:59+00:00") — the same day the source DB and the live site show. Read the
+// date part straight from the string so no timezone reinterpretation shifts the day.
 const fmtDay = (v: unknown): string => {
   const s = v == null ? '' : String(v).trim();
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}))?/);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return val(v);
-  const hasTz = /(?:[Zz]|[+-]\d{2}:?\d{2})$/.test(s);
-  const hour = m[4] != null ? Number(m[4]) : 12;
-  let dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
-  if (!hasTz && hour < 6) dt = new Date(dt.getTime() - 86400000);
+  const dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
   return `${dt.getUTCDate()} ${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
 };
 
