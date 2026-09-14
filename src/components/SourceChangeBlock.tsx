@@ -14,28 +14,9 @@ const val = (v: unknown): string => {
   const s = v == null ? '' : String(v).trim();
   return s || '—';
 };
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-// Render a datetime as a calendar day (drop the time). Dates arrive as UTC ISO
-// ("2026-10-09T20:59:59+00:00") — the same day the source DB and the live site show. Read the
-// date part straight from the string so no timezone reinterpretation shifts the day.
-const fmtDay = (v: unknown): string => {
-  const s = v == null ? '' : String(v).trim();
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (!m) return val(v);
-  const dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
-  return `${dt.getUTCDate()} ${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
-};
-
 const dateRange = (d?: {from: unknown; to: unknown}): string => {
   if (!d) return '—';
-  const from = fmtDay(d.from);
-  const to = fmtDay(d.to);
-  const parts = [from, to].filter((x) => x && x !== '—');
-  if (!parts.length) return '—';
-  if (from === to) return from; // single calendar day
-  return parts.join(' → ');
+  return [val(d.from), val(d.to)].filter((x) => x !== '—').join(' → ') || '—';
 };
 
 function Line({label, before, after}: {label: string; before: string; after: string}) {
