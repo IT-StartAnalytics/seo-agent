@@ -9,6 +9,9 @@ import EventRow from './EventRow';
 function statusGroup(status: string | null): string {
   const s = (status ?? '').toLowerCase();
   if (!s) return 'unknown';
+  // Hidden-in-event-guide events are on sale but excluded from the auto-gen queue; give them their
+  // OWN filter group so operators can isolate them (must come before the generic on_sale check).
+  if (s === 'on_sale_and_hidden_in_the_event_guide') return 'hidden_guide';
   if (s.startsWith('on_sale') || s === 'on sale') return 'on_sale';
   if (s === 'coming_soon' || s === 'pre_register') return 'coming';
   if (s === 'event_ended' || /ended|past|expired/.test(s)) return 'ended';
@@ -136,6 +139,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
   const groupLabel = (g: string) => {
     const map: Record<string, string> = {
       on_sale: t('onSale'),
+      hidden_guide: 'Hidden in guide',
       coming: t('comingSoon'),
       ended: t('ended'),
       sold_out: t('soldOut'),
@@ -198,7 +202,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
     ...(queueIds ? [{key: 'queue', label: 'In queue', value: queueIds.length}] : []),
     ...(changedCount > 0 ? [{key: 'source_changed', label: 'Source changed', value: changedCount}] : [])
   ];
-  const statusOptions = buildCards(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
+  const statusOptions = buildCards(['on_sale', 'hidden_guide', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
   // Group 3: indexation. Only the no-index side is offered - that is the case worth hunting for.
   // Always shown, including a zero count: a disappearing option reads as a bug, not as "none".
   const indexOptions = [
@@ -227,7 +231,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
   };
   // Filter groups: AND across groups, OR within a group.
   // e.g. (Not generated) [proc] AND (On sale) [status] -> only events matching both.
-  const STATUS_KEYS = new Set(['on_sale', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
+  const STATUS_KEYS = new Set(['on_sale', 'hidden_guide', 'coming', 'ended', 'sold_out', 'cancelled', 'moderation']);
   const groupOf = (key: string): string =>
     key.startsWith('ni_') ? 'index' : STATUS_KEYS.has(key) ? 'status' : 'proc';
   const matchesActive = (e: CatalogEvent) => {
