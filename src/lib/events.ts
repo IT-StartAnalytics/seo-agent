@@ -519,7 +519,7 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
   const cols = 'event_id,event_name_en,city,country,status,all_categories,url,is_title_protected';
   // Supabase caps responses at ~1000 rows; page through the catalog.
   const offsets = [0, 1000, 2000];
-  const [pages, streamRows, reviews, attrPages, pricePages] = await Promise.all([
+  const [pages, streamRows, reviews, attrPages] = await Promise.all([
     Promise.all(
       offsets.map((off) =>
         sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`, 60)
@@ -531,12 +531,6 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       offsets.map((off) =>
         sb(`seo_event_indexation?select=event_id,is_attraction,is_no_index,ar_no_index,ru_no_index,fr_no_index&order=event_id&limit=1000&offset=${off}`, 60)
       )
-    ),
-    // Price lives only in the source table (needs the service-role key). Fail-soft to no price.
-    Promise.all(
-      offsets.map((off) =>
-        sb(`event_relational_db_all_statuses?select=event_id,min_price,currency&order=event_id&limit=1000&offset=${off}`, 60).catch(() => [] as Row[])
-      )
     )
   ]);
 
@@ -547,19 +541,33 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
     attrMap.set(id, Boolean(r.is_attraction));
     idxMap.set(id, {en: !r.is_no_index, ar: !r.ar_no_index, ru: !r.ru_no_index, fr: !r.fr_no_index});
   }
-  const priceMap = new Map<string, {min_price: number | null; currency: string | null}>();
-  for (const r of pricePages.flat()) {
-    priceMap.set(String(r.event_id), {
-      min_price: r.min_price != null ? Number(r.min_price) : null,
-      currency: r.currency != null ? String(r.currency) : null
-    });
-  }
 
   const newSet = new Set(
     streamRows.filter((r) => r.seo_done !== true).map((r) => String(r.event_id))
   );
   const rows = pages.flat();
   const ids = rows.map((r) => String(r.event_id));
+
+  // Price lives only in the source table (needs the service-role key). Fetch it for EXACTLY the
+  // catalog's event_ids (chunked in.() like the index batch) — paging the whole table by event_id
+  // missed events outside the first pages, so the list said "no price" while the card showed one.
+  const priceMap = new Map<string, {min_price: number | null; currency: string | null}>();
+  {
+    const CHUNK = 200;
+    for (let i = 0; i < ids.length; i += CHUNK) {
+      const chunk = ids.slice(i, i + CHUNK);
+      const pr = await sb(
+        `event_relational_db_all_statuses?select=event_id,min_price,currency&event_id=in.(${chunk.join(',')})`,
+        60
+      ).catch(() => [] as Row[]);
+      for (const r of pr) {
+        priceMap.set(String(r.event_id), {
+          min_price: r.min_price != null ? Number(r.min_price) : null,
+          currency: r.currency != null ? String(r.currency) : null
+        });
+      }
+    }
+  }
 
   const genMap = new Map<string, string>();
   try {
