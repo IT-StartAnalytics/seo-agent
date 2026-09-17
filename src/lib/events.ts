@@ -66,6 +66,8 @@ export type EventDetail = {
     title_protection_reason: string | null;
     promo_img: string | null;
     friendly_url: string | null;
+    min_price: number | null;
+    currency: string | null;
   } | null;
   indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null;
   live: {updated_at: string | null; langs: {lang: string; h1: string | null; meta_title: string | null; meta_description: string | null}[]} | null;
@@ -287,12 +289,17 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
 
-  const [lookup, runs, stream, idx] = await Promise.all([
+  const [lookup, runs, stream, idx, priceRows] = await Promise.all([
     sb(`seo_event_lookup?select=${lookupCols}&event_id=eq.${eid}&limit=1`),
     sb(`seo_agent_runs?select=${runsCols}&event_id=eq.${eid}&meta_title_en=not.is.null&order=finished_at.desc&limit=20`),
     sb(`new_events_stream?select=${streamCols}&event_id=eq.${eid}&limit=1`),
-    sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => [])
+    sb(`seo_event_indexation?select=event_id,is_no_index,ar_no_index,ru_no_index,fr_no_index,overview_description_ar,overview_description_ru,overview_description_fr,is_attraction,meta_title_en,meta_title_ar,meta_description_en,meta_description_ar,live_updated_at,live_h1_en,live_h1_ar&event_id=eq.${eid}&limit=1`).catch(() => []),
+    // Price lives only in the source table (not in seo_event_lookup); needs the service-role key.
+    sb(`event_relational_db_all_statuses?select=event_id,min_price,currency&event_id=eq.${eid}&limit=1`).catch(() => [])
   ]);
+  const priceRow = priceRows[0];
+  const minPrice = priceRow && priceRow.min_price != null ? Number(priceRow.min_price) : null;
+  const currencyVal = priceRow ? s(priceRow, 'currency') : null;
 
   const lk = lookup[0];
   const META_KEYS = [
@@ -441,7 +448,9 @@ export async function getEventById(id: string): Promise<EventDetail> {
           is_title_protected: lk.is_title_protected == null ? null : Boolean(lk.is_title_protected),
           title_protection_reason: cs(lk, 'title_protection_reason'),
           promo_img: s(lk, 'promo_mob_img') || s(lk, 'promo_img'),
-          friendly_url: friendly
+          friendly_url: friendly,
+          min_price: minPrice,
+          currency: currencyVal
         }
       : null,
     stream: st
@@ -502,13 +511,15 @@ export type CatalogEvent = {
   review: ReviewStatus | null;
   url: string | null;
   indexed: {en: boolean; ar: boolean; ru: boolean; fr: boolean} | null;
+  min_price: number | null;
+  currency: string | null;
 };
 
 export async function getCatalog(): Promise<CatalogEvent[]> {
   const cols = 'event_id,event_name_en,city,country,status,all_categories,url,is_title_protected';
   // Supabase caps responses at ~1000 rows; page through the catalog.
   const offsets = [0, 1000, 2000];
-  const [pages, streamRows, reviews, attrPages] = await Promise.all([
+  const [pages, streamRows, reviews, attrPages, pricePages] = await Promise.all([
     Promise.all(
       offsets.map((off) =>
         sb(`seo_event_lookup?select=${cols}&order=event_start_datetime.desc.nullslast&limit=1000&offset=${off}`, 60)
@@ -520,6 +531,12 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       offsets.map((off) =>
         sb(`seo_event_indexation?select=event_id,is_attraction,is_no_index,ar_no_index,ru_no_index,fr_no_index&order=event_id&limit=1000&offset=${off}`, 60)
       )
+    ),
+    // Price lives only in the source table (needs the service-role key). Fail-soft to no price.
+    Promise.all(
+      offsets.map((off) =>
+        sb(`event_relational_db_all_statuses?select=event_id,min_price,currency&order=event_id&limit=1000&offset=${off}`, 60).catch(() => [] as Row[])
+      )
     )
   ]);
 
@@ -529,6 +546,13 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
     const id = String(r.event_id);
     attrMap.set(id, Boolean(r.is_attraction));
     idxMap.set(id, {en: !r.is_no_index, ar: !r.ar_no_index, ru: !r.ru_no_index, fr: !r.fr_no_index});
+  }
+  const priceMap = new Map<string, {min_price: number | null; currency: string | null}>();
+  for (const r of pricePages.flat()) {
+    priceMap.set(String(r.event_id), {
+      min_price: r.min_price != null ? Number(r.min_price) : null,
+      currency: r.currency != null ? String(r.currency) : null
+    });
   }
 
   const newSet = new Set(
@@ -561,7 +585,9 @@ export async function getCatalog(): Promise<CatalogEvent[]> {
       gen_date: genMap.get(String(r.event_id)) ?? null,
       review: reviews.get(String(r.event_id)) ?? null,
       url: s(r, 'url'),
-      indexed: idxMap.get(String(r.event_id)) ?? null
+      indexed: idxMap.get(String(r.event_id)) ?? null,
+      min_price: priceMap.get(String(r.event_id))?.min_price ?? null,
+      currency: priceMap.get(String(r.event_id))?.currency ?? null
     };
   });
 }

@@ -196,8 +196,18 @@ export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: 
           <IndexBadges idx={idx ?? e.indexed} />
         </td>
 
-
-
+        {/* Price (min_price from source; 0/none highlighted) */}
+        <td className="px-3 py-3 whitespace-nowrap text-sm">
+          {e.min_price != null && e.min_price > 0 ? (
+            <span className="text-foreground/85 tabular-nums">
+              {e.min_price}{e.currency ? ` ${e.currency}` : ''}
+            </span>
+          ) : (
+            <span title="No price — {price} would render as 0" className="rounded-full bg-red-500/15 text-red-600 dark:text-red-400 px-2 py-0.5 text-xs font-medium">
+              no price
+            </span>
+          )}
+        </td>
 
         {/* When */}
         <td className="px-3 py-3 whitespace-nowrap text-xs text-foreground/60">{date ?? <span className="text-foreground/30">—</span>}</td>
@@ -217,7 +227,7 @@ export default function EventRow({e, gen, changed, idx}: {e: CatalogEvent; gen: 
 
       {open && gen && (
         <tr className="border-b border-black/5 dark:border-white/10 bg-muted">
-          <td colSpan={6} className="px-4 py-4">
+          <td colSpan={7} className="px-4 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {gen.langs.map((a) => (
                 <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-3">

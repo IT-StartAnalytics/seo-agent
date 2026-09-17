@@ -184,6 +184,7 @@ export default async function EventDetailPage({
                     <Row label={t('city')} value={[data.source.city, data.source.country].filter(Boolean).join(', ') || null} />
                     <Row label={t('colStatus')} value={data.source.status} />
                     <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />
+                    <Row label="Price" value={data.source.min_price != null && data.source.min_price > 0 ? `${data.source.min_price}${data.source.currency ? ' ' + data.source.currency : ''}` : 'no price — {price} renders as 0'} />
                     <Row label={t('categories')} value={data.source.categories} />
                     <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
                     <Row label="URL" value={data.source.url} href={data.source.url} copy />

@@ -152,7 +152,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
 
   // Counts for the cards
   const counts = useMemo(() => {
-    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0, generated: 0, not_generated: 0, review_pending: 0, approved: 0, rejected: 0, ni_en: 0, ni_ar: 0, ni_ru: 0, ni_fr: 0};
+    const c: Record<string, number> = {all: events.length, new: 0, attractions: 0, generated: 0, not_generated: 0, review_pending: 0, approved: 0, rejected: 0, no_price: 0, ni_en: 0, ni_ar: 0, ni_ru: 0, ni_fr: 0};
     for (const e of events) {
       // indexed === null means the event is absent from seo_event_indexation, i.e. UNKNOWN.
       // Unknown must never be counted as no-index, otherwise the filter invents restrictions.
@@ -170,6 +170,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
       if (e.review === 'approved') c.approved++;
       else if (e.review === 'rejected') c.rejected++;
       if (e.is_generated && !e.review) c.review_pending++;
+      if (e.min_price == null || e.min_price === 0) c.no_price++;
       const g = statusGroup(e.status);
       c[g] = (c[g] ?? 0) + 1;
     }
@@ -191,6 +192,8 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
       ? t('approved')
       : k === 'rejected'
       ? t('rejected')
+      : k === 'no_price'
+      ? 'No price'
       : groupLabel(k);
   const buildCards = (order: string[]) =>
     order
@@ -198,7 +201,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
       .map((k) => ({key: k, label: cardLabel(k), value: counts[k] ?? 0}));
   // Group 1: processing (SEO workflow). Group 2: sale status.
   const procOptions = [
-    ...buildCards(['generated', 'not_generated', 'review_pending', 'approved']),
+    ...buildCards(['generated', 'not_generated', 'review_pending', 'approved', 'no_price']),
     ...(queueIds ? [{key: 'queue', label: 'In queue', value: queueIds.length}] : []),
     ...(changedCount > 0 ? [{key: 'source_changed', label: 'Source changed', value: changedCount}] : [])
   ];
@@ -220,6 +223,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
     if (key === 'approved') return e.review === 'approved';
     if (key === 'rejected') return e.review === 'rejected';
     if (key === 'review_pending') return e.is_generated && !e.review;
+    if (key === 'no_price') return e.min_price == null || e.min_price === 0;
     if (key === 'queue') return queueSet.has(e.event_id);
     if (key === 'source_changed') return changedSet.has(e.event_id);
     if (key.startsWith('ni_')) {
@@ -458,6 +462,7 @@ export default function EventsBrowser({events, queueIds, changedIds}: {events: C
               <th className="w-[150px] px-3 py-2.5 font-medium">{t('colStatus')}</th>
               <th className="w-[150px] px-3 py-2.5 font-medium">{t('colGeneration')}</th>
               <th className="w-[150px] px-3 py-2.5 font-medium">{t('colIndex')}</th>
+              <th className="w-[110px] px-3 py-2.5 font-medium">Price</th>
               <th className="w-[170px] px-3 py-2.5 font-medium">
                 <button onClick={() => toggleSort('date')} className="inline-flex items-center gap-1 hover:text-foreground">
                   {t('colWhen')}
