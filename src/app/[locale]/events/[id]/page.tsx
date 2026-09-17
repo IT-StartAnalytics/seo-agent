@@ -48,8 +48,12 @@ function mergeHistory(history: MetaVersion[], manual: {created_at: string; langs
 
 export const dynamic = 'force-dynamic';
 
-function Row({label, value, href, copy}: {label: string; value: string | null; href?: string | null; copy?: boolean}) {
+function Row({label, value, href, copy, tone}: {label: string; value: string | null; href?: string | null; copy?: boolean; tone?: 'danger'}) {
   if (!value) return null;
+  const valueClass =
+    tone === 'danger'
+      ? 'inline-flex items-center rounded-md bg-red-500/15 text-red-600 dark:text-red-400 px-2 py-0.5 font-medium break-words'
+      : 'text-foreground/85 break-words';
   return (
     <div className="flex gap-3 py-1.5 text-sm border-b border-black/5 dark:border-white/10 last:border-0">
       <span className="w-32 shrink-0 text-foreground/50">{label}</span>
@@ -59,7 +63,7 @@ function Row({label, value, href, copy}: {label: string; value: string | null; h
             {value}
           </a>
         ) : (
-          <span className="text-foreground/85 break-words">{value}</span>
+          <span className={valueClass}>{value}</span>
         )}
         {copy && <CopyButton text={value} />}
       </span>
@@ -184,7 +188,11 @@ export default async function EventDetailPage({
                     <Row label={t('city')} value={[data.source.city, data.source.country].filter(Boolean).join(', ') || null} />
                     <Row label={t('colStatus')} value={data.source.status} />
                     <Row label={t('dates')} value={[data.source.start, data.source.end].filter(Boolean).join(' → ') || null} />
-                    <Row label="Price" value={data.source.min_price != null && data.source.min_price > 0 ? `${data.source.min_price}${data.source.currency ? ' ' + data.source.currency : ''}` : 'no price — {price} renders as 0'} />
+                    <Row
+                      label="Price"
+                      value={data.source.min_price != null && data.source.min_price > 0 ? `${data.source.min_price}${data.source.currency ? ' ' + data.source.currency : ''}` : 'no price — {price} renders as 0'}
+                      tone={data.source.min_price != null && data.source.min_price > 0 ? undefined : 'danger'}
+                    />
                     <Row label={t('categories')} value={data.source.categories} />
                     <Row label={t('titleProtected')} value={data.source.is_title_protected ? (data.source.title_protection_reason || 'yes') : null} />
                     <Row label="URL" value={data.source.url} href={data.source.url} copy />
