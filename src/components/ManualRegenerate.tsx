@@ -3,12 +3,13 @@
 import {useEffect, useState} from 'react';
 import {useRouter} from '@/i18n/navigation';
 
-const LANGS = [
+const BASE_LANGS = [
   {k: 'en', label: 'EN'},
   {k: 'ar', label: 'AR'},
   {k: 'ru', label: 'RU'},
   {k: 'fr', label: 'FR'}
 ];
+const EL_LANG = {k: 'el', label: 'EL'};   // Greek - Cyprus events only
 
 const MODELS = ['GPT-4.1', 'GPT-4.1 mini', 'GPT-4o', 'GPT-4o mini', 'GPT-5 mini', 'GPT-5.2 mini', 'GPT-5.4 mini'];
 
@@ -35,11 +36,12 @@ function ResultField({label, value, rtl, limit, tall}: {label: string; value: st
   );
 }
 
-export default function ManualRegenerate({eventId}: {eventId?: string}) {
+export default function ManualRegenerate({eventId, showEl}: {eventId?: string; showEl?: boolean}) {
   const router = useRouter();
+  const LANGS = showEl ? [...BASE_LANGS, EL_LANG] : BASE_LANGS;
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState(MODELS[0]);
-  const [langs, setLangs] = useState<Set<string>>(new Set(['en', 'ar', 'ru', 'fr']));
+  const [langs, setLangs] = useState<Set<string>>(new Set(showEl ? ['en', 'ar', 'ru', 'fr', 'el'] : ['en', 'ar', 'ru', 'fr']));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenLang[] | null>(null);

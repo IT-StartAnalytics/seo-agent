@@ -5,7 +5,7 @@ import type {MetaVersion} from '@/lib/events';
 import CopyButton from './CopyButton';
 import SendArtistsButton from './SendArtistsButton';
 
-const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR'};
+const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR', el: 'EL'};
 
 // Read-only field that mirrors the Edit-tab inputs (same boxed look + char counter),
 // so meta blocks look identical across tabs; only the Edit tab is actually editable.

@@ -2,7 +2,7 @@ import {setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import ManualRegenerate from '@/components/ManualRegenerate';
 import {Link} from '@/i18n/navigation';
-import {getEventById, type EventDetail} from '@/lib/events';
+import {getEventById, isCyprusEvent, type EventDetail} from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +41,7 @@ export default async function ManualRegeneratePage({
         </p>
 
         <div className="mt-7">
-          <ManualRegenerate eventId={id} />
+          <ManualRegenerate eventId={id} showEl={isCyprusEvent(data?.source?.country, data?.source?.url)} />
         </div>
       </main>
     </>

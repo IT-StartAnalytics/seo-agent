@@ -4,7 +4,7 @@ import ReviewButtons from '@/components/ReviewButtons';
 import CopyButton from '@/components/CopyButton';
 import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
-import {getEventById, h1Lock, type EventDetail} from '@/lib/events';
+import {getEventById, h1Lock, isCyprusEvent, type EventDetail} from '@/lib/events';
 import {getMetaEdits, getPublishHistory} from '@/lib/metaEdits';
 import {getLatestUnresolvedChange} from '@/lib/monitor';
 import {getEventCost} from '@/lib/aiUsage';
@@ -218,7 +218,7 @@ export default async function EventDetailPage({
                   )}
 
                   {(data.history.length > 0 || (data.live?.langs.length ?? 0) > 0) && (
-                    <MetaTabs versions={combinedHistory} indexed={data.indexed} eventId={data.event_id} eventUrl={data.source.url ?? ''} live={data.live} savedEdits={savedEdits} />
+                    <MetaTabs versions={combinedHistory} indexed={data.indexed} eventId={data.event_id} eventUrl={data.source.url ?? ''} live={data.live} savedEdits={savedEdits} showEl={isCyprusEvent(data.source.country, data.source.url)} />
                   )}
 
                   {ovLangs.length > 0 && (

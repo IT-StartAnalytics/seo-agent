@@ -7,7 +7,7 @@ import MetaEditor from './MetaEditor';
 import RegenerateButton from './RegenerateButton';
 import type {MetaVersion} from '@/lib/events';
 
-const LBL: Record<string, string> = {en: 'EN', ar: 'AR', ru: 'RU', fr: 'FR'};
+const LBL: Record<string, string> = {en: 'EN', ar: 'AR', ru: 'RU', fr: 'FR', el: 'EL'};
 
 type Live = {
   updated_at: string | null;
@@ -53,7 +53,8 @@ export default function MetaTabs({
   eventId,
   eventUrl,
   live: liveInit,
-  savedEdits
+  savedEdits,
+  showEl
 }: {
   versions: MetaVersion[];
   indexed?: Record<string, boolean> | null;
@@ -61,6 +62,7 @@ export default function MetaTabs({
   eventUrl?: string;
   live: Live;
   savedEdits?: Record<string, {h1: string | null; meta_title: string | null; meta_description: string | null}>;
+  showEl?: boolean;
 }) {
   const t = useTranslations('Events');
   const [tab, setTab] = useState<'gen' | 'live' | 'edit'>('gen');
@@ -161,7 +163,7 @@ export default function MetaTabs({
           <p className="text-sm text-foreground/55">{t('noGeneratedMeta')}</p>
         )
       ) : tab === 'edit' ? (
-        <MetaEditor eventId={eventId} selectedVersion={cur} versionKey={idx} live={live} savedEdits={savedEdits} />
+        <MetaEditor eventId={eventId} selectedVersion={cur} versionKey={idx} live={live} savedEdits={savedEdits} showEl={showEl} />
       ) : (
         <div>
           <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">

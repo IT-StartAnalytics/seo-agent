@@ -4,11 +4,13 @@ import {useEffect, useRef, useState} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import type {MetaVersion} from '@/lib/events';
 
-const LANGS = [
+// Greek (EL) is shown only for Cyprus events or when an EL value already exists.
+const ALL_LANGS = [
   {k: 'en', label: 'EN'},
   {k: 'ar', label: 'AR'},
   {k: 'ru', label: 'RU'},
-  {k: 'fr', label: 'FR'}
+  {k: 'fr', label: 'FR'},
+  {k: 'el', label: 'EL'}
 ];
 
 type Lang = {h1: string; meta_title: string; meta_description: string};
@@ -30,13 +32,15 @@ export default function MetaEditor({
   selectedVersion,
   versionKey,
   live,
-  savedEdits
+  savedEdits,
+  showEl
 }: {
   eventId?: string;
   selectedVersion?: MetaVersion | null;
   versionKey?: string | number;
   live: Live;
   savedEdits?: SavedEdits;
+  showEl?: boolean;
 }) {
   const selMap: Record<string, {h1: string | null; meta_title: string | null; meta_description: string | null}> = {};
   selectedVersion?.langs.forEach((a) => {
@@ -47,6 +51,12 @@ export default function MetaEditor({
     liveMap[a.lang] = a;
   });
 
+  const hasEl = (m?: {h1: string | null; meta_title: string | null; meta_description: string | null}) =>
+    !!(m && (m.h1 || m.meta_title || m.meta_description));
+  const LANGS = ALL_LANGS.filter(
+    (l) => l.k !== 'el' || showEl || hasEl(savedEdits?.el) || hasEl(selMap.el) || hasEl(liveMap.el)
+  );
+
   // Initial prefill: saved draft -> selected history version -> live.
   function base(lang: string, field: 'h1' | 'meta_title' | 'meta_description'): string {
     return savedEdits?.[lang]?.[field] ?? selMap[lang]?.[field] ?? liveMap[lang]?.[field] ?? '';
@@ -54,7 +64,7 @@ export default function MetaEditor({
 
   const [form, setForm] = useState<Record<string, Lang>>(() => {
     const f: Record<string, Lang> = {};
-    for (const {k} of LANGS) {
+    for (const {k} of ALL_LANGS) {
       f[k] = {h1: base(k, 'h1'), meta_title: base(k, 'meta_title'), meta_description: base(k, 'meta_description')};
     }
     return f;
@@ -106,7 +116,7 @@ export default function MetaEditor({
     }
     setForm(() => {
       const f: Record<string, Lang> = {};
-      for (const {k} of LANGS) {
+      for (const {k} of ALL_LANGS) {
         f[k] = {
           h1: selMap[k]?.h1 ?? liveMap[k]?.h1 ?? '',
           meta_title: selMap[k]?.meta_title ?? liveMap[k]?.meta_title ?? '',
