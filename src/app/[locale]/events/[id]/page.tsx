@@ -2,6 +2,7 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import ReviewButtons from '@/components/ReviewButtons';
 import CopyButton from '@/components/CopyButton';
+import {LangLabel} from '@/components/LangFlag';
 import MetaTabs from '@/components/MetaTabs';
 import {Link} from '@/i18n/navigation';
 import {getEventById, h1Lock, isCyprusEvent, type EventDetail} from '@/lib/events';
@@ -229,7 +230,7 @@ export default async function EventDetailPage({
                           const val = overviews[l] as string;
                           return (
                             <div key={l} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                              <div className="text-xs font-semibold text-foreground/60">{OV_LABEL[l]}</div>
+                              <div className="text-xs font-semibold text-foreground/60"><LangLabel lang={l} label={OV_LABEL[l]} /></div>
                               <div className="mt-2">
                                 <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-foreground">
                                   <span>Overview Description</span>
