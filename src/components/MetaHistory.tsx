@@ -3,6 +3,7 @@
 import {useTranslations} from 'next-intl';
 import type {MetaVersion} from '@/lib/events';
 import CopyButton from './CopyButton';
+import {LangLabel} from './LangFlag';
 import SendArtistsButton from './SendArtistsButton';
 
 const LANG_LABEL: Record<string, string> = {en: 'EN', ru: 'RU', ar: 'AR', fr: 'FR', es: 'ES', el: 'EL'};
@@ -66,7 +67,7 @@ export default function MetaHistory({
         {v.langs.map((a) => (
           <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-semibold text-foreground/60">{LANG_LABEL[a.lang] ?? a.lang.toUpperCase()}</div>
+              <div className="text-xs font-semibold text-foreground/60"><LangLabel lang={a.lang} label={LANG_LABEL[a.lang] ?? a.lang.toUpperCase()} /></div>
               {indexed && indexed[a.lang] !== undefined && (
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${

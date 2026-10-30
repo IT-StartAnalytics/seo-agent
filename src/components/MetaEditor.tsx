@@ -2,6 +2,7 @@
 
 import {useEffect, useRef, useState} from 'react';
 import {useRouter} from '@/i18n/navigation';
+import {LangLabel} from './LangFlag';
 import type {MetaVersion} from '@/lib/events';
 
 // Greek (EL) is shown only for Cyprus events or when an EL value already exists.
@@ -215,7 +216,7 @@ export default function MetaEditor({
           const f = form[k];
           return (
             <div key={k} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4 space-y-3">
-              <div className="text-xs font-semibold text-foreground/60">{label}</div>
+              <div className="text-xs font-semibold text-foreground/60"><LangLabel lang={k} label={label} /></div>
 
               <div>
                 <FieldHead label="H1" len={[...f.h1].length} />

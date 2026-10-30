@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from 'react';
 import {useRouter} from '@/i18n/navigation';
+import {LangLabel} from './LangFlag';
 
 const BASE_LANGS = [
   {k: 'en', label: 'EN'},
@@ -264,7 +265,7 @@ export default function ManualRegenerate({eventId, showEl}: {eventId?: string; s
                         : 'border-black/15 dark:border-white/20 text-foreground/55 hover:text-foreground'
                     }`}
                   >
-                    {l.label}
+                    <LangLabel lang={l.k} label={l.label} />
                   </button>
                 );
               })}
@@ -314,7 +315,7 @@ export default function ManualRegenerate({eventId, showEl}: {eventId?: string; s
           <div className="grid gap-4 sm:grid-cols-2">
             {selectedKeys.map((k) => (
               <div key={k} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4">
-                <div className="text-xs font-semibold text-foreground/60">{k.toUpperCase()}</div>
+                <div className="text-xs font-semibold text-foreground/60"><LangLabel lang={k} /></div>
                 {['H1', 'Meta Title', 'Meta Description'].map((field) => (
                   <div key={field} className="mt-2">
                     <div className="text-xs uppercase tracking-wide text-foreground/45">{field}</div>
@@ -331,7 +332,7 @@ export default function ManualRegenerate({eventId, showEl}: {eventId?: string; s
           <div className="grid gap-4 sm:grid-cols-2">
             {result.map((a) => (
               <div key={a.lang} className="rounded-xl border border-black/10 dark:border-white/10 bg-card p-4 space-y-1">
-                <div className="text-xs font-semibold text-foreground/60">{a.lang.toUpperCase()}</div>
+                <div className="text-xs font-semibold text-foreground/60"><LangLabel lang={a.lang} /></div>
                 <ResultField label="H1" value={a.h1} rtl={a.lang === 'ar'} />
                 <ResultField label="Meta Title" value={a.meta_title} rtl={a.lang === 'ar'} limit={60} />
                 <ResultField label="Meta Description" value={a.meta_description} rtl={a.lang === 'ar'} limit={250} tall />
