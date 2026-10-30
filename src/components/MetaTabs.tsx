@@ -7,7 +7,7 @@ import MetaEditor from './MetaEditor';
 import RegenerateButton from './RegenerateButton';
 import type {MetaVersion} from '@/lib/events';
 
-const LBL: Record<string, string> = {en: 'EN', ar: 'AR', ru: 'RU', fr: 'FR', el: 'EL'};
+const LBL: Record<string, string> = {en: 'EN', ar: 'AR', ru: 'RU', fr: 'FR', es: 'ES', el: 'EL'};
 
 type Live = {
   updated_at: string | null;

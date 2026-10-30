@@ -7,7 +7,8 @@ const BASE_LANGS = [
   {k: 'en', label: 'EN'},
   {k: 'ar', label: 'AR'},
   {k: 'ru', label: 'RU'},
-  {k: 'fr', label: 'FR'}
+  {k: 'fr', label: 'FR'},
+  {k: 'es', label: 'ES'}
 ];
 const EL_LANG = {k: 'el', label: 'EL'};   // Greek - Cyprus events only
 
@@ -41,7 +42,7 @@ export default function ManualRegenerate({eventId, showEl}: {eventId?: string; s
   const LANGS = showEl ? [...BASE_LANGS, EL_LANG] : BASE_LANGS;
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState(MODELS[0]);
-  const [langs, setLangs] = useState<Set<string>>(new Set(showEl ? ['en', 'ar', 'ru', 'fr', 'el'] : ['en', 'ar', 'ru', 'fr']));
+  const [langs, setLangs] = useState<Set<string>>(new Set(showEl ? ['en', 'ar', 'ru', 'fr', 'es', 'el'] : ['en', 'ar', 'ru', 'fr', 'es']));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenLang[] | null>(null);

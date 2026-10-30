@@ -10,6 +10,7 @@ const ALL_LANGS = [
   {k: 'ar', label: 'AR'},
   {k: 'ru', label: 'RU'},
   {k: 'fr', label: 'FR'},
+  {k: 'es', label: 'ES'},
   {k: 'el', label: 'EL'}
 ];
 

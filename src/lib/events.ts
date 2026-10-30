@@ -6,8 +6,8 @@
 import {getAllReviews, getReview, type ReviewStatus} from './reviews';
 import type {MetaEdit} from './metaEdits';
 
-export type Lang = 'en' | 'ru' | 'ar' | 'fr' | 'el';
-export const LANGS: Lang[] = ['en', 'ar', 'ru', 'fr', 'el'];
+export type Lang = 'en' | 'ru' | 'ar' | 'fr' | 'es' | 'el';
+export const LANGS: Lang[] = ['en', 'ar', 'ru', 'fr', 'es', 'el'];
 
 // Greek (el) meta is generated only for Cyprus events (country = Cyprus or a cyprus.* URL).
 export function isCyprusEvent(country: string | null | undefined, url?: string | null): boolean {
@@ -240,9 +240,9 @@ function shapeGenerated(r: Row): GeneratedMeta {
     event_types: arr(r, 'event_types'),
     performers: arr(r, 'performers'),
     generated_langs: arr(r, 'generated_langs'),
-    h1: {en: cs(r, 'h1_en'), ru: cs(r, 'h1_ru'), ar: cs(r, 'h1_ar'), fr: cs(r, 'h1_fr'), el: cs(r, 'h1_el')},
-    meta_title: {en: cs(r, 'meta_title_en'), ru: cs(r, 'meta_title_ru'), ar: cs(r, 'meta_title_ar'), fr: cs(r, 'meta_title_fr'), el: cs(r, 'meta_title_el')},
-    meta_description: {en: cs(r, 'meta_desc_en'), ru: cs(r, 'meta_desc_ru'), ar: cs(r, 'meta_desc_ar'), fr: cs(r, 'meta_desc_fr'), el: cs(r, 'meta_desc_el')}
+    h1: {en: cs(r, 'h1_en'), ru: cs(r, 'h1_ru'), ar: cs(r, 'h1_ar'), fr: cs(r, 'h1_fr'), es: cs(r, 'h1_es'), el: cs(r, 'h1_el')},
+    meta_title: {en: cs(r, 'meta_title_en'), ru: cs(r, 'meta_title_ru'), ar: cs(r, 'meta_title_ar'), fr: cs(r, 'meta_title_fr'), es: cs(r, 'meta_title_es'), el: cs(r, 'meta_title_el')},
+    meta_description: {en: cs(r, 'meta_desc_en'), ru: cs(r, 'meta_desc_ru'), ar: cs(r, 'meta_desc_ar'), fr: cs(r, 'meta_desc_fr'), es: cs(r, 'meta_desc_es'), el: cs(r, 'meta_desc_el')}
   };
 }
 
@@ -291,7 +291,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
   const runsCols =
     'event_id,status,published,finished_at,event_types,performers,generated_langs,source_input,models_used,' +
     'h1_en,meta_title_en,meta_desc_en,h1_ru,meta_title_ru,meta_desc_ru,' +
-    'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr,h1_el,meta_title_el,meta_desc_el';
+    'h1_ar,meta_title_ar,meta_desc_ar,h1_fr,meta_title_fr,meta_desc_fr,h1_es,meta_title_es,meta_desc_es,h1_el,meta_title_el,meta_desc_el';
   const streamCols = 'event_id,is_attraction,seo_done,status,raw_payload';
 
   const [lookup, runs, stream, idx, priceRows] = await Promise.all([
@@ -312,6 +312,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
     'h1_ar', 'meta_title_ar', 'meta_desc_ar',
     'h1_ru', 'meta_title_ru', 'meta_desc_ru',
     'h1_fr', 'meta_title_fr', 'meta_desc_fr',
+    'h1_es', 'meta_title_es', 'meta_desc_es',
     'h1_el', 'meta_title_el', 'meta_desc_el'
   ];
   const hasContent = (r: Row) => META_KEYS.some((k) => r[k] != null && String(r[k]).trim() !== '');
@@ -371,7 +372,7 @@ export async function getEventById(id: string): Promise<EventDetail> {
       if (m) adminLangs.add(m[1]);
     }
   }
-  const langPref = ['en', 'ar', 'ru', 'fr', 'el'];
+  const langPref = ['en', 'ar', 'ru', 'fr', 'es', 'el'];
   let admin =
     adminLangs.size > 0
       ? Array.from(adminLangs)
@@ -630,6 +631,7 @@ const GEN_COLS = [
   'h1_ar', 'meta_title_ar', 'meta_desc_ar',
   'h1_ru', 'meta_title_ru', 'meta_desc_ru',
   'h1_fr', 'meta_title_fr', 'meta_desc_fr',
+  'h1_es', 'meta_title_es', 'meta_desc_es',
   'h1_el', 'meta_title_el', 'meta_desc_el'
 ].join(',');
 
